@@ -1,5 +1,6 @@
 ﻿import flash.geom.Point;
 import flash.geom.Rectangle;
+import org.flashNight.naki.Sort.*;
 
 
 //输入点与影片剪辑的引用，将点坐标从该影片剪辑转换到gameworld
@@ -430,10 +431,9 @@ _root.凸包Graham扫描 = function(点集)
 		}
 	}
 
-	点集.sort(function (a, b)
-	{
-	return Math.atan2(a.y - 最低点.y, a.x - 最低点.x) - Math.atan2(b.y - 最低点.y, b.x - 最低点.x);
-	});// 按照相对于最低点的极角排序
+	点集 = InsertionSort.sort(点集, function (a, b) {
+		return Math.atan2(a.y - 最低点.y, a.x - 最低点.x) - Math.atan2(b.y - 最低点.y, b.x - 最低点.x);
+	});
 
 	var 凸包 = [点集[0], 点集[1]];
 	for (var i = 2; i < len; i++)

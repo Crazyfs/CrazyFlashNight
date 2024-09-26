@@ -1,4 +1,5 @@
-﻿_root.preloaders.push(function()
+﻿import org.flashNight.naki.Sort.*;
+_root.preloaders.push(function()
 {
     this.items_xmls_list = new XML();
     this.items_xmls_list.ignoreWhite = true;
@@ -70,5 +71,7 @@ _root.loaders.push(function ()
             _root.物品最大id = Number(key0);
         }
     }
-    _root.物品id数组 = _root.物品id数组.sort(Array.NUMERIC);
+    _root.物品id数组 = QuickSort.adaptiveSort(_root.物品id数组, function(a, b) {
+        return a - b; // Numeric comparison
+    });
 });
