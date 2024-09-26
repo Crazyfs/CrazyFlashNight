@@ -1,5 +1,5 @@
 ﻿import org.flashNight.sara.util.*;
-
+import org.flashNight.naki.RandomNumberEngine.*;
 
 _root.弹壳系统 = {};
 
@@ -33,10 +33,10 @@ _root.弹壳系统.弹壳物理运动 = function(弹壳) {
 
 // 物理模拟函数
 _root.弹壳系统.弹壳物理模拟 = function(弹壳) {
-
-    弹壳.水平速度 = _root.随机浮点偏移(4);
-    弹壳.垂直速度 = _root.随机浮点(-8, -20);
-    弹壳.旋转速度 = _root.随机浮点(-10, 10); 
+    var engine = LinearCongruentialEngine.getInstance();
+    弹壳.水平速度 = engine.randomFloatOffset(4);
+    弹壳.垂直速度 = engine.randomFloat(-8, -20);
+    弹壳.旋转速度 = engine.randomFloat(-10, 10);
     弹壳.Z轴坐标 = 弹壳._y + 100;
     弹壳.swapDepths(弹壳.Z轴坐标);
     弹壳.任务ID = _root.帧计时器.添加生命周期任务(弹壳, "运动", this.弹壳物理运动, 33, 弹壳); // 2帧1动让视觉更柔和
