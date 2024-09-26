@@ -2186,4 +2186,31 @@
             </SubDialogue>
         </Dialogue>
         </Dialogues>
+    <Dialogues>
+        <Name>director</Name>
+        <Dialogue id="0">
+            <SubDialogue id="0">
+                <Name>director</Name>
+                <Title>政治部主任</Title>
+                <Char>director</Char>
+                <Text>统合政府的路线是正确的，但这不代表那群临时政府也是正确的。</Text>
+            </SubDialogue>
+        </Dialogue>
+        <Dialogue id="1">
+            <SubDialogue id="0">
+                <Name>director</Name>
+                <Title>政治部主任</Title>
+                <Char>director</Char>
+                <Text>意识形态的忠诚保障了军队的士气。</Text>
+            </SubDialogue>
+        </Dialogue>
+        <Dialogue id="2">
+            <SubDialogue id="0">
+                <Name>director</Name>
+                <Title>政治部主任</Title>
+                <Char>director</Char>
+                <Text>军队体制改革势在必行···</Text>
+            </SubDialogue>
+        </Dialogue>
+    </Dialogues>
 </root>
