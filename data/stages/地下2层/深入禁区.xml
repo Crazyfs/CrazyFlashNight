@@ -1,0 +1,148 @@
+<?xml version='1.0' encoding='utf-8'?>
+<GameStage>
+    <StageInfo>
+        <Type>初期关卡</Type>
+        <Name>深入禁区</Name>
+        <FadeTransitionFrame>关卡24-1</FadeTransitionFrame>
+        <UnlockCondition>24</UnlockCondition>
+        <Description>机器人已经将此地变为一片焦土，没有任何人敢接近那里，也没有任何人进去了那里还能回来，甚至连完整的尸体都找不到。。。&amp;lt;BR&amp;gt;这里可以获得各种材料，但几乎没有人能获得。</Description>
+        <MaterialDetail>弹簧&amp;lt;BR&amp;gt;上色涂料&amp;lt;BR&amp;gt;增效剂&amp;lt;BR&amp;gt;可塑式钢板&amp;lt;BR&amp;gt;战术导轨&amp;lt;BR&amp;gt;螺丝套件&amp;lt;BR&amp;gt;小型液晶屏&amp;lt;BR&amp;gt;防沙皮革&amp;lt;BR&amp;gt;烈性火药&amp;lt;BR&amp;gt;生物催化剂&amp;lt;BR&amp;gt;不锈钢材&amp;lt;BR&amp;gt;高强度合金&amp;lt;BR&amp;gt;枪械内构强化套件&amp;lt;BR&amp;gt;镭射瞄准具&amp;lt;BR&amp;gt;碳纤维布料&amp;lt;BR&amp;gt;战术握把&amp;lt;BR&amp;gt;突击型光学瞄具&amp;lt;BR&amp;gt;水冷机构</MaterialDetail>
+    </StageInfo>
+    <Rewards>
+        <Reward id="0">
+            <Name>抗生素</Name>
+            <AcquisitionProbability>8</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="1">
+            <Name>普通hp药剂</Name>
+            <AcquisitionProbability>5</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="2">
+            <Name>普通mp药剂</Name>
+            <AcquisitionProbability>5</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="3">
+            <Name>突击步枪通用弹药</Name>
+            <AcquisitionProbability>5</AcquisitionProbability>
+            <QuantityMax>3</QuantityMax>
+        </Reward>
+        <Reward id="4">
+            <Name>手枪通用弹药</Name>
+            <AcquisitionProbability>5</AcquisitionProbability>
+            <QuantityMax>3</QuantityMax>
+        </Reward>
+        <Reward id="5">
+            <Name>冲锋枪通用弹药</Name>
+            <AcquisitionProbability>8</AcquisitionProbability>
+            <QuantityMax>3</QuantityMax>
+        </Reward>
+        <Reward id="6">
+            <Name>12号霰弹弹药</Name>
+            <AcquisitionProbability>5</AcquisitionProbability>
+            <QuantityMax>3</QuantityMax>
+        </Reward>
+        <Reward id="7">
+            <Name>突击步枪通用弹药</Name>
+            <AcquisitionProbability>5</AcquisitionProbability>
+            <QuantityMax>3</QuantityMax>
+        </Reward>
+        <Reward id="8">
+            <Name>普通hp粉尘</Name>
+            <AcquisitionProbability>10</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="9">
+            <Name>弹簧</Name>
+            <AcquisitionProbability>8</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="10">
+            <Name>上色涂料</Name>
+            <AcquisitionProbability>8</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="11">
+            <Name>增效剂</Name>
+            <AcquisitionProbability>8</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="12">
+            <Name>可塑式钢板</Name>
+            <AcquisitionProbability>8</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="13">
+            <Name>战术导轨</Name>
+            <AcquisitionProbability>8</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="14">
+            <Name>螺丝套件</Name>
+            <AcquisitionProbability>8</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="15">
+            <Name>小型液晶屏</Name>
+            <AcquisitionProbability>28</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="16">
+            <Name>防沙皮革</Name>
+            <AcquisitionProbability>28</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="17">
+            <Name>烈性火药</Name>
+            <AcquisitionProbability>28</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="18">
+            <Name>生物催化剂</Name>
+            <AcquisitionProbability>28</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="19">
+            <Name>不锈钢材</Name>
+            <AcquisitionProbability>28</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="20">
+            <Name>高强度合金</Name>
+            <AcquisitionProbability>28</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="21">
+            <Name>枪械内构强化套件</Name>
+            <AcquisitionProbability>28</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="22">
+            <Name>镭射瞄准具</Name>
+            <AcquisitionProbability>50</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="23">
+            <Name>碳纤维布料</Name>
+            <AcquisitionProbability>50</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="24">
+            <Name>战术握把</Name>
+            <AcquisitionProbability>50</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="25">
+            <Name>突击型光学瞄具</Name>
+            <AcquisitionProbability>50</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="26">
+            <Name>水冷机构</Name>
+            <AcquisitionProbability>50</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+    </Rewards>
+</GameStage>

@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='utf-8'?>
+<GameStage>
+    <StageInfo>
+        <Type>初期关卡</Type>
+        <Name>禁区边缘</Name>
+        <FadeTransitionFrame>关卡23-1</FadeTransitionFrame>
+        <UnlockCondition>24</UnlockCondition>
+        <Description>此地属于机械统治范围的边界，巡逻中的机器人会无情地消灭一切进入此地的生物</Description>
+    </StageInfo>
+    <Rewards>
+        <Reward id="0">
+            <Name>抗生素</Name>
+            <AcquisitionProbability>1</AcquisitionProbability>
+            <QuantityMax>2</QuantityMax>
+        </Reward>
+        <Reward id="1">
+            <Name>普通hp药剂</Name>
+            <AcquisitionProbability>5</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="2">
+            <Name>普通mp药剂</Name>
+            <AcquisitionProbability>5</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="3">
+            <Name>突击步枪通用弹药</Name>
+            <AcquisitionProbability>5</AcquisitionProbability>
+            <QuantityMax>3</QuantityMax>
+        </Reward>
+        <Reward id="4">
+            <Name>手枪通用弹药</Name>
+            <AcquisitionProbability>5</AcquisitionProbability>
+            <QuantityMax>3</QuantityMax>
+        </Reward>
+        <Reward id="5">
+            <Name>冲锋枪通用弹药</Name>
+            <AcquisitionProbability>8</AcquisitionProbability>
+            <QuantityMax>3</QuantityMax>
+        </Reward>
+        <Reward id="6">
+            <Name>12号霰弹弹药</Name>
+            <AcquisitionProbability>5</AcquisitionProbability>
+            <QuantityMax>3</QuantityMax>
+        </Reward>
+        <Reward id="7">
+            <Name>突击步枪通用弹药</Name>
+            <AcquisitionProbability>5</AcquisitionProbability>
+            <QuantityMax>3</QuantityMax>
+        </Reward>
+        <Reward id="8">
+            <Name>普通hp粉尘</Name>
+            <AcquisitionProbability>10</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+    </Rewards>
+</GameStage>

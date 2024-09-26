@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<GameStage>
+    <StageInfo>
+        <Type>初期关卡</Type>
+        <Name>废墟武器店</Name>
+        <FadeTransitionFrame>关卡3-1</FadeTransitionFrame>
+        <UnlockCondition>5</UnlockCondition>
+        <Description>暂无资料</Description>
+    </StageInfo>
+    <Rewards>
+    </Rewards>
+</GameStage>

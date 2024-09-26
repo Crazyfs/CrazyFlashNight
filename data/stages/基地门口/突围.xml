@@ -1,0 +1,137 @@
+<?xml version='1.0' encoding='utf-8'?>
+<GameStage>
+    <StageInfo>
+        <Type>无限过图</Type>
+        <Name>突围</Name>
+        <FadeTransitionFrame>wuxianguotu_1</FadeTransitionFrame>
+        <UnlockCondition>182</UnlockCondition>
+        <Description>密会期间居然出现了诺亚士兵，掩护各大组织进行突围！</Description>
+    </StageInfo>
+    <DebugMode>True</DebugMode>
+    <Rewards>
+        <Reward>
+            <Name>抗生素</Name>
+            <AcquisitionProbability>2</AcquisitionProbability>
+            <QuantityMax>4</QuantityMax>
+        </Reward>
+        <Reward>
+            <Name>普通hp药剂</Name>
+            <AcquisitionProbability>1</AcquisitionProbability>
+            <QuantityMax>20</QuantityMax>
+        </Reward>
+        <Reward>
+            <Name>普通mp药剂</Name>
+            <AcquisitionProbability>1</AcquisitionProbability>
+            <QuantityMax>20</QuantityMax>
+        </Reward>
+        <Reward>
+            <Name>普通hp粉尘</Name>
+            <AcquisitionProbability>2</AcquisitionProbability>
+            <QuantityMax>4</QuantityMax>
+        </Reward>
+        <Reward>
+            <Name>资料</Name>
+            <AcquisitionProbability>1</AcquisitionProbability>
+            <QuantityMax>20</QuantityMax>
+        </Reward>
+    </Rewards>
+    <SubStage id="0">
+        <BasicInformation>
+            <Background>flashswf/backgrounds/gk15_2_BG.swf</Background>
+        </BasicInformation>
+        <Wave>
+            <SubWave id="0">
+                <WaveInformation>
+                    <Duration>0</Duration>
+                </WaveInformation>
+                <EnemyGroup>
+                    <Enemy>
+                        <Type>兵种71</Type>
+                        <Interval>500</Interval>
+                        <Quantity>6</Quantity>
+                        <Level>43</Level>
+                    </Enemy>
+                </EnemyGroup>
+            </SubWave>
+            <SubWave id="1">
+                <WaveInformation>
+                    <Duration>0</Duration>
+                </WaveInformation>
+                <EnemyGroup>
+                    <Enemy>
+                        <Type>兵种72</Type>
+                        <Interval>500</Interval>
+                        <Quantity>6</Quantity>
+                        <Level>43</Level>
+                    </Enemy>
+                </EnemyGroup>
+            </SubWave>
+        </Wave>
+    </SubStage>
+    <SubStage id="1">
+        <BasicInformation>
+            <Background>flashswf/backgrounds/gk16_2_BG.swf</Background>
+        </BasicInformation>
+        <Wave>
+            <SubWave id="0">
+                <WaveInformation>
+                    <Duration>0</Duration>
+                </WaveInformation>
+                <EnemyGroup>
+                    <Enemy>
+                        <Type>兵种72</Type>
+                        <Interval>500</Interval>
+                        <Quantity>6</Quantity>
+                        <Level>43</Level>
+                    </Enemy>
+                </EnemyGroup>
+            </SubWave>
+            <SubWave id="1">
+                <WaveInformation>
+                    <Duration>0</Duration>
+                </WaveInformation>
+                <EnemyGroup>
+                    <Enemy>
+                        <Type>兵种71</Type>
+                        <Interval>500</Interval>
+                        <Quantity>6</Quantity>
+                        <Level>43</Level>
+                    </Enemy>
+                </EnemyGroup>
+            </SubWave>
+        </Wave>
+    </SubStage>
+    <SubStage id="2">
+        <BasicInformation>
+            <Background>flashswf/backgrounds/gk17_1_BG.swf</Background>
+        </BasicInformation>
+        <Wave>
+            <SubWave id="0">
+                <WaveInformation>
+                    <Duration>0</Duration>
+                </WaveInformation>
+                <EnemyGroup>
+                    <Enemy>
+                        <Type>兵种70</Type>
+                        <Interval>500</Interval>
+                        <Quantity>4</Quantity>
+                        <Level>43</Level>
+                    </Enemy>
+                </EnemyGroup>
+            </SubWave>
+            <SubWave id="1">
+                <WaveInformation>
+                    <Duration>0</Duration>
+                </WaveInformation>
+                <EnemyGroup>
+                    <Enemy>
+                        <Type>兵种74</Type>
+                        <Interval>500</Interval>
+                        <Quantity>4</Quantity>
+                        <Level>43</Level>
+                    </Enemy>
+                </EnemyGroup>
+            </SubWave>
+        </Wave>
+    </SubStage>
+</GameStage>

@@ -1,0 +1,94 @@
+{
+    "tasks": [
+        {
+            "id": 1000001,
+            "title": "$SIDE_TITLE_1000001",
+            "description": "$SIDE_DESCRIPTION_1000001",
+
+            "get_requirements": [36],
+            "get_conversation": "$SIDE_GET_1000001",
+            "get_npc": "神秘男人",
+
+            "finish_requirements": [
+                "通缉任务之尾上世莉架#简单"
+            ],
+            "finish_conversation": "$SIDE_FINISH_1000001",
+            "finish_npc": "神秘男人",
+            "rewards": [
+                "经验值#20000",
+                "金币#50000",
+                "复活币#5"
+            ],
+            
+            "chain":"彩蛋#1"
+        },
+        {
+            "id": 1000002,
+            "title": "$SIDE_TITLE_1000002",
+            "description": "$SIDE_DESCRIPTION_1000002",
+
+            "get_requirements": [1000001],
+            "get_conversation": "$SIDE_GET_1000002",
+            "get_npc": "神秘男人",
+
+            "finish_requirements": [],
+            "finish_conversation": "$SIDE_FINISH_1000002",
+            "finish_npc": "文天",
+            "rewards": [
+                "经验值#10000",
+                "金币#5000"
+            ],
+            
+            "chain":"彩蛋#2"
+        },
+        {
+            "id": 1000003,
+            "title": "$SIDE_TITLE_1000003",
+            "description": "$SIDE_DESCRIPTION_1000003",
+
+            "get_requirements": [1000002],
+            "get_conversation": "$SIDE_GET_1000003",
+            "get_npc": "文天",
+
+            "finish_requirements": [
+                "AVP#简单"
+            ],
+            "finish_conversation": "$SIDE_FINISH_1000003",
+            "finish_npc": "文天",
+            "rewards": [
+                "经验值#20000",
+                "金币#50000",
+                "复活币#5",
+                "抗生素#30"
+            ],
+            
+            "chain":"彩蛋#3"
+        },
+        {
+            "id": 1000004,
+            "title": "$SIDE_TITLE_1000004",
+            "description": "$SIDE_DESCRIPTION_1000004",
+
+            "get_requirements": [1000003],
+            "get_conversation": "$SIDE_GET_1000004",
+            "get_npc": "文天",
+
+            "finish_requirements": [
+                "密林深处#简单"
+            ],
+            "finish_conversation": "$SIDE_FINISH_1000004",
+            "finish_npc": "文天",
+            "rewards": [
+                "经验值#50000",
+                "金币#120000",
+                "复活币#15",
+                "抗生素#30",
+                "加强mp药剂#20",
+                "狙击步枪通用弹药#20",
+                "西风大剑#1"
+            ],
+            
+            "chain":"彩蛋#4"
+        }
+    ]
+}

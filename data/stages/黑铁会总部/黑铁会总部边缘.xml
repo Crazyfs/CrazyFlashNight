@@ -1,0 +1,228 @@
+<?xml version='1.0' encoding='utf-8'?>
+<GameStage>
+    <StageInfo>
+        <Type>无限过图</Type>
+        <Name>黑铁会总部边缘</Name>
+        <FadeTransitionFrame>wuxianguotu_1</FadeTransitionFrame>
+        <UnlockCondition>55</UnlockCondition>
+        <Description>黑铁会总部边缘地带，一些黑铁会的小喽喽守卫在这里。</Description>
+    </StageInfo>
+    <Rewards>
+        <Reward id="0">
+            <Name>抗生素</Name>
+            <AcquisitionProbability>8</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="1">
+            <Name>普通hp药剂</Name>
+            <AcquisitionProbability>2</AcquisitionProbability>
+            <QuantityMax>5</QuantityMax>
+        </Reward>
+        <Reward id="2">
+            <Name>普通mp药剂</Name>
+            <AcquisitionProbability>2</AcquisitionProbability>
+            <QuantityMax>5</QuantityMax>
+        </Reward>
+        <Reward id="3">
+            <Name>普通hp粉尘</Name>
+            <AcquisitionProbability>10</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="4">
+            <Name>资料</Name>
+            <AcquisitionProbability>1</AcquisitionProbability>
+            <QuantityMax>10</QuantityMax>
+        </Reward>
+        <Reward id="5">
+            <Name>黑铁会的秘密情报书</Name>
+            <AcquisitionProbability>1</AcquisitionProbability>
+            <QuantityMax>3</QuantityMax>
+        </Reward>
+        <Reward id="6">
+            <Name>石英磨刀石</Name>
+            <AcquisitionProbability>1</AcquisitionProbability>
+            <QuantityMax>5</QuantityMax>
+        </Reward>
+    </Rewards>
+    <SubStage id="0">
+        <BasicInformation>
+            <Background>flashswf/backgrounds/gk15_1_BG.swf</Background>AAAAAAA
+        </BasicInformation>
+        <Dialogue>
+            <SubDialogue id="0">
+                <Name>$PC</Name>
+                <Title>$PC_TITLE</Title>
+                <Char>$PC_CHAR#严肃</Char>
+                <Text>友军应该已经撤出了，得尽快突围了！</Text>
+            </SubDialogue>
+        </Dialogue>
+        <Wave>
+            <SubWave id="0">
+                <WaveInformation>
+                    <Duration>0</Duration>
+                </WaveInformation>
+                <EnemyGroup>
+                    <Enemy id="0">
+                        <Type>兵种47</Type>
+                        <Interval>500</Interval>
+                        <Quantity>9</Quantity>
+                        <Level>30</Level>
+                    </Enemy>
+                </EnemyGroup>
+            </SubWave>
+            <SubWave id="1">
+                <WaveInformation>
+                    <Duration>0</Duration>
+                </WaveInformation>
+                <EnemyGroup>
+                    <Enemy id="0">
+                        <Type>兵种47</Type>
+                        <Interval>500</Interval>
+                        <Quantity>9</Quantity>
+                        <Level>30</Level>
+                    </Enemy>
+                </EnemyGroup>
+            </SubWave>
+            <SubWave id="2">
+                <WaveInformation>
+                    <Duration>0</Duration>
+                </WaveInformation>
+                <EnemyGroup>
+                    <Enemy id="0">
+                        <Type>兵种247</Type>
+                        <Interval>500</Interval>
+                        <Quantity>1</Quantity>
+                        <Level>30</Level>
+                    </Enemy>
+                    <Enemy id="1">
+                        <Type>兵种248</Type>
+                        <Interval>500</Interval>
+                        <Quantity>1</Quantity>
+                        <Level>30</Level>
+                    </Enemy>
+                </EnemyGroup>
+            </SubWave>
+        </Wave>
+    </SubStage>
+    <SubStage id="1">
+        <BasicInformation>
+            <Background>flashswf/backgrounds/gk15_2_BG.swf</Background>
+        </BasicInformation>
+        <Wave>
+            <SubWave id="0">
+                <WaveInformation>
+                    <Duration>0</Duration>
+                </WaveInformation>
+                <EnemyGroup>
+                    <Enemy id="0">
+                        <Type>兵种47</Type>
+                        <Interval>500</Interval>
+                        <Quantity>4</Quantity>
+                        <Level>30</Level>
+                    </Enemy>
+                    <Enemy id="1">
+                        <Type>兵种64</Type>
+                        <Interval>500</Interval>
+                        <Quantity>4</Quantity>
+                        <Level>30</Level>
+                    </Enemy>
+                    <Enemy id="2">
+                        <Type>兵种47</Type>
+                        <Interval>500</Interval>
+                        <Quantity>9</Quantity>
+                        <Level>30</Level>
+                    </Enemy>
+                </EnemyGroup>
+            </SubWave>
+            <SubWave id="1">
+                <WaveInformation>
+                    <Duration>0</Duration>
+                </WaveInformation>
+                <EnemyGroup>
+                    <Enemy id="0">
+                        <Type>兵种249</Type>
+                        <Interval>500</Interval>
+                        <Quantity>1</Quantity>
+                        <Level>30</Level>
+                    </Enemy>
+                    <Enemy id="1">
+                        <Type>兵种250</Type>
+                        <Interval>500</Interval>
+                        <Quantity>1</Quantity>
+                        <Level>30</Level>
+                    </Enemy>
+                </EnemyGroup>
+            </SubWave>
+        </Wave>
+    </SubStage>
+    <SubStage id="2">
+        <BasicInformation>
+            <Background>flashswf/backgrounds/gk15_3_BG.swf</Background>
+        </BasicInformation>
+        <Wave>
+            <SubWave id="0">
+                <WaveInformation>
+                    <Duration>0</Duration>
+                </WaveInformation>
+                <EnemyGroup>
+                    <Enemy id="0">
+                        <Type>兵种47</Type>
+                        <Interval>500</Interval>
+                        <Quantity>4</Quantity>
+                        <Level>30</Level>
+                    </Enemy>
+                    <Enemy id="1">
+                        <Type>兵种65</Type>
+                        <Interval>500</Interval>
+                        <Quantity>4</Quantity>
+                        <Level>30</Level>
+                    </Enemy>
+                    <Enemy id="2">
+                        <Type>兵种47</Type>
+                        <Interval>500</Interval>
+                        <Quantity>9</Quantity>
+                        <Level>30</Level>
+                    </Enemy>
+                </EnemyGroup>
+            </SubWave>
+            <SubWave id="1">
+                <WaveInformation>
+                    <Duration>0</Duration>
+                </WaveInformation>
+                <EnemyGroup>
+                    <Enemy id="0">
+                        <Type>兵种251</Type>
+                        <Interval>500</Interval>
+                        <Quantity>1</Quantity>
+                        <Level>30</Level>
+                    </Enemy>
+                    <Enemy id="1">
+                        <Type>兵种252</Type>
+                        <Interval>500</Interval>
+                        <Quantity>1</Quantity>
+                        <Level>30</Level>
+                    </Enemy>
+                </EnemyGroup>
+            </SubWave>
+            <SubWave id="2">
+                <WaveInformation>
+                    <Duration>0</Duration>
+                </WaveInformation>
+                <EnemyGroup>
+                    <Enemy id="0">
+                        <Type>兵种253</Type>
+                        <Interval>500</Interval>
+                        <Quantity>1</Quantity>
+                        <Level>30</Level>
+                    </Enemy>
+                    <Enemy id="1">
+                        <Type>兵种254</Type>
+                        <Interval>500</Interval>
+                        <Quantity>1</Quantity>
+                        <Level>30</Level>
+                    </Enemy>
+                </EnemyGroup>
+            </SubWave>
+        </Wave>
+    </SubStage>
+</GameStage>
