@@ -64,6 +64,9 @@ _root.弹壳系统.创建弹壳 = function(弹壳种类, myX, myY) {
     this.弹壳物理模拟(创建的弹壳);
     return 创建的弹壳;
 };
+
+//  创建原型用
+
 _root.弹壳系统.createFunc = function(parentClip:MovieClip, 弹壳种类:String):MovieClip {
     // 获取父级影片剪辑的下一个可用深度
     var 当前深度 = parentClip.getNextHighestDepth();
@@ -82,6 +85,7 @@ _root.弹壳系统.createFunc = function(parentClip:MovieClip, 弹壳种类:Stri
     // 返回创建的弹壳 MovieClip 对象，供后续使用
     return 弹壳MC;
 };
+
 
 _root.弹壳系统.resetFunc = function(myX:Number, myY:Number, xscale:Number, yscale:Number, action:Function):Void {
     // 通过 this 引用当前弹壳对象，不需要传入弹壳参数
