@@ -1,0 +1,63 @@
+<?xml version='1.0' encoding='utf-8'?>
+<GameStage>
+    <StageInfo>
+        <Type>初期关卡</Type>
+        <Name>军阀据点</Name>
+        <FadeTransitionFrame>关卡21-1</FadeTransitionFrame>
+        <UnlockCondition>36</UnlockCondition>
+        <Description>军阀的大型据点之一，在此地驻扎了一个团以上的兵力，他们将会被派往各个需要他们去掠夺的地方&amp;lt;BR&amp;gt;这里可以获得一些中级材料</Description>
+        <MaterialDetail>枪械内构强化套件</MaterialDetail>
+    </StageInfo>
+    <Rewards>
+        <Reward id="0">
+            <Name>抗生素</Name>
+            <AcquisitionProbability>8</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="1">
+            <Name>普通hp药剂</Name>
+            <AcquisitionProbability>5</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="2">
+            <Name>普通mp药剂</Name>
+            <AcquisitionProbability>5</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="3">
+            <Name>突击步枪通用弹药</Name>
+            <AcquisitionProbability>5</AcquisitionProbability>
+            <QuantityMax>3</QuantityMax>
+        </Reward>
+        <Reward id="4">
+            <Name>手枪通用弹药</Name>
+            <AcquisitionProbability>5</AcquisitionProbability>
+            <QuantityMax>3</QuantityMax>
+        </Reward>
+        <Reward id="5">
+            <Name>冲锋枪通用弹药</Name>
+            <AcquisitionProbability>8</AcquisitionProbability>
+            <QuantityMax>3</QuantityMax>
+        </Reward>
+        <Reward id="6">
+            <Name>12号霰弹弹药</Name>
+            <AcquisitionProbability>5</AcquisitionProbability>
+            <QuantityMax>3</QuantityMax>
+        </Reward>
+        <Reward id="7">
+            <Name>突击步枪通用弹药</Name>
+            <AcquisitionProbability>5</AcquisitionProbability>
+            <QuantityMax>3</QuantityMax>
+        </Reward>
+        <Reward id="8">
+            <Name>普通hp粉尘</Name>
+            <AcquisitionProbability>10</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="9">
+            <Name>枪械内构强化套件</Name>
+            <AcquisitionProbability>1</AcquisitionProbability>
+            <QuantityMax>4</QuantityMax>
+        </Reward>
+    </Rewards>
+</GameStage>

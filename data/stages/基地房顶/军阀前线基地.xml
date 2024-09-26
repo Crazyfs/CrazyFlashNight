@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='utf-8'?>
+<GameStage>
+    <StageInfo>
+        <Type>初期关卡</Type>
+        <Name>军阀前线基地</Name>
+        <FadeTransitionFrame>关卡22-1</FadeTransitionFrame>
+        <UnlockCondition>37</UnlockCondition>
+        <Description>军阀的前线指挥部，在军阀据点被击破时，长官会撤退到此地重整兵力&amp;lt;BR&amp;gt;这里可以获得一些高级材料</Description>
+        <MaterialDetail>高强度合金</MaterialDetail>
+    </StageInfo>
+    <Rewards>
+        <Reward id="0">
+            <Name>抗生素</Name>
+            <AcquisitionProbability>8</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="1">
+            <Name>普通hp药剂</Name>
+            <AcquisitionProbability>5</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="2">
+            <Name>普通mp药剂</Name>
+            <AcquisitionProbability>5</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="3">
+            <Name>突击步枪通用弹药</Name>
+            <AcquisitionProbability>5</AcquisitionProbability>
+            <QuantityMax>3</QuantityMax>
+        </Reward>
+        <Reward id="4">
+            <Name>手枪通用弹药</Name>
+            <AcquisitionProbability>5</AcquisitionProbability>
+            <QuantityMax>3</QuantityMax>
+        </Reward>
+        <Reward id="5">
+            <Name>冲锋枪通用弹药</Name>
+            <AcquisitionProbability>8</AcquisitionProbability>
+            <QuantityMax>3</QuantityMax>
+        </Reward>
+        <Reward id="6">
+            <Name>12号霰弹弹药</Name>
+            <AcquisitionProbability>5</AcquisitionProbability>
+            <QuantityMax>3</QuantityMax>
+        </Reward>
+        <Reward id="7">
+            <Name>突击步枪通用弹药</Name>
+            <AcquisitionProbability>5</AcquisitionProbability>
+            <QuantityMax>3</QuantityMax>
+        </Reward>
+        <Reward id="8">
+            <Name>普通hp粉尘</Name>
+            <AcquisitionProbability>10</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="9">
+            <Name>高强度合金</Name>
+            <AcquisitionProbability>1</AcquisitionProbability>
+            <QuantityMax>4</QuantityMax>
+        </Reward>
+        <Reward id="10">
+            <Name>军阀前线基地通关证明</Name>
+            <AcquisitionProbability>1</AcquisitionProbability>
+            <QuantityMax>3</QuantityMax>
+        </Reward>
+    </Rewards>
+</GameStage>

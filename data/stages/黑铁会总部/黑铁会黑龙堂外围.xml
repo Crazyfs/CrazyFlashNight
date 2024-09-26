@@ -1,0 +1,279 @@
+<?xml version='1.0' encoding='utf-8'?>
+<GameStage>
+    <StageInfo>
+        <Type>无限过图</Type>
+        <Name>黑铁会黑龙堂外围</Name>
+        <FadeTransitionFrame>wuxianguotu_1</FadeTransitionFrame>
+        <UnlockCondition>61</UnlockCondition>
+        <Description>黑铁会黑龙堂外围地带，黑龙堂主吩咐，擅入者死。与黑铁会有过节的Lee自愿突入此地，为A兵团杀出一条血路。</Description>
+    </StageInfo>
+    <Rewards>
+        <Reward id="0">
+            <Name>抗生素</Name>
+            <AcquisitionProbability>8</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="1">
+            <Name>普通hp药剂</Name>
+            <AcquisitionProbability>2</AcquisitionProbability>
+            <QuantityMax>5</QuantityMax>
+        </Reward>
+        <Reward id="2">
+            <Name>普通mp药剂</Name>
+            <AcquisitionProbability>2</AcquisitionProbability>
+            <QuantityMax>5</QuantityMax>
+        </Reward>
+        <Reward id="3">
+            <Name>普通hp粉尘</Name>
+            <AcquisitionProbability>10</AcquisitionProbability>
+            <QuantityMax>1</QuantityMax>
+        </Reward>
+        <Reward id="4">
+            <Name>资料</Name>
+            <AcquisitionProbability>1</AcquisitionProbability>
+            <QuantityMax>10</QuantityMax>
+        </Reward>
+        <Reward id="5">
+            <Name>黑龙堂徽章</Name>
+            <AcquisitionProbability>1</AcquisitionProbability>
+            <QuantityMax>5</QuantityMax>
+        </Reward>
+        <Reward id="6">
+            <Name>军用帆布</Name>
+            <AcquisitionProbability>1</AcquisitionProbability>
+            <QuantityMax>5</QuantityMax>
+        </Reward>
+    </Rewards>
+    <SubStage id="0">
+        <BasicInformation>
+            <Background>flashswf/backgrounds/gk15_1_BG.swf</Background>
+        </BasicInformation>
+        <Dialogue>
+            <SubDialogue id="0">
+                <Name>$PC</Name>
+                <Title>$PC_TITLE</Title>
+                <Char>$PC_CHAR#严肃</Char>
+                <Text>这就是李小龙吗，且看看试炼场一战后他的本事如何。</Text>
+            </SubDialogue>
+        </Dialogue>
+        <Wave>
+            <SubWave id="0">
+                <WaveInformation>
+                    <Duration>0</Duration>
+                </WaveInformation>
+                <EnemyGroup>
+                    <Enemy id="0">
+                        <Type>兵种47</Type>
+                        <Interval>500</Interval>
+                        <Quantity>3</Quantity>
+                        <Level>35</Level>
+                    </Enemy>
+                    <Enemy id="1">
+                        <Type>兵种64</Type>
+                        <Interval>500</Interval>
+                        <Quantity>5</Quantity>
+                        <Level>35</Level>
+                    </Enemy>
+                    <Enemy id="2">
+                        <Type>兵种65</Type>
+                        <Interval>500</Interval>
+                        <Quantity>5</Quantity>
+                        <Level>35</Level>
+                    </Enemy>
+                    <Enemy id="3">
+                        <Type>兵种257</Type>
+                        <Interval>100</Interval>
+                        <Quantity>1</Quantity>
+                        <Level>35</Level>
+                        <x>650</x>
+                        <y>380</y>
+                    </Enemy>
+                </EnemyGroup>
+                <Dialogue>
+                    <SubDialogue id="0">
+                        <Name>$PC</Name>
+                        <Title>$PC_TITLE</Title>
+                        <Char>$PC_CHAR</Char>
+                        <Text>果然有点本事！</Text>
+                    </SubDialogue>
+                </Dialogue>
+            </SubWave>
+        </Wave>
+    </SubStage>
+    <SubStage id="1">
+        <BasicInformation>
+            <Background>flashswf/backgrounds/gk12_5_BG.swf</Background>
+        </BasicInformation>
+        <Wave>
+            <SubWave id="0">
+                <WaveInformation>
+                    <Duration>0</Duration>
+                </WaveInformation>
+                <EnemyGroup>
+                    <Enemy id="0">
+                        <Type>兵种64</Type>
+                        <Interval>500</Interval>
+                        <Quantity>5</Quantity>
+                        <Level>35</Level>
+                    </Enemy>
+                    <Enemy id="1">
+                        <Type>兵种257</Type>
+                        <Interval>100</Interval>
+                        <Quantity>1</Quantity>
+                        <Level>35</Level>
+                        <SpawnIndex>left</SpawnIndex>
+                    </Enemy>
+                    <Enemy id="2">
+                        <Type>兵种65</Type>
+                        <Interval>500</Interval>
+                        <Quantity>6</Quantity>
+                        <Level>35</Level>
+                    </Enemy>
+                    <Enemy id="3">
+                        <Type>兵种268</Type>
+                        <Interval>500</Interval>
+                        <Quantity>3</Quantity>
+                        <Level>30</Level>
+                    </Enemy>
+                </EnemyGroup>
+            </SubWave>
+        </Wave>
+    </SubStage>
+    <SubStage id="2">
+        <BasicInformation>
+            <Background>flashswf/backgrounds/gk13_1_BG.swf</Background>
+        </BasicInformation>
+        <Wave>
+            <SubWave id="0">
+                <WaveInformation>
+                    <Duration>0</Duration>
+                </WaveInformation>
+                <EnemyGroup>
+                    <Enemy id="0">
+                        <Type>兵种65</Type>
+                        <Interval>500</Interval>
+                        <Quantity>9</Quantity>
+                        <Level>35</Level>
+                    </Enemy>
+                    <Enemy id="1">
+                        <Type>兵种270</Type>
+                        <Interval>500</Interval>
+                        <Quantity>2</Quantity>
+                        <Level>30</Level>
+                    </Enemy>
+                    <Enemy id="2">
+                        <Type>兵种268</Type>
+                        <Interval>500</Interval>
+                        <Quantity>2</Quantity>
+                        <Level>30</Level>
+                    </Enemy>
+                    <Enemy id="3">
+                        <Type>兵种257</Type>
+                        <Interval>100</Interval>
+                        <Quantity>1</Quantity>
+                        <Level>35</Level>
+                        <SpawnIndex>left</SpawnIndex>
+                    </Enemy>
+                </EnemyGroup>
+            </SubWave>
+        </Wave>
+    </SubStage>
+    <SubStage id="3">
+        <BasicInformation>
+            <Background>flashswf/backgrounds/gk13_1_BG.swf</Background>
+        </BasicInformation>
+        <Wave>
+            <SubWave id="0">
+                <WaveInformation>
+                    <Duration>0</Duration>
+                </WaveInformation>
+                <EnemyGroup>
+                    <Enemy id="0">
+                        <Type>兵种65</Type>
+                        <Interval>500</Interval>
+                        <Quantity>7</Quantity>
+                        <Level>35</Level>
+                    </Enemy>
+                    <Enemy id="1">
+                        <Type>兵种270</Type>
+                        <Interval>500</Interval>
+                        <Quantity>2</Quantity>
+                        <Level>30</Level>
+                    </Enemy>
+                    <Enemy id="2">
+                        <Type>兵种268</Type>
+                        <Interval>500</Interval>
+                        <Quantity>5</Quantity>
+                        <Level>30</Level>
+                    </Enemy>
+                    <Enemy id="3">
+                        <Type>兵种257</Type>
+                        <Interval>100</Interval>
+                        <Quantity>1</Quantity>
+                        <Level>35</Level>
+                        <SpawnIndex>left</SpawnIndex>
+                    </Enemy>
+                </EnemyGroup>
+            </SubWave>
+        </Wave>
+    </SubStage>
+    <SubStage id="4">
+        <BasicInformation>
+            <Background>flashswf/backgrounds/gk16_2_BG.swf</Background>
+        </BasicInformation>
+        <Wave>
+            <SubWave id="0">
+                <WaveInformation>
+                    <Duration>0</Duration>
+                </WaveInformation>
+                <EnemyGroup>
+                    <Enemy id="0">
+                        <Type>兵种47</Type>
+                        <Interval>500</Interval>
+                        <Quantity>2</Quantity>
+                        <Level>35</Level>
+                    </Enemy>
+                    <Enemy id="1">
+                        <Type>兵种64</Type>
+                        <Interval>500</Interval>
+                        <Quantity>2</Quantity>
+                        <Level>35</Level>
+                    </Enemy>
+                    <Enemy id="2">
+                        <Type>兵种65</Type>
+                        <Interval>500</Interval>
+                        <Quantity>3</Quantity>
+                        <Level>35</Level>
+                    </Enemy>
+                    <Enemy id="3">
+                        <Type>兵种270</Type>
+                        <Interval>500</Interval>
+                        <Quantity>5</Quantity>
+                        <Level>30</Level>
+                    </Enemy>
+                    <Enemy id="4">
+                        <Type>兵种268</Type>
+                        <Interval>500</Interval>
+                        <Quantity>5</Quantity>
+                        <Level>30</Level>
+                    </Enemy>
+                    <Enemy id="5">
+                        <Type>兵种257</Type>
+                        <Interval>100</Interval>
+                        <Quantity>1</Quantity>
+                        <Level>35</Level>
+                        <SpawnIndex>left</SpawnIndex>
+                    </Enemy>
+                </EnemyGroup>
+                <Dialogue>
+                    <SubDialogue id="0">
+                        <Name>$PC</Name>
+                        <Title>$PC_TITLE</Title>
+                        <Char>$PC_CHAR</Char>
+                        <Text>有他在，突入黑龙堂应该不是问题。</Text>
+                    </SubDialogue>
+                </Dialogue>
+            </SubWave>
+        </Wave>
+    </SubStage>
+</GameStage>

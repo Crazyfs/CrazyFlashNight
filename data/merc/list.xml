@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <merc>mercenaries.json</merc>
+  <merc_easy>mercenaries_easy.json</merc_easy>
+</root>

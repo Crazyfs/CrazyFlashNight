@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<GameStage>
+    <StageInfo>
+        <Type>初期关卡</Type>
+        <Name>DEATH MATCH入门赛</Name>
+        <FadeTransitionFrame>关卡4-1</FadeTransitionFrame>
+        <UnlockCondition>8</UnlockCondition>
+        <Description>为了让新手练习而设立的场地</Description>
+    </StageInfo>
+    <Rewards>
+    </Rewards>
+</GameStage>
