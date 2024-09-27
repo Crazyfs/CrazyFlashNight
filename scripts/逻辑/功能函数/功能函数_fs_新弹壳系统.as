@@ -180,13 +180,52 @@ _root.弹壳系统.发射弹壳 = function(子弹类型, myX, myY, xscale, 必�
         var 弹壳种类 = 弹壳信息.弹壳;
         var 游戏世界 = _root.gameworld;
         if (!弹壳种类) return;
-        if (!游戏世界.弹壳对象池) this.初始化弹壳池();
+        if (!游戏世界.可用弹壳池) this.初始化弹壳池();
+        var 弹壳池 = 游戏世界.可用弹壳池[弹壳种类];
+        var scale = xscale / 100;
+        var ascale = Math.abs(scale);
+        myX -= scale * 弹壳信息.myX;
+        myY += ascale * 弹壳信息.myY;
+        if (弹壳池.length > 0) {
+            var 弹壳 = 弹壳池.pop();
+            弹壳._x = myX;
+            弹壳._y = myY;
+            弹壳._visible = true;
+            this.弹壳物理模拟(弹壳);
+        } else {
+            var 弹壳 = this.创建弹壳(弹壳种类, myX, myY);
+        }
+        弹壳._xscale = xscale;
+        弹壳._yscale = ascale * 100;
+        ++this.当前弹壳总数;
+    }
+};
+
+_root.弹壳系统.发射弹壳2 = function(子弹类型, myX, myY, xscale, 必然触发) {
+    if (this.当前弹壳总数 <= this.弹壳总数上限 || _root.成功率(this.弹壳总数上限) || 必然触发) {
+        var 弹壳信息 = this.弹壳映射表[子弹类型];
+        var 弹壳种类 = 弹壳信息.弹壳;
+        var 游戏世界 = _root.gameworld;
+        if (!弹壳种类) return;
+        if (!游戏世界.弹壳对象池) this.初始化弹壳对象池();
 
         var scale = xscale / 100;
         var ascale = Math.abs(scale);
         myX -= scale * 弹壳信息.myX;
         myY += ascale * 弹壳信息.myY;
         
-        var 弹壳 = 游戏世界.弹壳对象池[弹壳种类].getObject(myX, myY, xscale, ascale * 100, this.弹壳物理模拟);
+        var 弹壳 = 游戏世界.弹壳对象池[弹壳种类].getObject(myX, myY, xscale, ascale * 100, this.弹壳自体物理模拟);
     }
+};
+
+// 物理模拟函数
+_root.弹壳系统.弹壳自体物理模拟 = function() 
+{
+    var engine = LinearCongruentialEngine.getInstance();
+    this.水平速度 = engine.randomFloatOffset(4);
+    this.垂直速度 = engine.randomFloat(-8, -20);
+    this.旋转速度 = engine.randomFloat(-10, 10);
+    this.Z轴坐标 = 弹壳._y + 100;
+    this.swapDepths(弹壳.Z轴坐标);
+    this.任务ID = _root.帧计时器.添加生命周期任务(this, "运动", _root.弹壳系统.弹壳物理运动, 33, this); // 2帧1动让视觉更柔和
 };
