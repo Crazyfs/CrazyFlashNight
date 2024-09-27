@@ -1,4 +1,5 @@
 ﻿import org.flashNight.naki.Interpolation.Interpolatior;
+import org.flashNight.naki.Sort.*;
 
 class org.flashNight.naki.Interpolation.PointSetInterpolator {
 
@@ -12,7 +13,7 @@ class org.flashNight.naki.Interpolation.PointSetInterpolator {
      * @param mode 插值模式，接受 "linear", "cubic", "bezier", "catmullRom", "easeInOut", "bilinear", "bicubic", "exponential", "sine", "elastic", "logarithmic"
      */
     public function PointSetInterpolator(points:Array, mode:String) {
-        this.points = points.sort(this.sortByX);  // 根据 x 坐标排序
+        this.points = InsertionSort.sort(points, this.sortByX);  // 根据 x 坐标排序
         this.mode = mode;
     }
 
