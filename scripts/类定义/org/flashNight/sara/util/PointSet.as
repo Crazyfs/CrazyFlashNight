@@ -117,4 +117,20 @@ class org.flashNight.sara.util.PointSet
 
 		return minDistance;
 	}
+
+	/**
+     * 转换点集为数组，供排序等操作使用
+     * @return 返回存储 Vector 实例的数组
+     */
+    public function toArray():Array {
+        return points.concat();  // 返回点集的数组副本
+    }
+
+    /**
+     * 根据数组更新点集
+     * @param sortedArray 排序后的数组
+     */
+    public function fromArray(sortedArray:Array):Void {
+        this.points = sortedArray.concat();  // 用排序后的数组更新点集
+    }
 }

@@ -1,32 +1,9 @@
-﻿/**
- * Sara - Customized Dynamics Engine for FlashNight Game
- * Release based on Flade 0.6 alpha modified for project-specific functionalities
- * Copyright 2004, 2005 Alec Cove
- * Modifications by fs, 2024
- *
- * This file is part of Sara, a customized dynamics engine developed for the FlashNight game project.
- *
- * Sara is free software; you can redistribute it and/or modify it under the terms of the GNU General
- * Public License as published by the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * Sara is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
- * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
- * License for more details.
- *
- * You should have received a copy of the GNU General Public License along with Sara; if not, write to the
- * Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- *
- * Flash is a registered trademark of Adobe Systems Incorporated.
- */
-
-
-//TBD: rename this to reflect its vector and/or default nature
-
-import org.flashNight.naki.Interpolation.*;
+﻿import org.flashNight.naki.Interpolation.PointSetInterpolator;
+import org.flashNight.sara.util.*;
 
 class org.flashNight.sara.graphics.Graphics {
 
+	// 静态方法：绘制直线
 	public static function paintLine (
 			dmc:MovieClip, 
 			x0:Number, 
@@ -38,14 +15,13 @@ class org.flashNight.sara.graphics.Graphics {
 		dmc.lineTo(x1, y1);
 	}
 
-
+	// 静态方法：绘制圆形
 	public static function paintCircle (dmc:MovieClip, x:Number, y:Number, r:Number):Void {
 
 		var mtp8r:Number = Math.tan(Math.PI/8) * r;
 		var msp4r:Number = Math.sin(Math.PI/4) * r;
 
-		with (dmc) 
-		{
+		with (dmc) {
 			moveTo(x + r, y);
 			curveTo(r + x, mtp8r + y, msp4r + x, msp4r + y);
 			curveTo(mtp8r + x, r + y, x, r + y);
@@ -58,7 +34,7 @@ class org.flashNight.sara.graphics.Graphics {
 		}
 	}
 	
-	
+	// 静态方法：绘制矩形
 	public static function paintRectangle(
 			dmc:MovieClip, 
 			x:Number, 
@@ -78,9 +54,10 @@ class org.flashNight.sara.graphics.Graphics {
 		}
 	}
 
+	// 静态方法：绘制插值曲线，使用 PointSet 代替数组
 	public static function drawInterpolatedCurve(
 		dmc:MovieClip, 
-		points:Array, 
+		pointSet:PointSet,  // 使用 PointSet 代替 Array
 		mode:String, 
 		step:Number
 	):Void {
@@ -94,14 +71,14 @@ class org.flashNight.sara.graphics.Graphics {
 			step = 0.01;
 		}
 
-		// 确保 points 至少有两个点用于插值
-		if (points.length < 2) {
+		// 确保点集至少有两个点用于插值
+		if (pointSet.size() < 2) {
 			trace("点集必须至少包含两个点");
 			return;
 		}
 
 		// 创建 PointSetInterpolator 实例
-		var interpolator:PointSetInterpolator = new PointSetInterpolator(points, mode);
+		var interpolator:PointSetInterpolator = new PointSetInterpolator(pointSet, mode);
 
 		// 获取第一个插值点，作为曲线的起始点
 		var result:Object = interpolator.interpolate(0);
@@ -126,17 +103,22 @@ class org.flashNight.sara.graphics.Graphics {
 		}
 	}
 
-	// 静态方法：绘制多边形
-    public static function paintPolygon(dmc:MovieClip, points:Array):Void {
-        if (points.length < 3) {
+	// 静态方法：绘制多边形，使用 PointSet 代替数组
+	public static function paintPolygon(dmc:MovieClip, pointSet:PointSet):Void {
+        if (pointSet.size() < 3) {
             trace("多边形必须至少有3个点");
             return;
         }
 
-        dmc.moveTo(points[0][0], points[0][1]);
-        for (var i:Number = 1; i < points.length; i++) {
-            dmc.lineTo(points[i][0], points[i][1]);
+        var firstPoint:Vector = pointSet.getPoint(0);
+        dmc.moveTo(firstPoint.x, firstPoint.y);
+
+        for (var i:Number = 1; i < pointSet.size(); i++) {
+            var point:Vector = pointSet.getPoint(i);
+            dmc.lineTo(point.x, point.y);
         }
-        dmc.lineTo(points[0][0], points[0][1]); // 闭合多边形
+
+        // 闭合多边形
+        dmc.lineTo(firstPoint.x, firstPoint.y);
     }
 }

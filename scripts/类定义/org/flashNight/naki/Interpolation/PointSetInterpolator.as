@@ -1,20 +1,47 @@
 ﻿import org.flashNight.naki.Interpolation.Interpolatior;
-import org.flashNight.naki.Sort.*;
+import org.flashNight.naki.Sort.InsertionSort;
+import org.flashNight.sara.util.PointSet;
+import org.flashNight.sara.util.Vector;
 
 class org.flashNight.naki.Interpolation.PointSetInterpolator {
 
-    private var points:Array;  // 存储排序后的点集
-    private var mode:String;   // 插值模式
+    private var pointSet:PointSet;  // 使用 PointSet 存储点集
+    private var mode:String;        // 插值模式
 
     /**
      * 构造函数，初始化点集和插值模式，并对点集进行 x 坐标排序
      * 
-     * @param points 点集，格式为 [[x1, y1], [x2, y2], ...]
+     * @param pointSet PointSet 实例
      * @param mode 插值模式，接受 "linear", "cubic", "bezier", "catmullRom", "easeInOut", "bilinear", "bicubic", "exponential", "sine", "elastic", "logarithmic"
      */
-    public function PointSetInterpolator(points:Array, mode:String) {
-        this.points = InsertionSort.sort(points, this.sortByX);  // 根据 x 坐标排序
+    public function PointSetInterpolator(pointSet:PointSet, mode:String) {
+        this.pointSet = pointSet;
         this.mode = mode;
+
+        // 对 PointSet 的点按照 x 坐标排序
+        this.sortPoints();
+    }
+
+    /**
+     * 对点集进行按 x 坐标排序
+     */
+    private function sortPoints():Void {
+        var pointsArray:Array = []; // 临时存储点的数组
+
+        // 将 PointSet 中的点提取为普通数组
+        for (var i:Number = 0; i < pointSet.size(); i++) {
+            var point:Vector = pointSet.getPoint(i);
+            pointsArray.push([point.x, point.y]);
+        }
+
+        // 使用插入排序按 x 坐标排序
+        var sortedPoints:Array = InsertionSort.sort(pointsArray, sortByX);
+
+        // 清空 PointSet 并重新添加排序后的点
+        pointSet = new PointSet();
+        for (var j:Number = 0; j < sortedPoints.length; j++) {
+            pointSet.addPoint(sortedPoints[j][0], sortedPoints[j][1]);
+        }
     }
 
     /**
@@ -46,75 +73,80 @@ class org.flashNight.naki.Interpolation.PointSetInterpolator {
      * @return 返回插值计算结果
      */
     private function applyInterpolatior(method:String, t:Number):Object {
-        var p0 = this.points[0];  // 起点
-        var p1 = this.points[1];  // 终点
+        if (pointSet.size() < 2) {
+            trace("至少需要两个点进行插值");
+            return null;
+        }
+
+        var p0:Vector = pointSet.getPoint(0);  // 起点
+        var p1:Vector = pointSet.getPoint(1);  // 终点
         var result:Object = {x: 0, y: 0};
 
         // 判断插值方法并调用相应的 Interpolatior 方法
         switch (method) {
             case "linear":
-                result.x = Interpolatior.linear(t, 0, 1, p0[0], p1[0]);
-                result.y = Interpolatior.linear(t, 0, 1, p0[1], p1[1]);
+                result.x = Interpolatior.linear(t, 0, 1, p0.x, p1.x);
+                result.y = Interpolatior.linear(t, 0, 1, p0.y, p1.y);
                 break;
             case "cubic":
-                if (this.points.length < 4) {
+                if (pointSet.size() < 4) {
                     trace("三次插值需要至少4个点");
                     return null;
                 }
-                result.x = Interpolatior.cubic(t, p0[0], this.points[1][0], this.points[2][0], this.points[3][0]);
-                result.y = Interpolatior.cubic(t, p0[1], this.points[1][1], this.points[2][1], this.points[3][1]);
+                result.x = Interpolatior.cubic(t, p0.x, pointSet.getPoint(1).x, pointSet.getPoint(2).x, pointSet.getPoint(3).x);
+                result.y = Interpolatior.cubic(t, p0.y, pointSet.getPoint(1).y, pointSet.getPoint(2).y, pointSet.getPoint(3).y);
                 break;
             case "bezier":
-                if (this.points.length < 4) {
+                if (pointSet.size() < 4) {
                     trace("贝塞尔插值需要至少4个点");
                     return null;
                 }
-                result.x = Interpolatior.bezier(t, p0[0], this.points[1][0], this.points[2][0], this.points[3][0]);
-                result.y = Interpolatior.bezier(t, p0[1], this.points[1][1], this.points[2][1], this.points[3][1]);
+                result.x = Interpolatior.bezier(t, p0.x, pointSet.getPoint(1).x, pointSet.getPoint(2).x, pointSet.getPoint(3).x);
+                result.y = Interpolatior.bezier(t, p0.y, pointSet.getPoint(1).y, pointSet.getPoint(2).y, pointSet.getPoint(3).y);
                 break;
             case "catmullRom":
-                if (this.points.length < 4) {
+                if (pointSet.size() < 4) {
                     trace("Catmull-Rom 样条插值需要至少4个点");
                     return null;
                 }
-                result.x = Interpolatior.catmullRom(t, p0[0], this.points[1][0], this.points[2][0], this.points[3][0]);
-                result.y = Interpolatior.catmullRom(t, p0[1], this.points[1][1], this.points[2][1], this.points[3][1]);
+                result.x = Interpolatior.catmullRom(t, p0.x, pointSet.getPoint(1).x, pointSet.getPoint(2).x, pointSet.getPoint(3).x);
+                result.y = Interpolatior.catmullRom(t, p0.y, pointSet.getPoint(1).y, pointSet.getPoint(2).y, pointSet.getPoint(3).y);
                 break;
             case "easeInOut":
-                result.x = Interpolatior.easeInOut(t) * (p1[0] - p0[0]) + p0[0];
-                result.y = Interpolatior.easeInOut(t) * (p1[1] - p0[1]) + p0[1];
+                result.x = Interpolatior.easeInOut(t) * (p1.x - p0.x) + p0.x;
+                result.y = Interpolatior.easeInOut(t) * (p1.y - p0.y) + p0.y;
                 break;
             case "bilinear":
-                if (this.points.length < 4) {
+                if (pointSet.size() < 4) {
                     trace("双线性插值需要至少4个点");
                     return null;
                 }
-                result.x = Interpolatior.bilinear(t, t, p0[0], this.points[1][0], this.points[2][0], this.points[3][0], 0, 1, 0, 1);
-                result.y = Interpolatior.bilinear(t, t, p0[1], this.points[1][1], this.points[2][1], this.points[3][1], 0, 1, 0, 1);
+                result.x = Interpolatior.bilinear(t, t, p0.x, pointSet.getPoint(1).x, pointSet.getPoint(2).x, pointSet.getPoint(3).x, 0, 1, 0, 1);
+                result.y = Interpolatior.bilinear(t, t, p0.y, pointSet.getPoint(1).y, pointSet.getPoint(2).y, pointSet.getPoint(3).y, 0, 1, 0, 1);
                 break;
             case "bicubic":
-                if (this.points.length < 4) {
+                if (pointSet.size() < 4) {
                     trace("双三次插值需要至少4个点");
                     return null;
                 }
-                result.x = Interpolatior.bicubic(t, p0[0], this.points[1][0], this.points[2][0], this.points[3][0]);
-                result.y = Interpolatior.bicubic(t, p0[1], this.points[1][1], this.points[2][1], this.points[3][1]);
+                result.x = Interpolatior.bicubic(t, p0.x, pointSet.getPoint(1).x, pointSet.getPoint(2).x, pointSet.getPoint(3).x);
+                result.y = Interpolatior.bicubic(t, p0.y, pointSet.getPoint(1).y, pointSet.getPoint(2).y, pointSet.getPoint(3).y);
                 break;
             case "exponential":
-                result.x = Interpolatior.exponential(t, 2) * (p1[0] - p0[0]) + p0[0];
-                result.y = Interpolatior.exponential(t, 2) * (p1[1] - p0[1]) + p0[1];
+                result.x = Interpolatior.exponential(t, 2) * (p1.x - p0.x) + p0.x;
+                result.y = Interpolatior.exponential(t, 2) * (p1.y - p0.y) + p0.y;
                 break;
             case "sine":
-                result.x = Interpolatior.sine(t) * (p1[0] - p0[0]) + p0[0];
-                result.y = Interpolatior.sine(t) * (p1[1] - p0[1]) + p0[1];
+                result.x = Interpolatior.sine(t) * (p1.x - p0.x) + p0.x;
+                result.y = Interpolatior.sine(t) * (p1.y - p0.y) + p0.y;
                 break;
             case "elastic":
-                result.x = Interpolatior.elastic(t) * (p1[0] - p0[0]) + p0[0];
-                result.y = Interpolatior.elastic(t) * (p1[1] - p0[1]) + p0[1];
+                result.x = Interpolatior.elastic(t) * (p1.x - p0.x) + p0.x;
+                result.y = Interpolatior.elastic(t) * (p1.y - p0.y) + p0.y;
                 break;
             case "logarithmic":
-                result.x = Interpolatior.logarithmic(t, 2) * (p1[0] - p0[0]) + p0[0];
-                result.y = Interpolatior.logarithmic(t, 2) * (p1[1] - p0[1]) + p0[1];
+                result.x = Interpolatior.logarithmic(t, 2) * (p1.x - p0.x) + p0.x;
+                result.y = Interpolatior.logarithmic(t, 2) * (p1.y - p0.y) + p0.y;
                 break;
             default:
                 trace("未知的插值方法: " + method);

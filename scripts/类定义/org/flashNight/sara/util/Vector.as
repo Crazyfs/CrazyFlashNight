@@ -225,5 +225,14 @@ class org.flashNight.sara.util.Vector {
 	public function perpendicular():Vector {
 		return new Vector(-y, x); // 二维向量的法线为 (-y, x)
 	}
+
+
+	/**
+	 * 将当前向量转换为字符串表示
+	 * @return 字符串表示的当前向量
+	 */
+	public function toString():String {
+		return x + "," + y;
+	}
 }
 
