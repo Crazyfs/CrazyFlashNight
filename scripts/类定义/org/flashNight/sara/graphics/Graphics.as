@@ -123,19 +123,37 @@ class org.flashNight.sara.graphics.Graphics {
     }
 
 	// 静态方法：绘制影片剪辑的 AABB（轴对齐包围盒）
-	public static function drawAABB(dmc:MovieClip, mc:MovieClip):Void {
-    if (mc) {
-        dmc.clear();
-        dmc.lineStyle(1, 0xFF0000, 100); // 红色线条，1像素宽，100% 不透明度
+	public static function drawAABBFromMovieClip(dmc:MovieClip, mc:MovieClip):Void {
+		if (mc) 
+		{
+			var rect:Object = mc.getRect(mc);
 
-        var rect:Object = mc.getRect(mc);
+			dmc.moveTo(rect.xMin, rect.yMin);
+			dmc.lineTo(rect.xMax, rect.yMin);
+			dmc.lineTo(rect.xMax, rect.yMax);
+			dmc.lineTo(rect.xMin, rect.yMax);
+			dmc.lineTo(rect.xMin, rect.yMin);
+		}
+	}
 
-        dmc.moveTo(rect.xMin, rect.yMin);
-        dmc.lineTo(rect.xMax, rect.yMin);
-        dmc.lineTo(rect.xMax, rect.yMax);
-        dmc.lineTo(rect.xMin, rect.yMax);
-        dmc.lineTo(rect.xMin, rect.yMin);
-    }
-}
+	// 静态方法：绘制 AABB（轴对齐包围盒）
+	public static function drawAABB(dmc:MovieClip, aabb:AABB):Void 
+	{
+		if (aabb) 
+		{
+			var data:Array = aabb.getData(); // 获取 AABB 的数据副本
+			var left:Number = data[0];
+			var right:Number = data[1];
+			var top:Number = data[2];
+			var bottom:Number = data[3];
+
+			dmc.moveTo(left, top);
+			dmc.lineTo(right, top);
+			dmc.lineTo(right, bottom);
+			dmc.lineTo(left, bottom);
+			dmc.lineTo(left, top);
+		}
+	}
+
 
 }
