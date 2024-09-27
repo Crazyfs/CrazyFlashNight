@@ -174,4 +174,19 @@ _root.弹壳系统.初始化弹壳对象池 = function() {
     }
 };
 
+_root.弹壳系统.发射弹壳 = function(子弹类型, myX, myY, xscale, 必然触发) {
+    if (this.当前弹壳总数 <= this.弹壳总数上限 || _root.成功率(this.弹壳总数上限) || 必然触发) {
+        var 弹壳信息 = this.弹壳映射表[子弹类型];
+        var 弹壳种类 = 弹壳信息.弹壳;
+        var 游戏世界 = _root.gameworld;
+        if (!弹壳种类) return;
+        if (!游戏世界.弹壳对象池) this.初始化弹壳池();
 
+        var scale = xscale / 100;
+        var ascale = Math.abs(scale);
+        myX -= scale * 弹壳信息.myX;
+        myY += ascale * 弹壳信息.myY;
+        
+        var 弹壳 = 游戏世界.弹壳对象池[弹壳种类].getObject(myX, myY, xscale, ascale * 100, this.弹壳物理模拟);
+    }
+};
