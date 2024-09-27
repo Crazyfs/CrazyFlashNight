@@ -121,4 +121,21 @@ class org.flashNight.sara.graphics.Graphics {
         // 闭合多边形
         dmc.lineTo(firstPoint.x, firstPoint.y);
     }
+
+	// 静态方法：绘制影片剪辑的 AABB（轴对齐包围盒）
+	public static function drawAABB(dmc:MovieClip, mc:MovieClip):Void {
+    if (mc) {
+        dmc.clear();
+        dmc.lineStyle(1, 0xFF0000, 100); // 红色线条，1像素宽，100% 不透明度
+
+        var rect:Object = mc.getRect(mc);
+
+        dmc.moveTo(rect.xMin, rect.yMin);
+        dmc.lineTo(rect.xMax, rect.yMin);
+        dmc.lineTo(rect.xMax, rect.yMax);
+        dmc.lineTo(rect.xMin, rect.yMax);
+        dmc.lineTo(rect.xMin, rect.yMin);
+    }
+}
+
 }
