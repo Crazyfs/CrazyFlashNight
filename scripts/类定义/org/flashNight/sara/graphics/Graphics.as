@@ -44,7 +44,8 @@ class org.flashNight.sara.graphics.Graphics {
 		var mtp8r:Number = Math.tan(Math.PI/8) * r;
 		var msp4r:Number = Math.sin(Math.PI/4) * r;
 
-		with (dmc) {
+		with (dmc) 
+		{
 			moveTo(x + r, y);
 			curveTo(r + x, mtp8r + y, msp4r + x, msp4r + y);
 			curveTo(mtp8r + x, r + y, x, r + y);
@@ -124,4 +125,18 @@ class org.flashNight.sara.graphics.Graphics {
 			}
 		}
 	}
+
+	// 静态方法：绘制多边形
+    public static function paintPolygon(dmc:MovieClip, points:Array):Void {
+        if (points.length < 3) {
+            trace("多边形必须至少有3个点");
+            return;
+        }
+
+        dmc.moveTo(points[0][0], points[0][1]);
+        for (var i:Number = 1; i < points.length; i++) {
+            dmc.lineTo(points[i][0], points[i][1]);
+        }
+        dmc.lineTo(points[0][0], points[0][1]); // 闭合多边形
+    }
 }
