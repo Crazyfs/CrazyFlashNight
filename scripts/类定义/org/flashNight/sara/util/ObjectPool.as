@@ -195,4 +195,51 @@
     public function isPrototypeModeEnabled():Boolean {
         return this.isPrototypeEnabled;
     }
+
+    /**
+     * 清空对象池，销毁所有池中的对象并释放内存
+     */
+    public function clearPool():Void {
+        for (var i:Number = 0; i < this.pool.length; i++) {
+            var obj:MovieClip = this.pool[i];
+            obj.removeMovieClip();  // 销毁对象，释放内存
+        }
+        this.pool = [];  // 清空对象池数组
+    }
+
+    /**
+     * 检查对象池是否为空
+     * @return 如果对象池为空则返回 true，否则返回 false
+     */
+    public function isPoolEmpty():Boolean {
+        return this.pool.length == 0;
+    }
+
+    /**
+     * 检查对象池是否已满
+     * @return 如果对象池已满则返回 true，否则返回 false
+     */
+    public function isPoolFull():Boolean {
+        return this.pool.length >= this.maxPoolSize;
+    }
+
+    /**
+     * 获取当前对象池中未被使用的对象数量
+     * @return 当前对象池中的空闲对象数量
+     */
+    public function getIdleObjectCount():Number {
+        return this.pool.length;  // 返回对象池数组的长度
+    }
+
+    /**
+     * 批量回收多个对象，将它们一次性放回对象池
+     * @param objects 一个包含需要回收对象的数组
+     */
+    public function releaseObjects(objects:Array):Void {
+        for (var i:Number = 0; i < objects.length; i++) {
+            var obj:MovieClip = objects[i];
+            this.releaseObject(obj);  // 使用现有的 releaseObject 方法回收对象
+        }
+    }
+
 }

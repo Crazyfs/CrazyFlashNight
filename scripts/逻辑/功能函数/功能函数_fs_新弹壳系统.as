@@ -71,44 +71,6 @@ _root.弹壳系统.创建弹壳 = function(弹壳种类, myX, myY) {
 
 //  创建原型用
 
-_root.弹壳系统.createFunc = function(parentClip:MovieClip, 弹壳种类:String):MovieClip {
-    // 获取父级影片剪辑的下一个可用深度
-    var 当前深度 = parentClip.getNextHighestDepth();
-    
-    // 根据弹壳种类和深度生成唯一的弹壳名称
-    var 弹壳名 = 弹壳种类 + "_shell_" + 当前深度;
-    
-    // 在父级影片剪辑中创建并附加新弹壳 MovieClip 对象
-    var 弹壳MC:MovieClip = parentClip.attachMovie(弹壳种类, 弹壳名, 当前深度);
-    
-    // 设置初始属性：不可见、初始透明度等
-    弹壳MC._visible = false; // 初始状态不可见
-
-    弹壳MC.弹壳种类 = 弹壳种类;
-
-    // 返回创建的弹壳 MovieClip 对象，供后续使用
-    return 弹壳MC;
-};
-
-
-_root.弹壳系统.resetFunc = function(myX:Number, myY:Number, xscale:Number, yscale:Number, action:Function):Void {
-    // 通过 this 引用当前弹壳对象，不需要传入弹壳参数
-    this._x = myX;
-    this._y = myY;
-
-    // 弹壳变为可见
-    this._visible = true;
-    this._xscale = xscale;
-    this._yscale = yscale;
-    action(this);
-    ++_root.弹壳系统.当前弹壳总数;
-};
-
-_root.弹壳系统.releaseFunc = function():Void
-{
-    --_root.弹壳系统.当前弹壳总数;
-}
-
 
 // 发射弹壳
 _root.弹壳系统.发射弹壳 = function(子弹类型, myX, myY, xscale, 必然触发) {
@@ -147,3 +109,69 @@ _root.弹壳系统.初始化弹壳池 = function() {
         游戏世界.可用弹壳池[this.弹壳映射表[类型].弹壳] = [];
     }
 };
+
+// 为对象池class对接弹壳系统准备
+
+_root.弹壳系统.createFunc = function(parentClip:MovieClip, 弹壳种类:String):MovieClip {
+    // 获取父级影片剪辑的下一个可用深度
+    var 当前深度 = parentClip.getNextHighestDepth();
+    
+    // 根据弹壳种类和深度生成唯一的弹壳名称
+    var 弹壳名 = 弹壳种类 + "_shell_" + 当前深度;
+    
+    // 在父级影片剪辑中创建并附加新弹壳 MovieClip 对象
+    var 弹壳MC:MovieClip = parentClip.attachMovie(弹壳种类, 弹壳名, 当前深度);
+    
+    // 设置初始属性：不可见、初始透明度等
+    弹壳MC._visible = false; // 初始状态不可见
+
+    弹壳MC.弹壳种类 = 弹壳种类;
+
+    // 返回创建的弹壳 MovieClip 对象，供后续使用
+    return 弹壳MC;
+};
+
+
+_root.弹壳系统.resetFunc = function(myX:Number, myY:Number, xscale:Number, yscale:Number, action:Function):Void {
+    // 通过 this 引用当前弹壳对象，不需要传入弹壳参数
+    this._x = myX;
+    this._y = myY;
+
+    // 弹壳变为可见
+    this._visible = true;
+    this._xscale = xscale;
+    this._yscale = yscale;
+    action(this);
+    ++_root.弹壳系统.当前弹壳总数;
+};
+
+_root.弹壳系统.releaseFunc = function():Void
+{
+    --_root.弹壳系统.当前弹壳总数;
+};
+
+_root.弹壳系统.初始化弹壳对象池 = function() {
+    var 弹壳映射表 = this.弹壳映射表;
+    var 游戏世界 = _root.gameworld;
+    this.弹壳对象池 = {};
+    for (var 子弹类型 in 弹壳映射表) {
+        var 弹壳信息 = 弹壳映射表[子弹类型];
+        var 弹壳种类 = 弹壳信息.弹壳;
+        if (!this.弹壳对象池[弹壳种类]) {
+            // 创建 ObjectPool 实例，传入 prototypeInitArgs
+            this.弹壳对象池[弹壳种类] = new ObjectPool(
+                _root.弹壳系统.createFunc,          // createFunc
+                _root.弹壳系统.resetFunc,           // resetFunc
+                _root.弹壳系统.releaseFunc,         // releaseFunc
+                游戏世界.效果,                       // parentClip
+                30,                                 // maxPoolSize，可根据需要调整
+                0,                                  // preloadSize，禁用预加载
+                true,                               // isLazyLoaded
+                true,                               // isPrototypeEnabled
+                [弹壳种类]                           // prototypeInitArgs，传递给 createFunc 的额外参数
+            );
+        }
+    }
+};
+
+
