@@ -8,7 +8,7 @@ bin-release/
 .settings/
 
 # Executables
-*.swf
+# *.swf
 *.air
 *.ipa
 *.apk
