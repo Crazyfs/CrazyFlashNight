@@ -111,7 +111,20 @@
                     result.captures = groupResult.captures;
                 }
             }
+        } else if (this.type == 'Anchor') {
+            if (this.value == 'start') {
+                if (position == 0) {
+                    result.matched = true;
+                    result.position = position;
+                }
+            } else if (this.value == 'end') {
+                if (position == input.length) {
+                    result.matched = true;
+                    result.position = position;
+                }
+            }
         }
+
         return result;
     }
 }

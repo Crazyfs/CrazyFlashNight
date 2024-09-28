@@ -49,7 +49,17 @@ class org.flashNight.gesh.regexp.Parser {
         var node:ASTNode = null;
         var char:String = this.peek();
         
-        if (char == '(') {
+        if (char == '^') {
+            this.consume();
+            node = new ASTNode('Anchor');
+            node.value = 'start';
+            node = this.parseQuantifier(node);
+        } else if (char == '$') {
+            this.consume();
+            node = new ASTNode('Anchor');
+            node.value = 'end';
+            node = this.parseQuantifier(node);
+        } else if (char == '(') {
             node = this.parseGroup();
         } else if (char == '[') {
             node = this.parseCharacterClass();
@@ -149,12 +159,17 @@ class org.flashNight.gesh.regexp.Parser {
                 } else {
                     quantNode.max = parseInt(parts[1]);
                 }
+                // 添加检查
+                if (quantNode.min > quantNode.max) {
+                    throw new Error("Invalid quantifier: {" + quantNode.min + "," + quantNode.max + "}");
+                }
             }
             return quantNode;
         } else {
             return node;
         }
     }
+
     
     private function consume():String {
         return this.pattern.charAt(this.index++);
