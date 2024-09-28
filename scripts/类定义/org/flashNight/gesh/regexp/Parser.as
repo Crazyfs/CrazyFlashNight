@@ -83,6 +83,30 @@ class org.flashNight.gesh.regexp.Parser {
                 node.value = escapedChar;
                 node = this.parseQuantifier(node);
             }
+        } else if (char == '\\') {
+            this.consume();
+            var nextChar:String = this.peek();
+            if (nextChar == 'd' || nextChar == 'D' || nextChar == 'w' || nextChar == 'W' || nextChar == 's' || nextChar == 'S') {
+                this.consume();
+                node = new ASTNode('PredefinedCharacterClass');
+                node.value = nextChar;
+                node = this.parseQuantifier(node);
+            } else if (isDigit(nextChar)) {
+                var numberStr:String = "";
+                while (this.index < this.length && isDigit(this.peek())) {
+                    numberStr += this.consume();
+                }
+                var backRefNum:Number = parseInt(numberStr);
+                node = new ASTNode('BackReference');
+                node.value = backRefNum;
+                node = this.parseQuantifier(node);
+            } else {
+                // 转义字符
+                var escapedChar:String = getEscapedChar(this.consume());
+                node = new ASTNode('Literal');
+                node.value = escapedChar;
+                node = this.parseQuantifier(node);
+            }
         } else {
             // 字面量字符
             node = new ASTNode('Literal');
@@ -91,6 +115,12 @@ class org.flashNight.gesh.regexp.Parser {
         }
         return node;
     }
+
+    private function isDigit(char:String):Boolean {
+        var code:Number = char.charCodeAt(0);
+        return code >= 48 && code <= 57; // '0' to '9'
+    }
+
 
     private function parseGroup():ASTNode {
         this.consume(); // 跳过 '('
