@@ -52,7 +52,13 @@
         } else if (this.type == 'CharacterClass') {
             if (position < input.length) {
                 var char:String = input.charAt(position);
-                var inSet:Boolean = this.value.indexOf(char) >= 0;
+                var inSet:Boolean = false;
+                for (var i:Number = 0; i < this.value.length; i++) {
+                    if (this.value[i] == char) {
+                        inSet = true;
+                        break;
+                    }
+                }
                 if (this.negated) {
                     inSet = !inSet;
                 }
