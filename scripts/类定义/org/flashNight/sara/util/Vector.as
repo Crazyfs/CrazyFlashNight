@@ -57,6 +57,39 @@ class org.flashNight.sara.util.Vector {
 		y = v.y;
 	}
 
+    /**
+     * 克隆方法，返回当前向量的副本
+     * 该方法会创建一个新的 Vector 实例，其 x 和 y 分量与当前向量相同，
+     * 用于避免原位修改带来的潜在副作用，适合在需要保护原始数据的场景中使用。
+     * @return 一个新的 Vector 实例，x 和 y 分量与当前向量相同
+     */
+    public function clone():Vector {
+        return new Vector(this.x, this.y);
+    }
+
+    /**
+     * 坐标系转换方法
+     * 将当前向量的局部坐标从源影片剪辑 (sourceClip) 的坐标系转换为目标影片剪辑 (targetClip) 的坐标系。
+     * 该方法首先将当前向量的坐标从 sourceClip 的局部坐标转换为全局坐标，然后再将其转换为 targetClip 的局部坐标。
+     * 此操作不会修改当前向量，而是返回一个转换后的新向量。
+     * @param sourceClip 源影片剪辑，当前向量初始所在的坐标系
+     * @param targetClip 目标影片剪辑，要转换到的坐标系
+     * @return 一个新的 Vector 实例，表示当前向量在目标影片剪辑中的局部坐标
+     */
+    public function convertCoordinate(sourceClip:MovieClip, targetClip:MovieClip):Vector {
+        // 克隆当前向量，避免原位操作修改
+        var convertedVector:Vector = this.clone();
+        
+        // 将 sourceClip 的局部坐标转换为全局坐标
+        sourceClip.localToGlobal(convertedVector);
+        
+        // 将全局坐标转换为 targetClip 的局部坐标
+        targetClip.globalToLocal(convertedVector);
+        
+        return convertedVector;
+    }
+
+
 	/**
 	 * 计算向量的点积
 	 * @param v 另一个向量
