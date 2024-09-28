@@ -60,22 +60,24 @@ class RegExp {
 		}
 	}
 	public function invStr(sVal:String):String {
-		var s = sVal;
-		var l = length(s);
-		var j;
-		var c;
-		var r = "";
-		for (var i = 1; i<255; i++) {
-			c = chr(i);
+		var s:String = sVal;
+		var l:Number = s.length;
+		var j:Number;
+		var c:String;
+		var r:String = "";
+		for (var i:Number = 1; i < 255; i++) {
+			c = String.fromCharCode(i);
 			j = 0;
-			while (j<=l && substring(s, 1+j++, 1) != c) {
+			while (j <= l && s.charAt(j++) != c) {
+				// 空循环，寻找字符 c 是否在 s 中
 			}
-			if (j>l) {
+			if (j > l) {
 				r += c;
 			}
 		}
-		return s;
+		return r; // 修正为返回 r，而不是 s
 	}
+
 	public function compile() {
 		this.source = arguments[0];
 		if (arguments.length>1) {
