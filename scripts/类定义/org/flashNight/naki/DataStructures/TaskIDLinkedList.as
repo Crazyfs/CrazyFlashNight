@@ -47,6 +47,12 @@ class org.flashNight.naki.DataStructures.TaskIDLinkedList {
 
     // 从链表中移除指定的节点，并断开与链表的引用
     public function remove(node:TaskIDNode):Void {
+        // 快速检查节点是否属于当前链表
+        if (node.list != this) {
+            trace("Error: Attempting to remove a node that does not belong to this list.");
+            return;
+        }
+
         if (node == head && node == tail) {
             head = tail = null;
         } else if (node == head) {
@@ -67,6 +73,7 @@ class org.flashNight.naki.DataStructures.TaskIDLinkedList {
         node.prev = null;
         node.list = null;
     }
+
 
     // 获取链表的第一个节点
     public function getFirst():TaskIDNode {
