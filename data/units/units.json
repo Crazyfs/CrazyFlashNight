@@ -6159,7 +6159,7 @@
   },
   {
     "id": 389,
-    "spritename": "主角-女",
+    "spritename": "主角-男",
     "level": 10,
     "name": "大学警备队",
     "is_hostile": false,
