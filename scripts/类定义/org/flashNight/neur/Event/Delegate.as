@@ -1,5 +1,5 @@
 ﻿/**
- * Delegate 类用于将某个方法绑定到特定的作用域（对象上下文）。
+ * Delegate 类用于将一个函数绑定到特定的作用域（对象上下文）。
  * 这对于确保在调用方法时，`this` 始终指向预期的对象非常有用。
  */
 class org.flashNight.neur.Event.Delegate {
@@ -17,18 +17,26 @@ class org.flashNight.neur.Event.Delegate {
      * 3. 定时器或延迟执行的函数需要保持正确的上下文。
      */
     public static function create(scope:Object, method:Function):Function {
+        // 如果传入的方法为空，则抛出错误
         if (method == null) {
             throw new Error("The provided method is undefined or null");
         }
+
+        // 定义一个包装函数，将方法绑定到指定的作用域（scope）
         var wrappedFunction:Function = function() {
+            // 使用 apply 将当前作用域（scope）和传递的参数一起调用方法
             return method.apply(scope, Array.prototype.slice.call(arguments));
         };
-        wrappedFunction._originalCallback = method;
-        wrappedFunction._scope = scope;
-        return wrappedFunction;
+
+        // 记录原始回调函数和作用域，以便以后可以访问
+        wrappedFunction._originalCallback = method;  // 保存原始回调方法
+        wrappedFunction._scope = scope;              // 保存作用域
+
+        return wrappedFunction; // 返回包装后的函数
     }
 
 }
+
 
 /*
 
