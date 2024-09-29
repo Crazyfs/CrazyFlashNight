@@ -6118,5 +6118,81 @@
       "secondary2": null,
       "melee": null
 	}
+  },
+  {
+    "id": 387,
+    "spritename": "敌人-Tomboy",
+    "level": 2,
+    "name": "Tomboy",
+    "is_hostile": false,
+    "height": 175,
+    "data": {
+      "primary": null,
+      "secondary": null,
+      "secondary2": null,
+      "melee": null
+    }
+  },
+  {
+    "id": 388,
+    "spritename": "主角-男",
+    "level": 10,
+    "name": "大学警备队",
+    "is_hostile": false,
+    "height": 175,
+    "data": {
+      "primary": "M4A1",
+      "secondary": null,
+      "secondary2": null,
+      "melee": "战术狗腿刀",
+      "grenade": null,
+      "face": "男变装-基本脸型",
+      "hairstyle": "发型-男式-黑韩式头2",
+      "head": null,
+      "body": "黑色长袖学生制服",
+      "leg": "黑色校服裤子",
+      "hand": null,
+      "foot": "黑灰色白底皮鞋",
+      "neck": "死亡射手项链",
+      "gender": "男"
+    }
+  },
+  {
+    "id": 388,
+    "spritename": "主角-女",
+    "level": 10,
+    "name": "大学警备队",
+    "is_hostile": false,
+    "height": 175,
+    "data": {
+      "primary": "AUG",
+      "secondary": null,
+      "secondary2": null,
+      "melee": "战术狗腿刀",
+      "grenade": null,
+      "face": "男变装-基本脸型",
+      "hairstyle": "发型-女式-深蓝色挑染短发",
+      "head": null,
+      "body": "bob自由牛仔衫",
+      "leg": "bob自由喇叭裤",
+      "hand": null,
+      "foot": "bob自由火箭皮鞋",
+      "neck": "死亡射手项链",
+      "gender": "女"
+    }
+  },
+  {
+    "id": 389,
+    "spritename": "敌人-旧型号机器人",
+    "level": 20,
+    "name": "旧型号机器人",
+    "is_hostile": false,
+    "height": 180,
+    "data": {
+      "primary": null,
+      "secondary": null,
+      "secondary2": null,
+      "melee": null
+    }
   }
 ]
