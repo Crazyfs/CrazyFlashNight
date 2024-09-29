@@ -908,6 +908,9 @@ class org.flashNight.neur.ScheduleTimer.CerberusScheduler {
         
         // 从哈希表中移除任务ID
         this.removeTaskFromTable(node.taskID);
+
+        // 重置节点以清理引用
+        node.reset(null);
     }
 
     /**
