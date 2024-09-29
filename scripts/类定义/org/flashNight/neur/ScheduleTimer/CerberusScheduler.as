@@ -1035,7 +1035,7 @@ class org.flashNight.neur.ScheduleTimer.CerberusScheduler {
      * @param taskID    要查找的任务ID
      * @return          找到的任务节点，或 null
      */
-    private function findTaskInTable(taskID:String):TaskIDNode {
+    public function findTaskInTable(taskID:String):TaskIDNode {
         return this.taskTable[taskID] || null;
     }
 
