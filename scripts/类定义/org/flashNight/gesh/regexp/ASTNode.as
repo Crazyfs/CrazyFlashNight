@@ -10,6 +10,7 @@
     public var negated:Boolean;
     public var capturing:Boolean;
     public var greedy:Boolean; // 新增属性，表示量词是否贪婪
+    public var groupNumber:Number; // 新增属性，用于标识捕获组编号
 
     public function ASTNode(type:String) {
         this.type = type;
@@ -23,10 +24,11 @@
         this.negated = false;
         this.capturing = false;
         this.greedy = true; // 默认贪婪匹配
+        this.groupNumber = 0; // 初始化为0，表示非捕获组
     }
 
     public function match(input:String, position:Number, captures:Array, ignoreCase:Boolean):Object {
-        var result:Object = { matched: false, position: position, captures: captures.slice() };
+        var result:Object = { matched: false, position: position };
         if (this.type == 'Literal') {
             if (position < input.length && charEquals(input.charAt(position), String(this.value), ignoreCase)) {
                 result.matched = true;
@@ -39,18 +41,15 @@
             }
         } else if (this.type == 'Sequence') {
             var currentPosition:Number = position;
-            var currentCaptures:Array = captures.slice();
             for (var i:Number = 0; i < this.children.length; i++) {
-                var childResult:Object = this.children[i].match(input, currentPosition, currentCaptures, ignoreCase);
+                var childResult:Object = this.children[i].match(input, currentPosition, captures, ignoreCase);
                 if (!childResult.matched) {
-                    return { matched: false, position: position, captures: captures.slice() };
+                    return { matched: false, position: position };
                 }
                 currentPosition = childResult.position;
-                currentCaptures = childResult.captures; // 使用子节点的捕获组
             }
             result.matched = true;
             result.position = currentPosition;
-            result.captures = currentCaptures; // 返回累积的捕获组
         } else if (this.type == 'CharacterClass') {
             if (position < input.length) {
                 var char:String = input.charAt(position);
@@ -101,88 +100,72 @@
         } else if (this.type == 'Quantifier') {
             var count:Number = 0;
             var currentPosition:Number = position;
-            var currentCaptures:Array = captures.slice();
             if (this.greedy) {
-                // 贪婪匹配
-                var positions:Array = [];
+                // Greedy matching
                 while (count < this.max) {
-                    var childResult:Object = this.child.match(input, currentPosition, currentCaptures, ignoreCase);
-                    if (childResult.matched) {
-                        if (childResult.position == currentPosition) {
-                            break; // 防止无限循环
-                        }
-                        positions.push({ position: currentPosition, captures: currentCaptures.slice() });
+                    var childResult:Object = this.child.match(input, currentPosition, captures, ignoreCase);
+                    if (childResult.matched && childResult.position > currentPosition) {
                         currentPosition = childResult.position;
-                        currentCaptures = childResult.captures.slice();
                         count++;
                     } else {
                         break;
                     }
                 }
-                // 回溯以满足最小匹配数
-                while (count >= this.min) {
-                    result.matched = true;
-                    result.position = currentPosition;
-                    result.captures = currentCaptures.slice();
-                    return result;
-                }
-                // 不匹配
-                return { matched: false, position: position, captures: captures.slice() };
-            } else {
-                // 非贪婪匹配
                 if (count >= this.min) {
                     result.matched = true;
                     result.position = currentPosition;
-                    result.captures = currentCaptures.slice();
-                    return result;
                 }
+            } else {
+                // Non-greedy matching
                 while (count < this.max) {
-                    var childResult:Object = this.child.match(input, currentPosition, currentCaptures, ignoreCase);
-                    if (childResult.matched) {
-                        if (childResult.position == currentPosition) {
-                            break; // 防止无限循环
+                    var childResult:Object = this.child.match(input, currentPosition, captures, ignoreCase);
+                    if (childResult.matched && childResult.position > currentPosition) {
+                        if (count + 1 >= this.min) {
+                            currentPosition = childResult.position;
+                            count++;
+                            break;
                         }
                         currentPosition = childResult.position;
-                        currentCaptures = childResult.captures.slice();
                         count++;
-                        if (count >= this.min) {
-                            result.matched = true;
-                            result.position = currentPosition;
-                            result.captures = currentCaptures.slice();
-                            return result;
-                        }
                     } else {
                         break;
                     }
                 }
-                // 不匹配
-                return { matched: false, position: position, captures: captures.slice() };
+                if (count >= this.min) {
+                    result.matched = true;
+                    result.position = currentPosition;
+                }
             }
         } else if (this.type == 'Alternation') {
-            var leftResult:Object = this.left.match(input, position, captures.slice(), ignoreCase);
+            var leftResult:Object = this.left.match(input, position, captures, ignoreCase);
             if (leftResult.matched) {
-                result = leftResult;
+                result.matched = true;
+                result.position = leftResult.position;
             } else {
-                var rightResult:Object = this.right.match(input, position, captures.slice(), ignoreCase);
+                var rightResult:Object = this.right.match(input, position, captures, ignoreCase);
                 if (rightResult.matched) {
-                    result = rightResult;
+                    result.matched = true;
+                    result.position = rightResult.position;
                 }
             }
         } else if (this.type == 'Group') {
-            var groupResult:Object = this.child.match(input, position, captures.slice(), ignoreCase);
+            var groupStartPos:Number = position;
+            var groupResult:Object = this.child.match(input, position, captures, ignoreCase);
             if (groupResult.matched) {
                 result.matched = true;
                 result.position = groupResult.position;
-                result.captures = groupResult.captures.slice(); // 先获取子节点的捕获组
                 if (this.capturing) {
-                    var groupMatch:String = input.substring(position, groupResult.position);
-                    result.captures.push(groupMatch); // 将当前组的匹配结果添加到捕获组的末尾
+                    var groupMatch:String = input.substring(groupStartPos, groupResult.position);
+                    if (this.groupNumber > 0) { // Ensure it's a capturing group
+                        // Assign the captured group to the correct group number
+                        captures[this.groupNumber] = groupMatch;
+                    }
                 }
             }
         } else if (this.type == 'BackReference') {
             var groupNumber:Number = Number(this.value);
-            if (captures.length >= groupNumber && captures[groupNumber - 1] != undefined) {
-                var groupContent:String = captures[groupNumber - 1];
+            if (captures.length > groupNumber && captures[groupNumber] != undefined) {
+                var groupContent:String = captures[groupNumber];
                 var endPosition:Number = position + groupContent.length;
                 var matchedStr:String = input.substring(position, endPosition);
                 if (endPosition <= input.length && charEquals(matchedStr, groupContent, ignoreCase)) {
@@ -238,5 +221,3 @@
         return char == ' ' || char == '\t' || char == '\n' || char == '\r' || char == '\f' || char == '\v';
     }
 }
-
-

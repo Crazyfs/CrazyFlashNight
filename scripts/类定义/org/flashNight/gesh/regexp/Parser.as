@@ -1,15 +1,18 @@
-﻿import org.flashNight.gesh.regexp.ASTNode;
+﻿import org.flashNight.gesh.regexp.*;
 
 class org.flashNight.gesh.regexp.Parser {
     private var pattern:String;
     private var index:Number;
     private var length:Number;
     private var ignoreCase:Boolean; // 新增属性，标记是否忽略大小写
+    private var groupCount:Number; // 新增属性，计数捕获组
 
     public function Parser(pattern:String) {
         this.pattern = pattern;
         this.index = 0;
         this.length = pattern.length;
+        this.ignoreCase = false; // 根据需要设置或解析标志
+        this.groupCount = 0; // 初始化捕获组计数
     }
 
     public function parse():ASTNode {
@@ -76,22 +79,8 @@ class org.flashNight.gesh.regexp.Parser {
                 node = new ASTNode('PredefinedCharacterClass');
                 node.value = nextChar;
                 node = this.parseQuantifier(node);
-            } else {
-                // 处理转义字符
-                var escapedChar:String = getEscapedChar(nextChar);
-                node = new ASTNode('Literal');
-                node.value = escapedChar;
-                node = this.parseQuantifier(node);
-            }
-        } else if (char == '\\') {
-            this.consume();
-            var nextChar:String = this.peek();
-            if (nextChar == 'd' || nextChar == 'D' || nextChar == 'w' || nextChar == 'W' || nextChar == 's' || nextChar == 'S') {
-                this.consume();
-                node = new ASTNode('PredefinedCharacterClass');
-                node.value = nextChar;
-                node = this.parseQuantifier(node);
             } else if (isDigit(nextChar)) {
+                // Handle backreferences like \1, \2, etc.
                 var numberStr:String = "";
                 while (this.index < this.length && isDigit(this.peek())) {
                     numberStr += this.consume();
@@ -101,14 +90,14 @@ class org.flashNight.gesh.regexp.Parser {
                 node.value = backRefNum;
                 node = this.parseQuantifier(node);
             } else {
-                // 转义字符
-                var escapedChar:String = getEscapedChar(this.consume());
+                // Handle escaped literal characters
+                var escapedChar:String = getEscapedChar(nextChar);
                 node = new ASTNode('Literal');
                 node.value = escapedChar;
                 node = this.parseQuantifier(node);
             }
         } else {
-            // 字面量字符
+            // Literal character
             node = new ASTNode('Literal');
             node.value = this.consume();
             node = this.parseQuantifier(node);
@@ -120,7 +109,6 @@ class org.flashNight.gesh.regexp.Parser {
         var code:Number = char.charCodeAt(0);
         return code >= 48 && code <= 57; // '0' to '9'
     }
-
 
     private function parseGroup():ASTNode {
         this.consume(); // 跳过 '('
@@ -135,6 +123,8 @@ class org.flashNight.gesh.regexp.Parser {
             }
         } else {
             node.capturing = true; // 捕获分组
+            this.groupCount += 1;
+            node.groupNumber = this.groupCount; // Assign group number
         }
         node.child = this.parseExpression();
         this.consume(); // 跳过 ')'
@@ -242,5 +232,10 @@ class org.flashNight.gesh.regexp.Parser {
         if (char == '\\') return "\\";
         // 其他转义字符
         return char;
+    }
+
+    // 新增方法：获取总捕获组数
+    public function getTotalGroups():Number {
+        return this.groupCount;
     }
 }
