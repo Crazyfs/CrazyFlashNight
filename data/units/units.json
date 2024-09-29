@@ -6153,12 +6153,12 @@
       "leg": "黑色校服裤子",
       "hand": null,
       "foot": "黑灰色白底皮鞋",
-      "neck": "死亡射手项链",
+      "neck": "枪械中加成项链",
       "gender": "男"
     }
   },
   {
-    "id": 388,
+    "id": 389,
     "spritename": "主角-女",
     "level": 10,
     "name": "大学警备队",
@@ -6170,19 +6170,19 @@
       "secondary2": null,
       "melee": "战术狗腿刀",
       "grenade": null,
-      "face": "男变装-基本脸型",
+      "face": "女变装-基本脸型",
       "hairstyle": "发型-女式-深蓝色挑染短发",
       "head": null,
       "body": "bob自由牛仔衫",
       "leg": "bob自由喇叭裤",
       "hand": null,
       "foot": "bob自由火箭皮鞋",
-      "neck": "死亡射手项链",
+      "neck": "枪械中加成项链",
       "gender": "女"
     }
   },
   {
-    "id": 389,
+    "id": 390,
     "spritename": "敌人-旧型号机器人",
     "level": 20,
     "name": "旧型号机器人",
