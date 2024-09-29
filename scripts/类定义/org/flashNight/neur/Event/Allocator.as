@@ -7,11 +7,12 @@ class org.flashNight.neur.Event.Allocator {
     public function Allocator(_pool: Array, initialCapacity:Number) {
         this.pool = _pool;
         this.availSpace = new Array();
-        for (var i:Number = initialCapacity - 1; i >= 0; i--) {
+        for (var i:Number = 0; i < initialCapacity; i++) {
             this.pool.push(null);
             this.availSpace.push(i);
         }
     }
+
 
     public function Alloc(): Number {
         var ref:IAllocable = IAllocable(arguments[0]);
@@ -23,7 +24,7 @@ class org.flashNight.neur.Event.Allocator {
 
         var index:Number;
         if (this.availSpace.length > 0) {
-            index = Number(this.availSpace.pop()); // pop 应该返回最小的可用索引
+            index = Number(this.availSpace.shift()); // 使用 shift() 获取最小的可用索引
             this.pool[index] = ref;
         } else {
             this.pool.push(ref);
@@ -43,7 +44,7 @@ class org.flashNight.neur.Event.Allocator {
         var obj: IAllocable = IAllocable(this.pool[index]);
         obj.reset();
         this.pool[index] = null;
-        this.availSpace.push(index);
+        this.availSpace.unshift(index); // 使用 unshift()，将已释放的索引添加到 availSpace 的开头
     }
 
     public function FreeAll(): Void {
@@ -54,12 +55,13 @@ class org.flashNight.neur.Event.Allocator {
                 this.pool[i] = null;
             }
         }
-        this.availSpace = [];
-        for (var i:Number = this.pool.length - 1; i >= 0; i--) {
-            this.availSpace.push(i); // 将索引从大到小压入 availSpace
+        this.availSpace = [];  // 重新初始化 availSpace
+        for (var i:Number = 0; i < this.pool.length; i++) {
+            this.availSpace.push(i);  // 将所有索引重新加入 availSpace，确保索引顺序正确
         }
-        trace("AvailSpace after FreeAll: " + this.availSpace);
     }
+
+
 
     public function getCallback(index:Number):Function {
         return this.pool[index];

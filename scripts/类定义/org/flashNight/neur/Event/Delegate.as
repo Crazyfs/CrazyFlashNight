@@ -17,11 +17,17 @@ class org.flashNight.neur.Event.Delegate {
      * 3. 定时器或延迟执行的函数需要保持正确的上下文。
      */
     public static function create(scope:Object, method:Function):Function {
-        return function() {
-            // 使用 apply 方法调用 method，绑定 scope 作为 this，并传递所有参数
-            return method.apply(scope, arguments);
+        if (method == null) {
+            throw new Error("The provided method is undefined or null");
+        }
+        var wrappedFunction:Function = function() {
+            return method.apply(scope, Array.prototype.slice.call(arguments));
         };
+        wrappedFunction._originalCallback = method;
+        wrappedFunction._scope = scope;
+        return wrappedFunction;
     }
+
 }
 
 /*
