@@ -43,4 +43,17 @@ class org.flashNight.naki.DataStructures.Task {
     public function isComplete():Boolean {
         return this.remainingRepeats <= 0 && this.remainingRepeats !== true;
     }
+
+    // Destructor method to clean up references
+    public function destroy():Void {
+        // Nullify references to break circular dependencies
+        this.action = null;
+        this.params = null;
+        
+        if (this.node) {
+            this.node.reset(null); // Passing null to avoid resetting taskID unless needed
+            this.node = null;
+        }
+    }
+
 }
