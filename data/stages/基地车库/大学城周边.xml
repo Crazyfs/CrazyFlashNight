@@ -92,7 +92,7 @@
                         <y>525</y>
                     </Enemy>
                     <Enemy>
-                        <Type>兵种49</Type>
+                        <Type>兵种48</Type>
                         <Interval>100</Interval>
                         <Quantity>1</Quantity>
                         <Level>25</Level>
@@ -112,16 +112,16 @@
                         <Interval>100</Interval>
                         <Quantity>1</Quantity>
                         <Level>25</Level>
-                        <x>460</x>
-                        <y>502</y>
+                        <x>480</x>
+                        <y>532</y>
                     </Enemy>
                     <Enemy>
                         <Type>兵种390</Type>
                         <Interval>100</Interval>
                         <Quantity>1</Quantity>
                         <Level>25</Level>
-                        <x>470</x>
-                        <y>522</y>
+                        <x>530</x>
+                        <y>582</y>
                     </Enemy>
                 </EnemyGroup>
             </SubWave>
@@ -137,13 +137,12 @@
             <SubWave id="0">
                 <WaveInformation>
                     <Duration>0</Duration>
-                    <FinishRequirement>1</FinishRequirement>
                 </WaveInformation>
                 <EnemyGroup>
                     <Enemy>
                         <Type>兵种44</Type>
                         <Interval>100</Interval>
-                        <Quantity>2</Quantity>
+                        <Quantity>1</Quantity>
                         <Level>25</Level>
                         <x>869</x>
                         <y>455</y>
@@ -175,16 +174,16 @@
                         <Interval>100</Interval>
                         <Quantity>1</Quantity>
                         <Level>25</Level>
-                        <x>220</x>
-                        <y>510</y>
+                        <x>250</x>
+                        <y>580</y>
                     </Enemy>
                     <Enemy>
                         <Type>兵种390</Type>
                         <Interval>100</Interval>
                         <Quantity>1</Quantity>
                         <Level>25</Level>
-                        <x>235</x>
-                        <y>500</y>
+                        <x>275</x>
+                        <y>560</y>
                     </Enemy>
                 </EnemyGroup>
             </SubWave>
@@ -235,7 +234,7 @@
                         <Interval>100</Interval>
                         <Quantity>1</Quantity>
                         <Level>25</Level>
-                        <x>1700</x>
+                        <x>350</x>
                         <y>575</y>
                     </Enemy>
                 </EnemyGroup>
