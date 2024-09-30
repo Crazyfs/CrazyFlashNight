@@ -1,4 +1,342 @@
-﻿import org.flashNight.gesh.regexp.*;
+﻿/*
+### 正则表达式使用指南
+
+#### 概述
+正则表达式（Regular Expression，简称“正则”或“RegEx”）是一种用于匹配和操作文本的强大工具，广泛应用于文本搜索、替换、验证等场景。在本指南中，我们将一步步介绍如何使用 ActionScript 2 (AS2) 环境中的正则表达式类（`RegExp`），帮助用户快速掌握基础知识，并了解如何在不同场景中提升开发效率。
+
+### 1. 创建正则表达式对象
+在 AS2 中，你可以使用 `RegExp` 类来创建正则表达式对象。创建一个正则表达式的基本语法是：
+```actionscript
+var regex:RegExp = new RegExp(pattern, flags);
+```
+- `pattern` 是正则表达式的模式，定义了你想匹配的文本规则。
+- `flags` 是可选参数，用于指定匹配规则（如是否忽略大小写）。
+
+例如：
+```actionscript
+var regex:RegExp = new RegExp("a*b", "");
+```
+这个表达式匹配以零个或多个 `a` 字符开头并紧跟一个 `b` 字符的字符串。
+
+### 2. 基本特性
+
+#### 2.1 字符匹配
+正则表达式最基本的功能是匹配具体的字符或字符组合。
+- 直接匹配字符，如 `a` 匹配字母 `a`，`abc` 匹配整个字符串 `abc`。
+```actionscript
+var regex:RegExp = new RegExp("abc", "");
+trace(regex.test("abc")); // 输出 true
+```
+
+#### 2.2 字符集
+- 使用 `[]` 来表示字符集，匹配指定范围内的任意一个字符。例如：
+  - `[abc]` 匹配 `a`、`b` 或 `c`。
+  - `[a-z]` 匹配所有小写字母。
+```actionscript
+var regex:RegExp = new RegExp("[a-z]", "");
+trace(regex.test("f")); // 输出 true
+```
+
+#### 2.3 否定字符集
+- 使用 `[^]` 表示不匹配括号内的任意字符。例如，`[^a-z]` 表示不匹配小写字母：
+```actionscript
+var regex:RegExp = new RegExp("[^a-z]", "");
+trace(regex.test("1")); // 输出 true
+```
+
+### 3. 量词（Quantifiers）
+量词用于指定前面的元素出现的次数。
+
+#### 3.1 常用量词
+- `*`：匹配零个或多个前面的元素。例如，`a*` 表示零个或多个 `a` 字符。
+- `+`：匹配一个或多个前面的元素。例如，`a+` 表示一个或多个 `a`。
+- `?`：匹配零个或一个前面的元素。例如，`a?` 表示零个或一个 `a`。
+- `{n}`：精确匹配 `n` 次。例如，`a{3}` 表示匹配三个连续的 `a`。
+- `{n,m}`：匹配 `n` 到 `m` 次。例如，`a{2,5}` 表示匹配 2 到 5 个 `a`。
+
+#### 3.2 使用示例
+```actionscript
+var regex:RegExp = new RegExp("a{3}", "");
+trace(regex.test("aaa")); // 输出 true，正好有三个 a
+```
+
+### 4. 分组与捕获
+通过使用 `()` 可以将模式分组，方便提取部分匹配结果。
+```actionscript
+var regex:RegExp = new RegExp("(abc)", "");
+var result:Array = regex.exec("abc");
+trace(result[1]); // 输出 'abc'，即捕获的第一个分组
+```
+
+### 5. 逻辑或 `|`
+使用 `|` 表示逻辑或，用于匹配多个模式中的任意一个。例如，`a|b` 表示匹配 `a` 或 `b`。
+```actionscript
+var regex:RegExp = new RegExp("a|b", "");
+trace(regex.test("a")); // 输出 true
+trace(regex.test("b")); // 输出 true
+```
+
+### 6. 特殊字符
+正则表达式中的某些字符具有特殊含义，使用 `\` 转义。例如：
+- `.`：匹配除换行符外的任意字符。
+- `\d`：匹配任意数字（0-9）。
+- `\w`：匹配任意字母、数字或下划线。
+- `\s`：匹配空白字符（如空格、制表符）。
+- `\b`：匹配单词边界。
+- `^`：匹配字符串的开始。
+- `$`：匹配字符串的结尾。
+
+#### 示例：
+```actionscript
+var regex:RegExp = new RegExp("\\d+", "");
+trace(regex.test("123")); // 输出 true，匹配数字
+```
+
+### 7. 非贪婪量词
+默认情况下，正则表达式的量词是“贪婪”的，它会尽可能多地匹配。你可以通过在量词后面加 `?` 来让匹配变成“非贪婪”的，即尽可能少地匹配。
+```actionscript
+var regex:RegExp = new RegExp("a+?", "");
+trace(regex.exec("aaa")[0]); // 输出 'a'，只匹配一个 a
+```
+
+### 8. 测试和执行
+- `test()`：用于测试字符串是否匹配正则表达式，返回布尔值。
+- `exec()`：用于执行正则表达式，返回一个包含匹配结果的数组，或 `null` 表示没有匹配。
+
+#### 示例：
+```actionscript
+var regex:RegExp = new RegExp("a+", "");
+trace(regex.test("aaa")); // 输出 true
+```
+
+### 9. 匹配修饰符
+匹配修饰符可以改变正则表达式的行为。常见的修饰符包括：
+- `i`：忽略大小写。
+- `m`：多行匹配，`^` 和 `$` 匹配每行的开头和结尾。
+
+#### 示例：
+```actionscript
+var regex:RegExp = new RegExp("abc", "i");
+trace(regex.test("AbC")); // 输出 true，忽略大小写
+```
+
+### 10. 常见的正则表达式模式应用
+
+#### 10.1 匹配电子邮件地址
+```actionscript
+var regex:RegExp = new RegExp("[\\w.-]+@[\\w.-]+\\.\\w+", "");
+trace(regex.test("example@test.com")); // 输出 true
+```
+
+#### 10.2 匹配电话号码
+```actionscript
+var regex:RegExp = new RegExp("\\d{3}-\\d{3}-\\d{4}", "");
+trace(regex.test("123-456-7890")); // 输出 true
+```
+
+#### 10.3 匹配 URL
+```actionscript
+var regex:RegExp = new RegExp("https?://[\\w.-]+", "");
+trace(regex.test("http://example.com")); // 输出 true
+```
+
+### 11. 常见错误与调试技巧
+- **量词错误**：确保 `{n,m}` 中的 `n` 小于等于 `m`，否则会导致无效量词错误。
+- **未匹配到结果**：检查正则表达式中的转义符号，确保正确使用 `\` 来转义特殊字符。
+
+让我们对之前的指南进行扩展，增加实际应用场景，并详细说明如何在这些场景中编写正则表达式，以便更好地理解和运用这些功能。
+
+---
+
+### 正则表达式使用指南（实际场景与丰富实例）
+
+#### 1. 创建正则表达式对象
+在真实开发中，正则表达式通常用于处理用户输入、搜索文本内容或进行数据验证。比如，在一个表单中验证电子邮件地址时，我们可以创建一个正则表达式来匹配正确的格式。
+
+```actionscript
+var regex:RegExp = new RegExp("[\\w.-]+@[\\w.-]+\\.\\w+", "");
+```
+这个正则表达式匹配有效的电子邮件地址格式，例如 `"example@test.com"`。`[\\w.-]+` 匹配用户名部分，`@` 匹配电子邮件中的 `@` 符号，`[\\w.-]+` 匹配域名部分，最后的 `\\.\\w+` 匹配顶级域名（如 `.com` 或 `.net`）。
+
+### 2. 字符匹配
+#### 实际应用场景：文本查找和替换
+假设你正在开发一个文本编辑器，其中需要查找文本中所有出现的单词 "hello" 并替换为 "hi"。
+
+**编写正则表达式**：
+```actionscript
+var regex:RegExp = new RegExp("hello", "g");
+```
+- **解释**：`hello` 匹配字面上的 "hello"。`g` 修饰符表示全局搜索，匹配文档中的所有 "hello"。
+
+**实际使用**：
+```actionscript
+var text:String = "hello world, hello everyone!";
+var newText:String = text.replace(regex, "hi");
+trace(newText); // 输出 "hi world, hi everyone!"
+```
+这种方法可以用于快速替换文档中的内容。
+
+### 3. 字符集
+#### 实际应用场景：用户名验证
+在用户注册表单中，你可能需要验证用户名只能包含字母和数字。你可以使用字符集来限制用户输入。
+
+**编写正则表达式**：
+```actionscript
+var regex:RegExp = new RegExp("^[a-zA-Z0-9]+$", "");
+```
+- **解释**：`[a-zA-Z0-9]` 表示匹配任意大小写字母和数字。`^` 表示匹配字符串的开始，`$` 表示匹配字符串的结束，因此整个用户名必须由这些字符组成。
+
+**实际使用**：
+```actionscript
+var username:String = "user123";
+trace(regex.test(username)); // 输出 true，表示用户名有效
+```
+
+### 4. 否定字符集
+#### 实际应用场景：过滤非法字符
+如果你想确保输入内容不包含特定字符（如特殊符号），可以使用否定字符集。例如，限制输入不包含非字母字符。
+
+**编写正则表达式**：
+```actionscript
+var regex:RegExp = new RegExp("[^a-zA-Z]", "");
+```
+- **解释**：`[^a-zA-Z]` 表示匹配非字母字符。
+
+**实际使用**：
+```actionscript
+var input:String = "Hello!@#";
+trace(regex.test(input)); // 输出 true，表示输入中有非法字符
+```
+
+### 5. 量词
+#### 实际应用场景：密码强度验证
+在注册系统中，你可能需要验证用户密码是否至少包含 8 个字符，并且包含字母和数字。
+
+**编写正则表达式**：
+```actionscript
+var regex:RegExp = new RegExp("^(?=.*[a-zA-Z])(?=.*\\d)[a-zA-Z\\d]{8,}$", "");
+```
+- **解释**：`(?=.*[a-zA-Z])` 确保至少有一个字母，`(?=.*\\d)` 确保至少有一个数字，`[a-zA-Z\\d]{8,}` 表示长度至少为 8。
+
+**实际使用**：
+```actionscript
+var password:String = "Passw0rd";
+trace(regex.test(password)); // 输出 true，表示密码符合要求
+```
+
+### 6. 分组与捕获
+#### 实际应用场景：解析日期格式
+你可能需要从用户输入的日期中提取年、月和日。例如，解析输入 `"2024-09-30"`。
+
+**编写正则表达式**：
+```actionscript
+var regex:RegExp = new RegExp("(\\d{4})-(\\d{2})-(\\d{2})", "");
+```
+- **解释**：`(\\d{4})` 捕获年份，`(\\d{2})` 捕获月份和日期，`-` 用于匹配分隔符。
+
+**实际使用**：
+```actionscript
+var date:String = "2024-09-30";
+var result:Array = regex.exec(date);
+trace("Year: " + result[1]);  // 输出 "Year: 2024"
+trace("Month: " + result[2]); // 输出 "Month: 09"
+trace("Day: " + result[3]);   // 输出 "Day: 30"
+```
+分组捕获可以方便地将复杂字符串拆分为多个部分。
+
+### 7. 逻辑或
+#### 实际应用场景：多种输入格式匹配
+假设你需要匹配电话号码，可以支持用户输入带或不带区号的格式，例如 "123-4567" 或 "010-123-4567"。
+
+**编写正则表达式**：
+```actionscript
+var regex:RegExp = new RegExp("(\\d{3}-)?\\d{3}-\\d{4}", "");
+```
+- **解释**：`(\\d{3}-)?` 表示区号部分是可选的，`\\d{3}-\\d{4}` 匹配电话号码的主体部分。
+
+**实际使用**：
+```actionscript
+var phoneNumber1:String = "123-4567";
+var phoneNumber2:String = "010-123-4567";
+trace(regex.test(phoneNumber1)); // 输出 true
+trace(regex.test(phoneNumber2)); // 输出 true
+```
+
+### 8. 特殊字符
+#### 实际应用场景：文件路径匹配
+假设你正在处理文件路径时，需要识别路径中的特定字符（如 `.` 和 `/`）。
+
+**编写正则表达式**：
+```actionscript
+var regex:RegExp = new RegExp("\\.\\w+$", "");
+```
+- **解释**：`\\.` 匹配点字符，`\\w+` 匹配文件扩展名，`$` 表示文件名末尾。
+
+**实际使用**：
+```actionscript
+var filePath:String = "document.txt";
+trace(regex.test(filePath)); // 输出 true，表示匹配文件扩展名
+```
+
+### 9. 测试和执行
+#### 实际应用场景：验证和提取数据
+`test()` 方法用于验证字符串是否符合正则表达式，`exec()` 用于提取匹配的内容。在复杂项目中，这两者经常结合使用。
+
+例如，在用户输入时，你可以先使用 `test()` 验证输入是否合法，再使用 `exec()` 提取具体的内容。
+
+```actionscript
+var regex:RegExp = new RegExp("(\\d{4})-(\\d{2})-(\\d{2})", "");
+var input:String = "2024-09-30";
+if (regex.test(input)) {
+    var result:Array = regex.exec(input);
+    trace("Year: " + result[1]); // 输出年
+}
+```
+
+### 10. 非贪婪量词
+#### 实际应用场景：HTML 标签提取
+在网页解析中，非贪婪量词可以避免过多的匹配。例如，提取 `div` 标签中的内容时，贪婪匹配可能会匹配多个 `div` 标签之间的内容，而非贪婪匹配只匹配第一个。
+
+**编写正则表达式**：
+```actionscript
+var regex:RegExp = new RegExp("<div>.*?</div>", "g");
+```
+- **解释**：`.*?` 为非贪婪匹配，确保尽量少地匹配字符。
+
+**实际使用**：
+```actionscript
+var html:String = "<div>First</div><div>Second</div>";
+trace(html.match(regex)); // 输出 ["<div>First</div>", "<div>Second</div>"]
+```
+
+### 11. 匹配修饰符
+#### 实际应用场景：忽略大小写的文本搜索
+在需要匹配大小写不敏感的文本时，`i` 修饰符可以让正则表达式忽略大小写。例如，搜索文本中的单词 "Hello" 或 "hello"：
+
+**编写正则表达式**：
+```actionscript
+var regex:RegExp = new RegExp("hello", "i");
+```
+
+**实际使用**：
+```actionscript
+trace(regex.test("Hello")); // 输出 true
+trace(regex.test("hello")); // 输出 true
+```
+
+---
+
+### 总结
+
+通过这些实例，用户不仅能理解正则表达式的基础语法，还能学会如何在
+
+实际项目中灵活运用这些功能，例如处理用户输入、解析数据、验证文本等。在编写正则表达式时，用户可以逐步构建复杂的模式，结合字符匹配、量词、分组、特殊字符等工具，快速高效地解决文本处理问题。
+
+正则表达式是提升开发效率的有力工具，掌握它可以极大地减少处理文本相关任务的代码复杂度。
+
+
+*/
+import org.flashNight.gesh.regexp.*;
 
 class org.flashNight.gesh.regexp.RegExp 
 {
