@@ -1329,9 +1329,9 @@
     <weight>6</weight>
     <price>130000</price>
     <skill>
-      <skillname>漆黑凶斩</skillname>
-      <description>手持该武器时可以使用漆黑凶斩。</description>
-      <cd>10000</cd>
+      <skillname>狼跳</skillname>
+      <description>手持该武器时可以使用狼跳。</description>
+      <cd>1000</cd>
       <mp>25</mp>
     </skill>
     <description>在末日的废土上，武器不仅仅是生存的工具，更是力量的象征。黑铁重剑是&lt;font color=&quot;#000000&quot;&gt;黑铁会壮汉们&lt;/font&gt;所钟爱的庞然大物，它承载着他们的坚韧和不屈意志。这把特大剑成为了黑铁会巨汉的标志，也是在废土世界中肆意斩杀敌人的象征。</description>
