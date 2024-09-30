@@ -1,8 +1,16 @@
 ﻿import org.flashNight.gesh.regexp.*;
 
 class org.flashNight.gesh.string.EvalParser {
+    // 解析缓存对象，存储已解析的路径
+    private static var cache:Object = {};
+
     // 解析属性路径，返回路径部分数组
     public static function parsePath(propertyPath:String):Array {
+        // 检查缓存中是否存在
+        if (cache.hasOwnProperty(propertyPath)) {
+            return cache[propertyPath];
+        }
+        
         var pathParts:Array = [];
         var i:Number = 0;
         var length:Number = propertyPath.length;
@@ -74,6 +82,8 @@ class org.flashNight.gesh.string.EvalParser {
             pathParts.push({type: "property", value: currentPart});
         }
         
+        // 将解析结果缓存
+        cache[propertyPath] = pathParts;
         return pathParts;
     }
     
