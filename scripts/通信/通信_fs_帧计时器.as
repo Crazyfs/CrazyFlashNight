@@ -427,10 +427,12 @@ _root.帧计时器.onEnterFrame = function()
     if (tasks != null) {
         // ServerManager.getInstance().sendServerMessage("存在待处理的任务。");
         var node = tasks.getFirst();
+        
         while (node != null) {
+            var nextNode = node.next;  // 先保存下一个节点，以防当前任务被移除
             var taskID = node.taskID;
             // ServerManager.getInstance().sendServerMessage("开始处理任务 ID: " + taskID);
-            
+
             var 任务 = this.任务哈希表[taskID];
             if (任务) {
                 // 执行动作
@@ -461,11 +463,12 @@ _root.帧计时器.onEnterFrame = function()
                 // ServerManager.getInstance().sendServerMessage("未在任务哈希表中找到任务 ID: " + taskID);
             }
 
-            node = node.next;
+            node = nextNode;  // 使用保存的下一个节点继续遍历
         }
     } else {
         // ServerManager.getInstance().sendServerMessage("当前没有待处理的任务。");
     }
+
 
     // Process zero-frame tasks
     for (var taskID in this.zeroFrameTasks) {

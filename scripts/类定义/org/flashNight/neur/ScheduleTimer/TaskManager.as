@@ -39,7 +39,7 @@ class org.flashNight.neur.ScheduleTimer.TaskManager {
      */
     public function createTask(action:Function, intervalTime:Number, repeats:Number, params:Array):String {
         var taskID:String = "task-" + new Date().getTime() + "-" + (++this.taskIDCounter);  // 生成唯一任务ID
-        var intervalFrames:Number = Math.ceil(intervalTime * this.framesPerMillisecond * 1000);
+        var intervalFrames:Number = Math.ceil(intervalTime * this.framesPerMillisecond * 1000); // 或简化为 Math.ceil(intervalTime * frameRate)
 
         var task:Task = new Task(taskID, action, intervalFrames, repeats, params); // 创建任务实例
 
@@ -55,11 +55,13 @@ class org.flashNight.neur.ScheduleTimer.TaskManager {
                 trace("TaskManager: Task " + taskID + " created and scheduled. Interval frames: " + intervalFrames + ", repeats: " + repeats);
             } else {
                 trace("TaskManager Error: Failed to schedule Task " + taskID);
+                return null; // 调度失败时返回 null
             }
         }
 
         return taskID;
     }
+
 
     public function createTaskWithID(customTaskID:String, action:Function, intervalTime:Number, repeats:Number, params:Array):String {
         if (this.scheduler.findTaskInTable(customTaskID) != null) {
@@ -222,27 +224,29 @@ class org.flashNight.neur.ScheduleTimer.TaskManager {
      * 
      * @param expiredTasks 到期任务列表
      */
-    private function processScheduledTasks(expiredTasks:TaskIDLinkedList):Void {
+    public function processScheduledTasks(expiredTasks:TaskIDLinkedList):Void {
         var node:TaskIDNode = expiredTasks.getFirst();
         while (node != null) {
+            var nextNode:TaskIDNode = node.next; // 先保存下一个节点
             var taskID:String = node.taskID;
-            var task:Task = this.tasks[taskID];
+            var task:Task = this.getTask(taskID);
             if (task) {
                 this.executeTask(task);
 
-                // 检查是否需要重复执行或删除
+                // 检查任务是否需要重复执行或删除
                 if (task.isComplete()) {
                     this.removeTask(taskID);
                     trace("TaskManager: Scheduled Task " + taskID + " executed and removed.");
                 } else {
-                    // 重新调度任务
+                    // 重新调度任务前，确认任务仍存在
                     task.node = this.scheduler.evaluateAndInsertTask(taskID, task.intervalFrames);
                     trace("TaskManager: Scheduled Task " + taskID + " rescheduled.");
                 }
             }
-            node = node.next;
+            node = nextNode; // 使用保存的下一个节点
         }
     }
+
 
     /**
      * 将任务移至零帧任务队列
