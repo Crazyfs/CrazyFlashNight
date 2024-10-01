@@ -156,6 +156,12 @@
     <actiontype>狂野</actiontype>
     <weight>15</weight>
     <price>300000</price>
+    <skill>
+      <skillname>回旋裂地</skillname>
+      <description>手持该武器时可以使用回旋裂地。</description>
+      <cd>8000</cd>
+      <mp>25</mp>
+    </skill>
     <description>尽管它的外形笨重，但经过精湛的平衡和设计，使用者仍然能够在战斗中保持一定的灵活性；而巨大尺寸和沉重质量带来的破坏和压倒性的力量能够让挥舞他的使用者砸开任何敌人的抵抗。
     据说最初挥舞他的人，是为了守护而战斗。</description>
     <level>30</level>
@@ -210,6 +216,12 @@
     <actiontype>狂野</actiontype>
     <weight>10</weight>
     <price>100000</price>
+    <skill>
+      <skillname>回旋裂地</skillname>
+      <description>手持该武器时可以使用回旋裂地。</description>
+      <cd>8000</cd>
+      <mp>25</mp>
+    </skill>
     <description>不知从哪里发现的，泛着金光的厚重长剑，握在手里让人从心底涌出澎湃的勇气。</description>
     <level>24</level>
     <data>
@@ -483,8 +495,8 @@
     <weight>15</weight>
     <price>360000</price>
     <skill>
-      <skillname>狼跳</skillname>
-      <description>手持该武器时可以使用狼跳。</description>
+      <skillname>破坏殆尽</skillname>
+      <description>手持该武器时可以使用破坏殆尽。</description>
       <cd>10000</cd>
       <mp>50</mp>
     </skill>
@@ -823,8 +835,8 @@
     <weight>8</weight>
     <price>50000</price>
     <skill>
-      <skillname>凶斩</skillname>
-      <description>手持该武器时可以使用凶斩。</description>
+      <skillname>回旋裂地</skillname>
+      <description>手持该武器时可以使用回旋裂地。</description>
       <cd>4000</cd>
       <mp>25</mp>
     </skill>
@@ -996,6 +1008,12 @@
     <actiontype>狂野</actiontype>
     <weight>12</weight>
     <price>92100</price>
+    <skill>
+      <skillname>回旋裂地</skillname>
+      <description>手持该武器时可以使用回旋裂地。</description>
+      <cd>8000</cd>
+      <mp>25</mp>
+    </skill>
     <description>当你认为盗贼的小手斧已经没什么威胁的时候，不要忘了这武器只不过是另一种杀器的劣化版···
 除了斧身上的斑驳之外，手持它的战士偶尔也会诉说这把武器的传奇，当然，或许堕落城某处的京观更为直观。</description>
     <level>25</level>
@@ -2341,8 +2359,8 @@
     <weight>15</weight>
     <price>240000</price>
     <skill>
-      <skillname>狼跳</skillname>
-      <description>手持该武器时可以使用狼跳。</description>
+      <skillname>回旋裂地</skillname>
+      <description>手持该武器时可以使用回旋裂地。</description>
       <cd>7000</cd>
       <mp>40</mp>
     </skill>

@@ -123,8 +123,8 @@
     <weight>6</weight>
     <price>25800</price>
     <skill>
-      <skillname>凶斩</skillname>
-      <description>手持该武器时可以使用凶斩。</description>
+      <skillname>破坏殆尽</skillname>
+      <description>手持该武器时可以使用破坏殆尽。</description>
       <cd>10000</cd>
       <mp>25</mp>
     </skill>
@@ -769,6 +769,7 @@
     <icon>斩马刀</icon>
     <type>武器</type>
     <use>刀</use>
+	  <actiontype>狂野</actiontype>
     <weight>17</weight>
     <price>27000</price>
     <skill>
@@ -797,8 +798,15 @@
     <icon>烈焰斩马刀</icon>
     <type>武器</type>
     <use>刀</use>
+	  <actiontype>狂野</actiontype>
     <weight>23</weight>
-    <price>1</price>
+    <price>100000</price>
+    <skill>
+      <skillname>破坏殆尽</skillname>
+      <description>手持该武器时可以使用破坏殆尽。</description>
+      <cd>8000</cd>
+      <mp>25</mp>
+    </skill>
     <description>造型独特且颇具历史色彩的武器，在末世往往有着惊天动地的力量。
 黑色刀背、白光与多镂空的三个孔是烈焰斩马刀区别于斩马刀的外形特征，但除此之外，使用者还会惊叹于其攻击时带来的爆炸性的火焰效果。它就是从地狱中走来的骑士的武器。</description>
     <level>32</level>
