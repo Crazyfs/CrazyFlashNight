@@ -62,19 +62,19 @@
                     </Enemy>
                     <Enemy id="1">
                         <Type>兵种270</Type>
-                        <Interval>50</Interval>
+                        <Interval>500</Interval>
                         <Quantity>3</Quantity>
                         <Level>30</Level>
                     </Enemy>
                     <Enemy id="2">
                         <Type>兵种268</Type>
-                        <Interval>50</Interval>
+                        <Interval>500</Interval>
                         <Quantity>2</Quantity>
                         <Level>30</Level>
                     </Enemy>
                     <Enemy id="3">
                         <Type>兵种269</Type>
-                        <Interval>50</Interval>
+                        <Interval>500</Interval>
                         <Quantity>1</Quantity>
                         <Level>30</Level>
                     </Enemy>
@@ -100,19 +100,19 @@
                     </Enemy>
                     <Enemy id="1">
                         <Type>兵种268</Type>
-                        <Interval>50</Interval>
+                        <Interval>500</Interval>
                         <Quantity>1</Quantity>
                         <Level>30</Level>
                     </Enemy>
                     <Enemy id="2">
                         <Type>兵种270</Type>
-                        <Interval>50</Interval>
+                        <Interval>500</Interval>
                         <Quantity>1</Quantity>
                         <Level>30</Level>
                     </Enemy>
                     <Enemy id="3">
                         <Type>兵种261</Type>
-                        <Interval>50</Interval>
+                        <Interval>500</Interval>
                         <Quantity>2</Quantity>
                         <Level>30</Level>
                     </Enemy>
@@ -138,19 +138,19 @@
                     </Enemy>
                     <Enemy id="1">
                         <Type>兵种270</Type>
-                        <Interval>50</Interval>
+                        <Interval>500</Interval>
                         <Quantity>1</Quantity>
                         <Level>30</Level>
                     </Enemy>
                     <Enemy id="2">
                         <Type>兵种268</Type>
-                        <Interval>50</Interval>
+                        <Interval>500</Interval>
                         <Quantity>1</Quantity>
                         <Level>30</Level>
                     </Enemy>
                     <Enemy id="3">
                         <Type>兵种261</Type>
-                        <Interval>50</Interval>
+                        <Interval>500</Interval>
                         <Quantity>5</Quantity>
                         <Level>36</Level>
                     </Enemy>
@@ -213,6 +213,7 @@
                         <Interval>500</Interval>
                         <Quantity>1</Quantity>
                         <Level>36</Level>
+                        <SpawnIndex>right</SpawnIndex>
                     </Enemy>
                 </EnemyGroup>
             </SubWave>

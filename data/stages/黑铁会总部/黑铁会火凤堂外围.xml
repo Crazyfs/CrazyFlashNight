@@ -124,19 +124,19 @@
                 <EnemyGroup>
                     <Enemy id="0">
                         <Type>兵种64</Type>
-                        <Interval>20</Interval>
+                        <Interval>500</Interval>
                         <Quantity>6</Quantity>
                         <Level>33</Level>
                     </Enemy>
                     <Enemy id="1">
                         <Type>兵种65</Type>
-                        <Interval>20</Interval>
+                        <Interval>500</Interval>
                         <Quantity>6</Quantity>
                         <Level>33</Level>
                     </Enemy>
                     <Enemy id="2">
                         <Type>兵种270</Type>
-                        <Interval>20</Interval>
+                        <Interval>500</Interval>
                         <Quantity>6</Quantity>
                         <Level>33</Level>
                     </Enemy>
