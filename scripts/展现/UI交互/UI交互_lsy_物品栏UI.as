@@ -178,7 +178,16 @@ _root.物品图标UI函数.释放函数.物品栏界面 = function()
 					售卖倍率 += _root.主角被动技能.口才.等级 * 0.025;
 				}
 				if(tmp物品大类型 == "武器" || tmp物品大类型 == "防具"){
-					_root.金钱 += Math.floor(Number(tmp_sz[5] * 售卖倍率 * (1 + Math.pow((当前物品格[1] - 1),4.2) / 125 ) ));
+					var 每石最大收益 = 当前物品格[1] * 200 + 600;
+					// var 强化石个数 = 0;
+					// for(var i = 0; i < 当前物品格[1]-1; i++){
+					// 	强化石个数 += Math.floor(i * i * i + 1);
+					// }
+					var 强化石个数 = Math.pow((当前物品格[1]-2) * (当前物品格[1]-1)/2,2) + 当前物品格[1]-1;
+					var 最大收益 = 强化石个数 * 每石最大收益;
+					var 强化收益 = Math.min(最大收益,(售卖倍率 * tmp_sz[5] * (Math.pow((当前物品格[1] - 1),4.2) / 216 )))
+					_root.金钱 += Math.floor(Number(售卖倍率 * tmp_sz[5] +  强化收益));
+					//_root.金钱 += Math.floor(Number(tmp_sz[5] * 售卖倍率 * (1 + Math.pow((当前物品格[1] - 1),4.2) / 216 ) ));
 				}else{
 					_root.金钱 += Math.floor(Number(tmp_sz[5] * 售卖倍率 * 当前物品格[1]));
 				}
@@ -276,7 +285,16 @@ _root.物品图标UI函数.释放函数.仓库界面 = function()
 				售卖倍率 += _root.主角被动技能.口才.等级 * 0.025;
 			}
 			if(tmp物品大类型 == "武器" || tmp物品大类型 == "防具"){
-				_root.金钱 += Math.floor(Number(tmp_sz[5] * 售卖倍率 * (1 + Math.pow((当前物品格[1] - 1),4.2) / 125 ) ));
+				var 每石最大收益 = 当前物品格[1] * 200 + 600;
+				// var 强化石个数 = 0;
+				// for(var i = 1; i < 当前物品格[1]; i++){
+				// 	强化石个数 += Math.floor((i - 1) * (i - 1) * (i - 1) + 1);
+				// }
+				var 强化石个数 = Math.pow((当前物品格[1]-2) * (当前物品格[1]-1)/2,2) + 当前物品格[1]-1;
+				var 最大收益 = 强化石个数 * 每石最大收益;
+				var 强化收益 = Math.min(最大收益,(售卖倍率 * tmp_sz[5] * (Math.pow((当前物品格[1] - 1),4.2) / 216 )))
+				_root.金钱 += Math.floor(Number(售卖倍率 * tmp_sz[5] +  强化收益));
+				//_root.金钱 += Math.floor(Number(tmp_sz[5] * 售卖倍率 * (1 + Math.pow((当前物品格[1] - 1),4.2) / 216 ) ));
 			}else{
 				_root.金钱 += Math.floor(Number(tmp_sz[5] * 售卖倍率 * 当前物品格[1]));
 			}
