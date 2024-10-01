@@ -1052,31 +1052,31 @@
       <Value>1</Value>
    </Dialogue>
    <Dialogue>
-      <Text>都说双脚离地了，病毒就痊愈了，把那几个快要异化的&lt;font color=&quot;#b22222&quot;&gt;丧尸拎起来打，说不定能治好它的狂化症？</Text>
+      <Text>都说双脚离地了，病毒就痊愈了，把那几个快要异化的&lt;font color=&quot;#b22222&quot;&gt;丧尸&lt;/font&gt;拎起来打，说不定能治好它的狂化症？</Text>
       <Expression>普通</Expression>
       <Personality>经验</Personality>
       <Value>1</Value>
    </Dialogue>
    <Dialogue>
-      <Text>被&lt;font color=&quot;#b22222&quot;&gt;僵尸包围可麻烦得很，找Blue学学震地，保证好使。不过听说安迪才是对这招臻入化境的人，能一拳打穿50m钢板！</Text>
+      <Text>被&lt;font color=&quot;#b22222&quot;&gt;僵尸&lt;/font&gt;包围可麻烦得很，找Blue学学震地，保证好使。不过听说安迪才是对这招臻入化境的人，能一拳打穿50m钢板！</Text>
       <Expression>普通</Expression>
       <Personality>经验</Personality>
       <Value>1</Value>
    </Dialogue>
    <Dialogue>
-      <Text>废城的地铁站游荡着一种带着巨斧的&lt;font color=&quot;#b22222&quot;&gt;大僵尸，它的攻击虽然生猛，但是节奏很好把控，拉开距离用枪压制或是近身缠斗都是好注意，但是小心，它垂死时的暴动非常具有破坏力，最好离他远点。</Text>
+      <Text>废城的地铁站游荡着一种带着巨斧的&lt;font color=&quot;#b22222&quot;&gt;大僵尸&lt;/font&gt;，它的攻击虽然生猛，但是节奏很好把控，拉开距离用枪压制或是近身缠斗都是好注意，但是小心，它垂死时的暴动非常具有破坏力，最好离他远点。</Text>
       <Expression>普通</Expression>
       <Personality>经验</Personality>
       <Value>3</Value>
    </Dialogue>
    <Dialogue>
-      <Text>奈奈滴，&lt;font color=&quot;#b22222&quot;&gt;硬化僵尸真是一头凶猛的野兽。怎么连火箭弹都拿这个家伙没办法。看来如果不想顶着这家伙的攻击制服这头野兽，必须去向格格巫和丽丽丝他们请教一款秘方了。</Text>
+      <Text>奈奈滴，&lt;font color=&quot;#b22222&quot;&gt;硬化僵尸&lt;/font&gt;真是一头凶猛的野兽。怎么连火箭弹都拿这个家伙没办法。看来如果不想顶着这家伙的攻击制服这头野兽，必须去向格格巫和丽丽丝他们请教一款秘方了。</Text>
       <Expression>普通</Expression>
       <Personality>经验</Personality>
       <Value>3</Value>
    </Dialogue>
  <Dialogue>
-      <Text>堕落城的&lt;font color=&quot;#D3D3D3&quot;&gt;盗贼，铁拳不如改名叫做铁山靠好了，这一撞下来差点没把我腰子撞飞，遇到这种家伙还是离远点为好。要是能抓一个过来充当免费劳动力估计很不错。</Text>
+      <Text>堕落城的&lt;font color=&quot;#D3D3D3&quot;&gt;盗贼&lt;/font&gt;，铁拳不如改名叫做铁山靠好了，这一撞下来差点没把我腰子撞飞，遇到这种家伙还是离远点为好。要是能抓一个过来充当免费劳动力估计很不错。</Text>
       <Expression>普通</Expression>
       <Personality>经验</Personality>
       <Value>1</Value>
@@ -1341,7 +1341,7 @@
       <Value>2</Value>
    </Dialogue>
    <Dialogue>
-      <Text>&lt;font size=&quot;9&quot;&gt;刚刚酒吧里来了一个酒疯子，说什么自己单挑了三个全副武装的女学生，徒手打死了什么桶骑士，还说禁区深处有一座塔，里面火凤堂堂主在天上飞，废城深处曾有个坠毁的外星飞船，里面五个四米多高的武林高手在打拳，荒漠里面有过一个虫洞，一堆斯巴达勇士杀也杀不完，雪山里有四处流淌熔岩的洞穴，里面盘踞着一群脚踩光环的外星人，首领居然是一个全身赤裸的女人……你都不知道那场面有多好笑。&lt;/font&gt;</Text>
+      <Text>刚刚酒吧里来了一个酒疯子，说什么自己单挑了三个全副武装的女学生，徒手打死了什么桶骑士，还说禁区深处有一座塔，里面火凤堂堂主在天上飞，废城深处曾有个坠毁的外星飞船，里面五个四米多高的武林高手在打拳，荒漠里面有过一个虫洞，一堆斯巴达勇士杀也杀不完，雪山里有四处流淌熔岩的洞穴，里面盘踞着一群脚踩光环的外星人，首领居然是一个全身赤裸的女人……你都不知道那场面有多好笑。</Text>
       <Expression>普通</Expression>
       <Personality>经验</Personality>
       <Value>3</Value>
