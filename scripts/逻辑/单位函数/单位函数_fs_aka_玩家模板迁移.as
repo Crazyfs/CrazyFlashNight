@@ -2375,7 +2375,7 @@ _root.主角函数.死亡检测 = function()
 
 //迁移刀口位置生成子弹
 _root.主角函数.刀口位置生成子弹 = function(子弹参数:Object){
-	for (var i = 1; i <= 5; i++)
+	for (var i = 1; i < 6; i++)
 	{
 		var 当前刀口 = this.man.刀.刀.装扮["刀口位置" + i];
 		if (当前刀口._x)
