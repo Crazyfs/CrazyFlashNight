@@ -33,7 +33,6 @@
     <name>双面斧</name>
     <displayname>双面斧</displayname>
     <icon>双面斧</icon>
-    <actiontype>狂野</actiontype>
     <type>武器</type>
     <use>刀</use>
     <weight>4</weight>
@@ -150,7 +149,6 @@
     <icon>锤子</icon>
     <type>武器</type>
     <use>刀</use>
-    <actiontype>狂野</actiontype>
     <weight>4</weight>
     <price>16800</price>
     <skill>
