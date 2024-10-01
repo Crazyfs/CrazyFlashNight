@@ -29,28 +29,30 @@ _root.创建打击伤害数字 = function(效果种类, 数字, myX, myY) {
 
 // 初始化打击伤害数字池
 _root.初始化打击伤害数字池 = function(池大小) {
-    _root.gameworld.可用数字池 = [];
+    var 游戏世界 = _root.gameworld;
+    游戏世界.可用数字池 = [];
     _root.当前打击数字特效总数 = 0;
 
     for (var i = 0; i < 池大小; ++i) {
         var 效果种类 = "初始化子弹";
         var 数字 = 0;
         var 打击伤害数字 = _root.创建打击伤害数字(效果种类, 数字, 0, 0);
-        _root.gameworld.可用数字池.push(打击伤害数字); // 创建数字并存储到池中
+        游戏世界.可用数字池.push(打击伤害数字); // 创建数字并存储到池中
     }
 };
 
 // 获取或创建打击伤害数字（使用懒加载和原型模式）
 _root.获取或创建打击伤害数字 = function(效果种类, 数字, myX, myY) {
     var 游戏世界 = _root.gameworld;
-    if (!this.打击伤害数字原型) {
+    if (!游戏世界.打击伤害数字原型) {
         // 如果没有创建过原型，使用懒加载创建原型
-        this.打击伤害数字原型 = _root.创建打击伤害数字(效果种类, 数字, myX, myY);
-        this.打击伤害数字原型._visible = false;
+        游戏世界.打击伤害数字原型 = _root.创建打击伤害数字(效果种类, 数字, myX, myY);
+        游戏世界.打击伤害数字原型._visible = false;
     }
 
     var 效果深度 = 游戏世界.效果.getNextHighestDepth();
-    var 新打击数字 = this.打击伤害数字原型.duplicateMovieClip(效果种类 + " " + 效果深度, 效果深度);
+    var 新打击数字 = 游戏世界.打击伤害数字原型.duplicateMovieClip(效果种类 + " " + 效果深度, 效果深度);
+    新打击数字.控制字符串 = 效果种类;
     新打击数字._x = myX + _root.随机偏移(_root.打击数字坐标偏离);
     新打击数字._y = myY + _root.随机偏移(_root.打击数字坐标偏离);
     新打击数字.数字 = isNaN(数字) ? "miss" : Math.floor(数字).toString();
@@ -73,6 +75,7 @@ _root.获取可用数字 = function(控制字符串, 数字, myX, myY) {
     if (数字池.length > 0) {
         // 从池中取出可用数字
         打击伤害数字 = 数字池.pop();
+        打击伤害数字.控制字符串 = 控制字符串;
         打击伤害数字._x = myX;
         打击伤害数字._y = myY;
         打击伤害数字.数字 = isNaN(数字) ? "miss" : Math.floor(数字).toString();
