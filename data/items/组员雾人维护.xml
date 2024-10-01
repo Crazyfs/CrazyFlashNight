@@ -442,6 +442,12 @@
     <actiontype>狂野</actiontype>
     <weight>18</weight>
     <price>400000</price>
+    <skill>
+      <skillname>狼跳</skillname>
+      <description>手持该武器时可以使用狼跳。</description>
+      <cd>10000</cd>
+      <mp>50</mp>
+    </skill>
     <description>据说，古代的某位领主向所有臣民发出悬赏：打造一把足以杀死龙的剑。领主将这项任务委托给名为高特的铁匠。但铁匠已经厌倦了为贵族制作华而不实的武器。然而，决心制造屠龙之刃的他创造了巨大却因太过沉重而让人无法使用的斩龙剑。后来，某位当代铁匠根据这段传说，对其进行了仿制。 </description>
     <level>36</level>
     <data>
@@ -464,6 +470,12 @@
     <actiontype>狂野</actiontype>
     <weight>15</weight>
     <price>360000</price>
+    <skill>
+      <skillname>狼跳</skillname>
+      <description>手持该武器时可以使用狼跳。</description>
+      <cd>10000</cd>
+      <mp>50</mp>
+    </skill>
     <description>遥远的某个都市之中，即便文明和秩序仍旧存在，但在其中生存却远比末日艰难。
 &lt;/font&gt;&lt;font face=&quot;fixedsys&quot;&gt;&lt;u&gt;“致……请每日睡足八百小时。”
 “致……请在400000米后右转。”&lt;/u&gt;&lt;/font&gt;
@@ -510,6 +522,12 @@
 	<actiontype>刀剑</actiontype>
     <weight>2</weight>
     <price>400000</price>
+    <skill>
+      <skillname>弧光斩</skillname>
+      <description>手持该武器时可以使用弧光斩。</description>
+      <cd>4000</cd>
+      <mp>50</mp>
+    </skill>
     <description>故乡的樱花开了。</description>
     <level>36</level>
     <data>
@@ -735,7 +753,12 @@
     <actiontype>狂野</actiontype>
     <weight>7</weight>
     <price>50000</price>
-    <skill>&lt;font color=&quot;#FFCC00&quot;&gt;【主动战技】&lt;/font&gt;手持该武器时可以使用凶斩。&lt;BR&gt;&lt;font color=&quot;#FFCC00&quot;&gt;【战技信息】&lt;/font&gt;冷却4秒，消耗25MP。</skill>
+    <skill>
+      <skillname>凶斩</skillname>
+      <description>手持该武器时可以使用凶斩。</description>
+      <cd>8000</cd>
+      <mp>25</mp>
+    </skill>
     <description>一把似乎由特殊材料制成的异形吉他，比普通电吉他还要重一点。甚至可以作为武器，战斗力符合它拉风的造型，经历再激烈的战斗之后仍然可以正常演奏。
 对于不懂乐器的人而言，确实难以分清这究竟是贝斯还是吉他。</description>
     <level>13</level>
@@ -1089,8 +1112,8 @@
     <weight>12</weight>
     <price>200000</price>
     <skill>
-      <skillname>突刺</skillname>
-      <description>手持该武器时可以使用突刺。</description>
+      <skillname>狼跳</skillname>
+      <description>手持该武器时可以使用狼跳。</description>
       <cd>7000</cd>
       <mp>40</mp>
     </skill>
@@ -1118,8 +1141,8 @@
     <weight>15</weight>
     <price>240000</price>
     <skill>
-      <skillname>突刺</skillname>
-      <description>手持该武器时可以使用突刺。</description>
+      <skillname>狼跳</skillname>
+      <description>手持该武器时可以使用狼跳。</description>
       <cd>7000</cd>
       <mp>40</mp>
     </skill>
@@ -1289,8 +1312,8 @@
     <skill>
       <skillname>狼跳</skillname>
       <description>手持该武器时可以使用狼跳。</description>
-      <cd>7000</cd>
-      <mp>40</mp>
+      <cd>10000</cd>
+      <mp>50</mp>
     </skill>
     <description>造型复古，内核却蕴含着当下机械结构发展的结晶。
 出于独特的材料与结构所致，每一击的力量势能均能渗透进目标的内部，据说是用于猎杀远非寻常的巨物所用。
