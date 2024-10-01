@@ -851,8 +851,8 @@
     <weight>8</weight>
     <price>126000</price>
     <skill>
-      <skillname>突刺</skillname>
-      <description>手持该武器时可以使用突刺。</description>
+      <skillname>回旋斩击</skillname>
+      <description>手持该武器时可以使用回旋斩击。</description>
       <cd>7000</cd>
       <mp>40</mp>
     </skill>
@@ -880,8 +880,8 @@
     <weight>7</weight>
     <price>76000</price>
     <skill>
-      <skillname>突刺</skillname>
-      <description>手持该武器时可以使用突刺。</description>
+      <skillname>回旋斩击</skillname>
+      <description>手持该武器时可以使用回旋斩击。</description>
       <cd>8000</cd>
       <mp>40</mp>
     </skill>
@@ -910,8 +910,8 @@
     <weight>6</weight>
     <price>96000</price>
     <skill>
-      <skillname>突刺</skillname>
-      <description>手持该武器时可以使用突刺。</description>
+      <skillname>回旋斩击</skillname>
+      <description>手持该武器时可以使用回旋斩击。</description>
       <cd>7000</cd>
       <mp>40</mp>
     </skill>
@@ -1182,8 +1182,8 @@
     <weight>15</weight>
     <price>240000</price>
     <skill>
-      <skillname>突刺</skillname>
-      <description>手持该武器时可以使用突刺。</description>
+      <skillname>回旋斩击</skillname>
+      <description>手持该武器时可以使用回旋斩击。</description>
       <cd>7000</cd>
       <mp>40</mp>
     </skill>
@@ -1210,8 +1210,8 @@
     <weight>15</weight>
     <price>240000</price>
     <skill>
-      <skillname>突刺</skillname>
-      <description>手持该武器时可以使用突刺。</description>
+      <skillname>回旋斩击</skillname>
+      <description>手持该武器时可以使用回旋斩击。</description>
       <cd>7000</cd>
       <mp>40</mp>
     </skill>
@@ -1238,8 +1238,8 @@
     <weight>15</weight>
     <price>240000</price>
     <skill>
-      <skillname>突刺</skillname>
-      <description>手持该武器时可以使用突刺。</description>
+      <skillname>回旋斩击</skillname>
+      <description>手持该武器时可以使用回旋斩击。</description>
       <cd>7000</cd>
       <mp>40</mp>
     </skill>
@@ -2170,8 +2170,8 @@
     <weight>15</weight>
     <price>240000</price>
     <skill>
-      <skillname>突刺</skillname>
-      <description>手持该武器时可以使用突刺。</description>
+      <skillname>回旋斩击</skillname>
+      <description>手持该武器时可以使用回旋斩击。</description>
       <cd>7000</cd>
       <mp>40</mp>
     </skill>
@@ -2198,8 +2198,8 @@
     <weight>15</weight>
     <price>240000</price>
     <skill>
-      <skillname>突刺</skillname>
-      <description>手持该武器时可以使用突刺。</description>
+      <skillname>回旋斩击</skillname>
+      <description>手持该武器时可以使用回旋斩击。</description>
       <cd>7000</cd>
       <mp>40</mp>
     </skill>
@@ -2226,8 +2226,8 @@
     <weight>15</weight>
     <price>240000</price>
     <skill>
-      <skillname>突刺</skillname>
-      <description>手持该武器时可以使用突刺。</description>
+      <skillname>回旋斩击</skillname>
+      <description>手持该武器时可以使用回旋斩击。</description>
       <cd>7000</cd>
       <mp>40</mp>
     </skill>

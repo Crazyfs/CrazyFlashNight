@@ -2079,8 +2079,8 @@
     <weight>1</weight>
     <price>9999999</price>
     <skill>
-      <skillname>突刺</skillname>
-      <description>手持该武器时可以使用突刺。</description>
+      <skillname>狼跳</skillname>
+      <description>手持该武器时可以使用狼跳。</description>
       <cd>1000</cd>
       <mp>10</mp>
     </skill>
