@@ -1,111 +1,158 @@
 ﻿import org.flashNight.neur.ScheduleTimer.*;
 import org.flashNight.naki.DataStructures.*;
+import org.flashNight.aven.Coordinator.EventCoordinator;
 
-/**
- * TaskManager 类
- * 
- * 负责管理所有任务的创建、更新、删除和调度。
- * 与 CerberusScheduler 协同工作，确保任务按照指定的时间间隔和重复次数正确执行。
- */
 class org.flashNight.neur.ScheduleTimer.TaskManager {
-    private var tasks:Object;                // 任务哈希表，存储所有有限重复任务
-    private var zeroFrameTasks:Object;       // 零帧任务哈希表，存储需要立即执行的任务（无限或一次性）
-    private var taskIDCounter:Number;        // 任务 ID 计数器，确保任务ID唯一性
-    private var framesPerMillisecond:Number; // 每毫秒的帧数，用于时间转换
-    private var scheduler:CerberusScheduler; // 调度器实例，负责任务调度
+    private var tasks:Object;                // 存储定时任务
+    private var zeroFrameTasks:Object;       // 存储零帧任务
+    private var frameRate:Number;            // 帧率 (fps)
+    private var frameRatePerMillisecond:Number; // 每毫秒对应的帧数
+    private var scheduler:CerberusScheduler; // 调度器实例
+    private var taskIDCounter:Number;        // 自增任务ID计数器
 
-    /**
-     * 构造函数
-     * 
-     * @param frameRate 每秒帧数（FPS）
-     * @param scheduler 调度器实例
-     */
+    private var taskPool:Array;              // 任务对象池
+    private var nodePool:Array;              // 节点对象池
+
+    // 构造函数
     public function TaskManager(frameRate:Number, scheduler:CerberusScheduler) {
         this.tasks = {};
         this.zeroFrameTasks = {};
-        this.taskIDCounter = 0; // 确保任务ID计数器从0开始
-        this.framesPerMillisecond = frameRate / 1000;  // 帧率转化为每毫秒的帧数
-        this.scheduler = scheduler; // 引入 CerberusScheduler 实例
+        this.frameRate = frameRate;
+        this.frameRatePerMillisecond = this.frameRate / 1000; // 预计算每毫秒对应的帧数
+        this.scheduler = scheduler;
+        this.taskIDCounter = 0; // 初始化计数器
+
+        this.taskPool = []; // 初始化任务对象池
+        this.nodePool = []; // 初始化节点对象池
+
+        // 设置调度器的节点回收回调函数
+        var self = this;
+        this.scheduler.setReturnNodesCallback(function(nodes:Array):Void {
+            self.receiveNodesFromScheduler(nodes);
+        });
     }
 
-    /**
-     * 创建任务
-     * 
-     * @param action      任务执行的动作（函数）
-     * @param intervalTime 时间间隔（秒）
-     * @param repeats     重复次数，0 表示无限循环
-     * @param params      动作参数
-     * @return            生成的任务ID
-     */
+    // 生成唯一的任务ID
+    private function generateUniqueTaskID():String {
+        return "task-" + (++this.taskIDCounter);
+    }
+
+    // 分配任务对象
+    private function allocateTask():Task {
+        var task:Task;
+        if (this.taskPool.length > 0) {
+            task = Task(this.taskPool.pop());
+        } else {
+            task = new Task();
+        }
+        return task;
+    }
+
+    // 回收任务对象
+    private function freeTask(task:Task):Void {
+        task.reset();
+        this.taskPool.push(task);
+    }
+
+    // 分配节点对象
+    public function allocateNode():TaskIDNode {
+        var node:TaskIDNode;
+        if (this.nodePool.length > 0) {
+            node = TaskIDNode(this.nodePool.pop());
+        } else {
+            node = new TaskIDNode(null);
+        }
+        return node;
+    }
+
+    // 回收节点对象
+    public function freeNode(node:TaskIDNode):Void {
+        node.reset(null);
+        this.nodePool.push(node);
+    }
+
+    // 接收来自调度器的节点
+    public function receiveNodesFromScheduler(nodes:Array):Void {
+        for (var i:Number = 0; i < nodes.length; i++) {
+            var node:TaskIDNode = nodes[i];
+            this.freeNode(node);
+        }
+    }
+
+    // 创建任务
     public function createTask(action:Function, intervalTime:Number, repeats:Number, params:Array):String {
-        var taskID:String = "task-" + new Date().getTime() + "-" + (++this.taskIDCounter);  // 生成唯一任务ID
-        var intervalFrames:Number = Math.ceil(intervalTime * this.framesPerMillisecond * 1000); // 或简化为 Math.ceil(intervalTime * frameRate)
+        var taskID:String = this.generateUniqueTaskID();
+        var intervalFrames:Number = Math.ceil(intervalTime * this.frameRatePerMillisecond); // 使用预计算的帧率转换
 
-        var task:Task = new Task(taskID, action, intervalFrames, repeats, params); // 创建任务实例
+        // 分配任务对象
+        var task:Task = this.allocateTask();
+        task.initialize(taskID, action, intervalFrames, repeats, params);
 
-        // 区分零帧任务和延迟任务
         if (intervalFrames <= 0) {
             this.zeroFrameTasks[taskID] = task;
-            trace("TaskManager: Task " + taskID + " created as zero-frame task. Interval frames: " + intervalFrames + ", repeats: " + repeats);
+            trace("TaskManager: Task " + taskID + " created as zero-frame task.");
         } else {
             var insertedNode:TaskIDNode = this.scheduler.evaluateAndInsertTask(taskID, intervalFrames);
             if (insertedNode != null) {
-                task.node = insertedNode; // 关联调度器中的任务节点
+                task.node = insertedNode;
                 this.tasks[taskID] = task;
-                trace("TaskManager: Task " + taskID + " created and scheduled. Interval frames: " + intervalFrames + ", repeats: " + repeats);
+                trace("TaskManager: Task " + taskID + " created and scheduled.");
             } else {
                 trace("TaskManager Error: Failed to schedule Task " + taskID);
-                return null; // 调度失败时返回 null
+                // 回收任务对象
+                this.freeTask(task);
+                return null;
             }
         }
 
         return taskID;
     }
 
-
-    public function createTaskWithID(customTaskID:String, action:Function, intervalTime:Number, repeats:Number, params:Array):String {
-        if (this.scheduler.findTaskInTable(customTaskID) != null) {
-            trace("TaskManager Error: Custom Task ID " + customTaskID + " already exists.");
-            return null;
+    // 创建或更新带标签的任务
+    public function createOrUpdateTask(tag:String, object:Object, action:Function, intervalTime:Number, repeats:Number, params:Array):String {
+        if (!object.taskIdentifiers) {
+            object.taskIdentifiers = {};
         }
-        var task:Task = new Task(customTaskID, action, Math.ceil(intervalTime * this.framesPerMillisecond * 1000), repeats, params);
-        if (task.intervalFrames <= 0) {
-            this.zeroFrameTasks[customTaskID] = task;
-            trace("TaskManager: Task " + customTaskID + " created as zero-frame task. Interval frames: " + task.intervalFrames + ", repeats: " + repeats);
+        
+        if (!object.taskIdentifiers[tag]) {
+            // 创建新任务
+            var taskID:String = this.createTask(action, intervalTime, repeats, params);
+            object.taskIdentifiers[tag] = taskID;
+            return taskID;
         } else {
-            var insertedNode:TaskIDNode = this.scheduler.evaluateAndInsertTask(customTaskID, task.intervalFrames);
-            if (insertedNode != null) {
-                task.node = insertedNode;
-                this.tasks[customTaskID] = task;
-                trace("TaskManager: Task " + customTaskID + " created and scheduled. Interval frames: " + task.intervalFrames + ", repeats: " + repeats);
-            } else {
-                trace("TaskManager Error: Failed to schedule Task " + customTaskID);
-            }
+            // 更新现有任务
+            var taskID:String = object.taskIdentifiers[tag];
+            this.updateTask(taskID, action, intervalTime, params);
+            return taskID;
         }
-        return customTaskID;
     }
 
+    // 创建与对象生命周期绑定的任务
+    public function createLifecycleTask(tag:String, object:Object, action:Function, intervalTime:Number, repeats:Number, params:Array):String {
+        var self = this;
+        var taskID:String = this.createOrUpdateTask(tag, object, action, intervalTime, repeats, params);
+        
+        // 使用 EventCoordinator 设置卸载回调，确保对象销毁时移除任务
+        EventCoordinator.addUnloadCallback(object, function() {
+            self.removeTask(taskID);
+            delete object.taskIdentifiers[tag];
+        });
+        
+        return taskID;
+    }
 
-
-    /**
-     * 更新任务
-     * 
-     * @param taskID       需要更新的任务ID
-     * @param action       新的动作函数
-     * @param intervalTime 新的时间间隔（秒）
-     * @param params       新的动作参数
-     */
+    // 更新任务
     public function updateTask(taskID:String, action:Function, intervalTime:Number, params:Array):Void {
         var task:Task = this.getTask(taskID);
         if (task) {
             task.action = action;
-            task.intervalFrames = Math.ceil(intervalTime * this.framesPerMillisecond * 1000);
+            var newIntervalFrames:Number = Math.ceil(intervalTime * this.frameRatePerMillisecond); // 使用预计算的帧率转换
+            task.intervalFrames = newIntervalFrames;
             task.params = params;
 
-            trace("TaskManager: Task " + taskID + " updated. New interval frames: " + task.intervalFrames);
+            trace("TaskManager: Task " + taskID + " updated with new interval " + intervalTime + "ms.");
 
-            // 更新调度或零帧任务状态
-            if (task.intervalFrames <= 0) {
+            if (newIntervalFrames <= 0) {
                 this.moveTaskToZeroFrame(taskID, task);
             } else {
                 this.moveTaskToScheduler(taskID, task);
@@ -115,82 +162,101 @@ class org.flashNight.neur.ScheduleTimer.TaskManager {
         }
     }
 
-    /**
-     * 删除任务
-     * 
-     * @param taskID 要删除的任务ID
-     */
+    // 删除任务
     public function removeTask(taskID:String):Void {
         var task:Task = this.getTask(taskID);
         if (task) {
             if (task.node != null) {
-                this.scheduler.removeTaskByNode(task.node); // 从调度器中移除任务
+                this.scheduler.removeTaskByNode(task.node);
                 trace("TaskManager: Task " + taskID + " removed from scheduler.");
+                // 不需要手动回收节点，节点由调度器管理
             }
-            task.destroy(); // 清理任务资源
-            delete this.tasks[taskID]; // 从任务表中移除
-            delete this.zeroFrameTasks[taskID]; // 从零帧任务表中移除（如果存在）
-            trace("TaskManager: Task " + taskID + " destroyed and removed from TaskManager.");
+            // 回收任务对象
+            this.freeTask(task);
+            delete this.tasks[taskID];
+            delete this.zeroFrameTasks[taskID];
+            trace("TaskManager: Task " + taskID + " destroyed and removed.");
         } else {
             trace("TaskManager Error: Remove failed. Task " + taskID + " not found.");
         }
     }
 
-    /**
-     * 获取任务
-     * 
-     * @param taskID 需要获取的任务ID
-     * @return       任务实例或 null
-     */
+    // 获取任务
     public function getTask(taskID:String):Task {
         return this.tasks[taskID] || this.zeroFrameTasks[taskID];
     }
 
-    /**
-     * 处理并执行所有到期任务
-     * 
-     * 应在每帧调用此方法，处理所有到期任务的执行。
-     */
+    // 处理并执行所有到期任务
     public function processTasks():Void {
         // 处理零帧任务
         this.processZeroFrameTasks();
 
-        // 调用调度器的 tick 方法获取到期任务
+        // 处理调度器到期任务
         var expiredTasks:TaskIDLinkedList = this.scheduler.tick();
         if (expiredTasks != null) {
-            this.processScheduledTasks(expiredTasks);
+            var node:TaskIDNode = expiredTasks.getFirst();
+            while (node != null) {
+                // 缓存下一个节点的引用，防止当前节点被移除后无法继续遍历
+                var nextNode:TaskIDNode = node.next;
+
+                var taskID:String = node.taskID;
+                var task:Task = this.getTask(taskID);
+                if (task) {
+                    this.executeTask(task);
+
+                    if (task.isComplete()) {
+                        this.removeTask(taskID);
+                    } else {
+                        // 重新调度任务
+                        task.node = this.scheduler.evaluateAndInsertTask(taskID, task.intervalFrames);
+                    }
+                }
+
+                // 移动到下一个节点
+                node = nextNode;
+            }
         }
     }
 
-    /**
-     * 执行任务并处理错误
-     * 
-     * @param task 需要执行的任务实例
-     */
+    // 执行任务并处理错误
     private function executeTask(task:Task):Void {
         try {
-            task.update(); // 执行任务并更新状态
+            task.update();
         } catch (error:Error) {
             trace("TaskManager Error: Task execution failed. ID: " + task.id + ", Error: " + error.message);
-            // 移除执行失败的任务
             this.removeTask(task.id);
         }
     }
 
+    // 处理零帧任务
+    private function processZeroFrameTasks():Void {
+        var taskIDs:Array = [];
+        for (var taskID:String in this.zeroFrameTasks) {
+            taskIDs.push(taskID);
+        }
+        for (var i:Number = 0; i < taskIDs.length; i++) {
+            var taskID:String = taskIDs[i];
+            var task:Task = this.zeroFrameTasks[taskID];
+            this.executeTask(task);
 
-    /**
-     * 延迟任务执行
-     * 
-     * @param taskID    需要延迟的任务ID
-     * @param delayTime 延迟时间（秒）
-     * @return          延迟是否成功
-     */
+            if (task.isComplete()) {
+                // 回收任务对象
+                this.freeTask(task);
+                delete this.zeroFrameTasks[taskID];
+                trace("TaskManager: Zero-frame Task " + taskID + " executed and removed.");
+            } else {
+                trace("TaskManager: Zero-frame Task " + taskID + " executed and remains.");
+            }
+        }
+    }
+
+    // 延迟任务执行
     public function delayTask(taskID:String, delayTime:Number):Boolean {
         var task:Task = this.getTask(taskID);
-        if (task && task.intervalFrames > 0) { // 仅支持延迟调度任务
-            var delayFrames:Number = Math.ceil(delayTime * this.framesPerMillisecond * 1000);
-            task.waitFrames += delayFrames;
-            this.scheduler.rescheduleTaskByNode(task.node, task.waitFrames);
+        if (task && !task.isInfinite && task.intervalFrames > 0 && task.node != null) {
+            var delayFrames:Number = Math.ceil(delayTime * this.frameRatePerMillisecond); // 使用预计算的帧率转换
+            task.intervalFrames += delayFrames;
+            this.scheduler.rescheduleTaskByNode(task.node, task.intervalFrames);
             trace("TaskManager: Task " + taskID + " delayed by " + delayFrames + " frames.");
             return true;
         }
@@ -198,79 +264,22 @@ class org.flashNight.neur.ScheduleTimer.TaskManager {
         return false;
     }
 
-    /**
-     * 处理零帧任务
-     * 
-     * 零帧任务是需要立即执行的任务，可能是一次性执行或无限循环执行。
-     */
-    private function processZeroFrameTasks():Void {
-        for (var taskID in this.zeroFrameTasks) {
-            var task:Task = this.zeroFrameTasks[taskID];
-            this.executeTask(task);
-
-            // 确保零帧任务在执行后被移除（如果是一次性任务）
-            if (task.isComplete()) {
-                delete this.zeroFrameTasks[taskID];
-                trace("TaskManager: Zero-frame Task " + taskID + " executed and removed.");
-            } else {
-                // 如果任务是无限循环（repeats=0），需要重新加入零帧任务队列
-                trace("TaskManager: Zero-frame Task " + taskID + " executed and remains for further execution.");
-            }
-        }
-    }
-
-    /**
-     * 处理调度到期的任务
-     * 
-     * @param expiredTasks 到期任务列表
-     */
-    public function processScheduledTasks(expiredTasks:TaskIDLinkedList):Void {
-        var node:TaskIDNode = expiredTasks.getFirst();
-        while (node != null) {
-            var nextNode:TaskIDNode = node.next; // 先保存下一个节点
-            var taskID:String = node.taskID;
-            var task:Task = this.getTask(taskID);
-            if (task) {
-                this.executeTask(task);
-
-                // 检查任务是否需要重复执行或删除
-                if (task.isComplete()) {
-                    this.removeTask(taskID);
-                    trace("TaskManager: Scheduled Task " + taskID + " executed and removed.");
-                } else {
-                    // 重新调度任务前，确认任务仍存在
-                    task.node = this.scheduler.evaluateAndInsertTask(taskID, task.intervalFrames);
-                    trace("TaskManager: Scheduled Task " + taskID + " rescheduled.");
-                }
-            }
-            node = nextNode; // 使用保存的下一个节点
-        }
-    }
-
-
-    /**
-     * 将任务移至零帧任务队列
-     * 
-     * @param taskID 需要移动的任务ID
-     * @param task    任务实例
-     */
+    // 内部帮助方法：将任务移至零帧任务队列
     private function moveTaskToZeroFrame(taskID:String, task:Task):Void {
-        if (this.tasks[taskID]) {
-            this.scheduler.removeTaskByNode(task.node);
+        if (this.tasks[taskID] != undefined) {
+            if (task.node != null) {
+                this.scheduler.removeTaskByNode(task.node);
+                task.node = null;
+            }
             delete this.tasks[taskID];
             this.zeroFrameTasks[taskID] = task;
             trace("TaskManager: Task " + taskID + " moved to zero-frame tasks.");
         }
     }
 
-    /**
-     * 将任务移至调度器
-     * 
-     * @param taskID 需要移动的任务ID
-     * @param task    任务实例
-     */
+    // 内部帮助方法：将任务移至调度器
     private function moveTaskToScheduler(taskID:String, task:Task):Void {
-        if (this.zeroFrameTasks[taskID]) {
+        if (this.zeroFrameTasks[taskID] != undefined) {
             delete this.zeroFrameTasks[taskID];
             var insertedNode:TaskIDNode = this.scheduler.evaluateAndInsertTask(taskID, task.intervalFrames);
             if (insertedNode != null) {
@@ -281,9 +290,19 @@ class org.flashNight.neur.ScheduleTimer.TaskManager {
                 trace("TaskManager Error: Failed to reschedule Task " + taskID);
             }
         } else {
-            // 重新调度已有的任务节点
-            this.scheduler.rescheduleTaskByNode(task.node, task.intervalFrames);
-            trace("TaskManager: Task " + taskID + " rescheduled in scheduler.");
+            if (task.node != null) {
+                this.scheduler.rescheduleTaskByNode(task.node, task.intervalFrames);
+                trace("TaskManager: Task " + taskID + " rescheduled in scheduler.");
+            } else {
+                var insertedNode:TaskIDNode = this.scheduler.evaluateAndInsertTask(taskID, task.intervalFrames);
+                if (insertedNode != null) {
+                    task.node = insertedNode;
+                    this.tasks[taskID] = task;
+                    trace("TaskManager: Task " + taskID + " rescheduled with new node.");
+                } else {
+                    trace("TaskManager Error: Failed to reschedule Task " + taskID);
+                }
+            }
         }
     }
 }

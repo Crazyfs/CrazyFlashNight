@@ -1,22 +1,27 @@
 ﻿import org.flashNight.naki.DataStructures.*;
 
 class org.flashNight.naki.DataStructures.Task {
-    public var id:String;                  // 任务 ID，字符串类型
-    public var action:Function;            // 任务执行的动作
-    public var intervalFrames:Number;      // 执行间隔帧数
-    public var remainingRepeats:Number;    // 剩余重复次数，0表示无限循环
-    public var params:Array;               // 动作参数
-    public var waitFrames:Number;          // 等待执行的帧数
-    public var node:TaskIDNode;            // 任务在调度器中的节点引用
-    public var isInfinite:Boolean;         // 是否为无限循环任务
+    public var id:String;
+    public var action:Function;
+    public var intervalFrames:Number;
+    public var repeats:Number;            // 初始重复次数
+    public var remainingRepeats:Number;   // 剩余重复次数
+    public var params:Array;
+    public var node:TaskIDNode;
+    public var isInfinite:Boolean;
 
-    // 构造函数
-    public function Task(id:String, action:Function, intervalFrames:Number, repeats:Number, params:Array) {
-        this.id = id; // 使用字符串类型的任务ID
+    public function Task() {
+        // 空构造函数，方便对象池的复用
+    }
+
+    // 初始化方法，用于对象池复用
+    public function initialize(id:String, action:Function, intervalFrames:Number, repeats:Number, params:Array):Void {
+        this.id = id;
         this.action = action;
         this.intervalFrames = intervalFrames;
-        // repeats=0 表示无限循环
-        if (repeats === 0){
+        this.repeats = repeats; // 保存初始重复次数
+
+        if (repeats === 0) {
             this.remainingRepeats = 0;
             this.isInfinite = true;
         } else {
@@ -24,18 +29,23 @@ class org.flashNight.naki.DataStructures.Task {
             this.isInfinite = false;
         }
         this.params = params;
-        this.waitFrames = intervalFrames; // 初始等待帧数
-        this.node = null; // 初始化节点引用
+        this.node = null;
     }
 
     // 执行任务动作并更新状态
     public function update():Void {
-        if (this.isInfinite || this.remainingRepeats > 0) { // 0 表示无限循环
+        // 任务执行逻辑由 Scheduler 管理，此处仅执行动作并更新重复次数
+        if (this.isInfinite || this.remainingRepeats > 0) {
             this.execute();
-            trace("Task " + this.id + " executed. Remaining repeats: " + this.remainingRepeats);
+
             if (!this.isInfinite && this.remainingRepeats > 0) {
                 this.remainingRepeats -= 1; // 减少剩余重复次数
             }
+
+            trace("Task " + this.id + " executed. Remaining repeats: " + (this.isInfinite ? "Infinite" : this.remainingRepeats));
+
+            // 如果任务需要重复执行，设置下一次执行的等待帧数
+            // 由 Scheduler 重新调度任务
         }
     }
 
@@ -52,9 +62,14 @@ class org.flashNight.naki.DataStructures.Task {
     }
 
     // 清理引用，避免内存泄漏
-    public function destroy():Void {
+    public function reset():Void {
+        this.id = null;
         this.action = null;
+        this.intervalFrames = 0;
+        this.repeats = 0;
+        this.remainingRepeats = 0;
         this.params = null;
         this.node = null;
+        this.isInfinite = false;
     }
 }
