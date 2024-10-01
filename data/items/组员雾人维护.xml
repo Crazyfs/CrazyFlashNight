@@ -442,6 +442,12 @@
     <actiontype>狂野</actiontype>
     <weight>18</weight>
     <price>400000</price>
+    <skill>
+      <skillname>狼跳</skillname>
+      <description>手持该武器时可以使用狼跳。</description>
+      <cd>10000</cd>
+      <mp>50</mp>
+    </skill>
     <description>据说，古代的某位领主向所有臣民发出悬赏：打造一把足以杀死龙的剑。领主将这项任务委托给名为高特的铁匠。但铁匠已经厌倦了为贵族制作华而不实的武器。然而，决心制造屠龙之刃的他创造了巨大却因太过沉重而让人无法使用的斩龙剑。后来，某位当代铁匠根据这段传说，对其进行了仿制。 </description>
     <level>36</level>
     <data>
@@ -464,6 +470,12 @@
     <actiontype>狂野</actiontype>
     <weight>15</weight>
     <price>360000</price>
+    <skill>
+      <skillname>狼跳</skillname>
+      <description>手持该武器时可以使用狼跳。</description>
+      <cd>10000</cd>
+      <mp>50</mp>
+    </skill>
     <description>遥远的某个都市之中，即便文明和秩序仍旧存在，但在其中生存却远比末日艰难。
 &lt;/font&gt;&lt;font face=&quot;fixedsys&quot;&gt;&lt;u&gt;“致……请每日睡足八百小时。”
 “致……请在400000米后右转。”&lt;/u&gt;&lt;/font&gt;
@@ -510,6 +522,12 @@
 	<actiontype>刀剑</actiontype>
     <weight>2</weight>
     <price>400000</price>
+    <skill>
+      <skillname>弧光斩</skillname>
+      <description>手持该武器时可以使用弧光斩。</description>
+      <cd>4000</cd>
+      <mp>50</mp>
+    </skill>
     <description>故乡的樱花开了。</description>
     <level>36</level>
     <data>
@@ -735,7 +753,12 @@
     <actiontype>狂野</actiontype>
     <weight>7</weight>
     <price>50000</price>
-    <skill>&lt;font color=&quot;#FFCC00&quot;&gt;【主动战技】&lt;/font&gt;手持该武器时可以使用凶斩。&lt;BR&gt;&lt;font color=&quot;#FFCC00&quot;&gt;【战技信息】&lt;/font&gt;冷却4秒，消耗25MP。</skill>
+    <skill>
+      <skillname>凶斩</skillname>
+      <description>手持该武器时可以使用凶斩。</description>
+      <cd>8000</cd>
+      <mp>25</mp>
+    </skill>
     <description>一把似乎由特殊材料制成的异形吉他，比普通电吉他还要重一点。甚至可以作为武器，战斗力符合它拉风的造型，经历再激烈的战斗之后仍然可以正常演奏。
 对于不懂乐器的人而言，确实难以分清这究竟是贝斯还是吉他。</description>
     <level>13</level>
@@ -1089,8 +1112,8 @@
     <weight>12</weight>
     <price>200000</price>
     <skill>
-      <skillname>突刺</skillname>
-      <description>手持该武器时可以使用突刺。</description>
+      <skillname>狼跳</skillname>
+      <description>手持该武器时可以使用狼跳。</description>
       <cd>7000</cd>
       <mp>40</mp>
     </skill>
@@ -1118,8 +1141,8 @@
     <weight>15</weight>
     <price>240000</price>
     <skill>
-      <skillname>突刺</skillname>
-      <description>手持该武器时可以使用突刺。</description>
+      <skillname>狼跳</skillname>
+      <description>手持该武器时可以使用狼跳。</description>
       <cd>7000</cd>
       <mp>40</mp>
     </skill>
@@ -1137,6 +1160,146 @@
     </equipped>
   </item>
    <item>
+    <id>1513</id>
+    <name>三戈戟一型</name>
+    <displayname>三戈戟一型</displayname>
+    <icon>三戈戟一型</icon>
+    <type>武器</type>
+    <use>刀</use>
+    <actiontype>长柄</actiontype>
+    <weight>15</weight>
+    <price>240000</price>
+    <skill>
+      <skillname>突刺</skillname>
+      <description>手持该武器时可以使用突刺。</description>
+      <cd>7000</cd>
+      <mp>40</mp>
+    </skill>
+    <description>此器仅为样品，性能以模板代之，由于正品尚未完工，武器性能具体该当如何，相关人员仍在思考中。</description>
+    <level>36</level>
+    <data>
+      <power>500</power>
+    </data>
+    <equipped>
+      <dressup>刀-三戈戟一型</dressup>
+      <hp>0</hp>
+      <mp>0</mp>
+      <defence>0</defence>
+    </equipped>
+  </item>
+   <item>
+    <id>1514</id>
+    <name>三戈戟二型</name>
+    <displayname>三戈戟二型</displayname>
+    <icon>三戈戟二型</icon>
+    <type>武器</type>
+    <use>刀</use>
+    <actiontype>长柄</actiontype>
+    <weight>15</weight>
+    <price>240000</price>
+    <skill>
+      <skillname>突刺</skillname>
+      <description>手持该武器时可以使用突刺。</description>
+      <cd>7000</cd>
+      <mp>40</mp>
+    </skill>
+    <description>此器仅为样品，性能以模板代之，由于正品尚未完工，武器性能具体该当如何，相关人员仍在思考中。</description>
+    <level>36</level>
+    <data>
+      <power>500</power>
+    </data>
+    <equipped>
+      <dressup>刀-三戈戟二型</dressup>
+      <hp>0</hp>
+      <mp>0</mp>
+      <defence>0</defence>
+    </equipped>
+  </item>
+   <item>
+    <id>1515</id>
+    <name>凤嘴刀</name>
+    <displayname>凤嘴刀</displayname>
+    <icon>凤嘴刀</icon>
+    <type>武器</type>
+    <use>刀</use>
+    <actiontype>长柄</actiontype>
+    <weight>15</weight>
+    <price>240000</price>
+    <skill>
+      <skillname>突刺</skillname>
+      <description>手持该武器时可以使用突刺。</description>
+      <cd>7000</cd>
+      <mp>40</mp>
+    </skill>
+    <description>此器仅为样品，性能以模板代之，由于正品尚未完工，武器性能具体该当如何，相关人员仍在思考中。</description>
+    <level>36</level>
+    <data>
+      <power>500</power>
+    </data>
+    <equipped>
+      <dressup>刀-凤嘴刀</dressup>
+      <hp>0</hp>
+      <mp>0</mp>
+      <defence>0</defence>
+    </equipped>
+  </item>
+   <item>
+    <id>1516</id>
+    <name>马槊</name>
+    <displayname>马槊</displayname>
+    <icon>马槊</icon>
+    <type>武器</type>
+    <use>刀</use>
+    <actiontype>长枪</actiontype>
+    <weight>15</weight>
+    <price>240000</price>
+    <skill>
+      <skillname>突刺</skillname>
+      <description>手持该武器时可以使用突刺。</description>
+      <cd>7000</cd>
+      <mp>40</mp>
+    </skill>
+    <description>此器仅为样品，性能以模板代之，由于正品尚未完工，武器性能具体该当如何，相关人员仍在思考中。</description>
+    <level>36</level>
+    <data>
+      <power>500</power>
+    </data>
+    <equipped>
+      <dressup>刀-马槊</dressup>
+      <hp>0</hp>
+      <mp>0</mp>
+      <defence>0</defence>
+    </equipped>
+  </item>
+   <item>
+    <id>1517</id>
+    <name>三尖两刃刀</name>
+    <displayname>三尖两刃刀</displayname>
+    <icon>三尖两刃刀</icon>
+    <type>武器</type>
+    <use>刀</use>
+    <actiontype>长柄</actiontype>
+    <weight>15</weight>
+    <price>240000</price>
+    <skill>
+      <skillname>突刺</skillname>
+      <description>手持该武器时可以使用突刺。</description>
+      <cd>7000</cd>
+      <mp>40</mp>
+    </skill>
+    <description>此器仅为样品，性能以模板代之，由于正品尚未完工，武器性能具体该当如何，相关人员仍在思考中。</description>
+    <level>36</level>
+    <data>
+      <power>500</power>
+    </data>
+    <equipped>
+      <dressup>刀-三尖两刃刀</dressup>
+      <hp>0</hp>
+      <mp>0</mp>
+      <defence>0</defence>
+    </equipped>
+  </item>
+   <item>
     <id>1518</id>
     <name>猎杀巨物大锤</name>
     <displayname>猎杀巨物大锤</displayname>
@@ -1147,9 +1310,9 @@
     <weight>45</weight>
     <price>300000</price>
     <skill>
-      <skillname>凶斩</skillname>
-      <description>手持该武器时可以使用凶斩。</description>
-      <cd>9000</cd>
+      <skillname>狼跳</skillname>
+      <description>手持该武器时可以使用狼跳。</description>
+      <cd>10000</cd>
       <mp>50</mp>
     </skill>
     <description>造型复古，内核却蕴含着当下机械结构发展的结晶。
@@ -1982,6 +2145,205 @@
       <dressup>手雷-屎块</dressup>
       <damagetype>魔法</damagetype>
       <magictype>毒</magictype>
+    </equipped>
+  </item>
+   <item>
+    <id>1554</id>
+    <name>方天画戟一型</name>
+    <displayname>方天画戟一型</displayname>
+    <icon>方天画戟一型</icon>
+    <type>武器</type>
+    <use>刀</use>
+    <actiontype>长枪</actiontype>
+    <weight>15</weight>
+    <price>240000</price>
+    <skill>
+      <skillname>突刺</skillname>
+      <description>手持该武器时可以使用突刺。</description>
+      <cd>7000</cd>
+      <mp>40</mp>
+    </skill>
+    <description>此器仅为样品，性能以模板代之，由于正品尚未完工，武器性能具体该当如何，相关人员仍在思考中。</description>
+    <level>36</level>
+    <data>
+      <power>500</power>
+    </data>
+    <equipped>
+      <dressup>刀-方天画戟一型</dressup>
+      <hp>0</hp>
+      <mp>0</mp>
+      <defence>0</defence>
+    </equipped>
+  </item>
+   <item>
+    <id>1555</id>
+    <name>方天画戟二型</name>
+    <displayname>方天画戟二型</displayname>
+    <icon>方天画戟二型</icon>
+    <type>武器</type>
+    <use>刀</use>
+    <actiontype>长枪</actiontype>
+    <weight>15</weight>
+    <price>240000</price>
+    <skill>
+      <skillname>突刺</skillname>
+      <description>手持该武器时可以使用突刺。</description>
+      <cd>7000</cd>
+      <mp>40</mp>
+    </skill>
+    <description>此器仅为样品，性能以模板代之，由于正品尚未完工，武器性能具体该当如何，相关人员仍在思考中。</description>
+    <level>36</level>
+    <data>
+      <power>500</power>
+    </data>
+    <equipped>
+      <dressup>刀-方天画戟二型</dressup>
+      <hp>0</hp>
+      <mp>0</mp>
+      <defence>0</defence>
+    </equipped>
+  </item>
+   <item>
+    <id>1556</id>
+    <name>寒天画戟</name>
+    <displayname>寒天画戟</displayname>
+    <icon>寒天画戟</icon>
+    <type>武器</type>
+    <use>刀</use>
+    <actiontype>长枪</actiontype>
+    <weight>15</weight>
+    <price>240000</price>
+    <skill>
+      <skillname>突刺</skillname>
+      <description>手持该武器时可以使用突刺。</description>
+      <cd>7000</cd>
+      <mp>40</mp>
+    </skill>
+    <description>此器仅为样品，性能以模板代之，由于正品尚未完工，武器性能具体该当如何，相关人员仍在思考中。</description>
+    <level>36</level>
+    <data>
+      <power>500</power>
+    </data>
+    <equipped>
+      <dressup>刀-寒天画戟</dressup>
+      <hp>0</hp>
+      <mp>0</mp>
+      <defence>0</defence>
+      <damagetype>魔法</damagetype>
+      <magictype>冷</magictype>
+    </equipped>
+  </item>
+   <item>
+    <id>1557</id>
+    <name>蛇矛一型</name>
+    <displayname>蛇矛一型</displayname>
+    <icon>蛇矛一型</icon>
+    <type>武器</type>
+    <use>刀</use>
+    <actiontype>长枪</actiontype>
+    <weight>15</weight>
+    <price>240000</price>
+    <skill>
+      <skillname>突刺</skillname>
+      <description>手持该武器时可以使用突刺。</description>
+      <cd>7000</cd>
+      <mp>40</mp>
+    </skill>
+    <description>此器仅为样品，性能以模板代之，由于正品尚未完工，武器性能具体该当如何，相关人员仍在思考中。</description>
+    <level>36</level>
+    <data>
+      <power>500</power>
+    </data>
+    <equipped>
+      <dressup>刀-蛇矛一型</dressup>
+      <hp>0</hp>
+      <mp>0</mp>
+      <defence>0</defence>
+    </equipped>
+  </item>
+   <item>
+    <id>1558</id>
+    <name>蛇矛二型</name>
+    <displayname>蛇矛二型</displayname>
+    <icon>蛇矛二型</icon>
+    <type>武器</type>
+    <use>刀</use>
+    <actiontype>长枪</actiontype>
+    <weight>15</weight>
+    <price>240000</price>
+    <skill>
+      <skillname>突刺</skillname>
+      <description>手持该武器时可以使用突刺。</description>
+      <cd>7000</cd>
+      <mp>40</mp>
+    </skill>
+    <description>此器仅为样品，性能以模板代之，由于正品尚未完工，武器性能具体该当如何，相关人员仍在思考中。</description>
+    <level>36</level>
+    <data>
+      <power>500</power>
+    </data>
+    <equipped>
+      <dressup>刀-蛇矛二型</dressup>
+      <hp>0</hp>
+      <mp>0</mp>
+      <defence>0</defence>
+    </equipped>
+  </item>
+   <item>
+    <id>1559</id>
+    <name>剧毒蛇矛</name>
+    <displayname>剧毒蛇矛</displayname>
+    <icon>剧毒蛇矛</icon>
+    <type>武器</type>
+    <use>刀</use>
+    <actiontype>长枪</actiontype>
+    <weight>15</weight>
+    <price>240000</price>
+    <skill>
+      <skillname>突刺</skillname>
+      <description>手持该武器时可以使用突刺。</description>
+      <cd>7000</cd>
+      <mp>40</mp>
+    </skill>
+    <description>此器仅为样品，性能以模板代之，由于正品尚未完工，武器性能具体该当如何，相关人员仍在思考中。</description>
+    <level>36</level>
+    <data>
+      <power>500</power>
+    </data>
+    <equipped>
+      <dressup>刀-剧毒蛇矛</dressup>
+      <hp>0</hp>
+      <mp>0</mp>
+      <defence>0</defence>
+      <poison>150</poison>
+    </equipped>
+  </item>
+   <item>
+    <id>1560</id>
+    <name>狼牙长棒</name>
+    <displayname>狼牙长棒</displayname>
+    <icon>狼牙长棒</icon>
+    <type>武器</type>
+    <use>刀</use>
+    <actiontype>狂野</actiontype>
+    <weight>15</weight>
+    <price>240000</price>
+    <skill>
+      <skillname>狼跳</skillname>
+      <description>手持该武器时可以使用狼跳。</description>
+      <cd>7000</cd>
+      <mp>40</mp>
+    </skill>
+    <description>此器仅为样品，性能以模板代之，由于正品尚未完工，武器性能具体该当如何，相关人员仍在思考中。</description>
+    <level>36</level>
+    <data>
+      <power>500</power>
+    </data>
+    <equipped>
+      <dressup>刀-狼牙长棒</dressup>
+      <hp>0</hp>
+      <mp>0</mp>
+      <defence>0</defence>
     </equipped>
   </item>
 </root>

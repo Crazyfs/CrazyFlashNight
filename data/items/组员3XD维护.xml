@@ -344,7 +344,12 @@
     <actiontype>狂野</actiontype>
     <weight>3</weight>
     <price>21600</price>
-    <skill>&lt;font color=&quot;#FFCC00&quot;&gt;【主动战技】&lt;/font&gt;手持该武器时可以使用凶斩。&lt;BR&gt;&lt;font color=&quot;#FFCC00&quot;&gt;【战技信息】&lt;/font&gt;冷却3秒，消耗25MP。</skill>
+    <skill>
+      <skillname>凶斩</skillname>
+      <description>手持该武器时可以使用凶斩。</description>
+      <cd>8000</cd>
+      <mp>25</mp>
+    </skill>
     <description>幸存者的自制武器，用铁钉加成的球棒更有威胁。</description>
     <level>10</level>
     <data>
@@ -748,7 +753,12 @@
     <actiontype>狂野</actiontype>
     <weight>4</weight>
     <price>27400</price>
-    <skill>&lt;font color=&quot;#FFCC00&quot;&gt;【主动战技】&lt;/font&gt;手持该武器时可以使用凶斩。&lt;BR&gt;&lt;font color=&quot;#FFCC00&quot;&gt;【战技信息】&lt;/font&gt;冷却3秒，消耗25MP。</skill>
+    <skill>
+      <skillname>凶斩</skillname>
+      <description>手持该武器时可以使用凶斩。</description>
+      <cd>8000</cd>
+      <mp>25</mp>
+    </skill>
     <description>消防斧是一种清理着火或易燃材料，切断火势蔓延的工具，还可以劈开被烧变形的门窗，解救被困的人。在末日下理所应当成为幸存者们的武器。</description>
     <level>10</level>
     <data>
@@ -1156,7 +1166,12 @@
     <actiontype>狂野</actiontype>
     <weight>8</weight>
     <price>85000</price>
-    <skill>&lt;font color=&quot;#FFCC00&quot;&gt;【主动战技】&lt;/font&gt;手持该武器时可以使用凶斩。&lt;BR&gt;&lt;font color=&quot;#FFCC00&quot;&gt;【战技信息】&lt;/font&gt;冷却4秒，消耗25MP。</skill>
+    <skill>
+      <skillname>狼跳</skillname>
+      <description>手持该武器时可以使用狼跳。</description>
+      <cd>8000</cd>
+      <mp>25</mp>
+    </skill>
     <description>鬼剑士的巨剑</description>
     <level>15</level>
     <data>
