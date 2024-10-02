@@ -3,6 +3,7 @@ import org.flashNight.neur.ScheduleTimer.CerberusScheduler;
 import org.flashNight.naki.DataStructures.*;
 import org.flashNight.sara.*;
 import org.flashNight.neur.Server.*; 
+import org.flashNight.neur.Event.EventBus;
 _root.帧计时器 = _root.createEmptyMovieClip("帧计时器", _root.getNextHighestDepth());
 
 
@@ -62,6 +63,7 @@ _root.帧计时器.初始化任务栈 = function()
                                   this.precisionThreshold);
 
     this.zeroFrameTasks = {}; // Use an object or array to store tasks
+    this.eventBus = new EventBus();
 
 };
 
@@ -404,91 +406,68 @@ _root.帧计时器.键盘输入控制目标 = function()
     }
 }
 
-
-_root.帧计时器.onEnterFrame = function()
-{  
-    this.当前帧数 += 1;
+_root.帧计时器.eventBus.subscribe("frameUpdate", function(当前帧数) {
     this.性能评估优化();
-    //this.定期异常检查();
     this.定期更新天气();
     this.键盘输入控制目标();
+}, _root.帧计时器);
+
+_root.帧计时器.eventBus.subscribe("frameUpdate", function(当前帧数) {
     _root.显示列表.播放列表();
+}, _root.帧计时器);
+
+_root.帧计时器.eventBus.subscribe("frameUpdate", function(当前帧数) {
     _root.UI系统.虚拟币刷新();
     _root.UI系统.金钱刷新();
+}, _root.帧计时器);
 
-    var 游戏世界 = _root.gameworld;
-
-    // ===================== 处理定时任务 开始 =====================
-    // ServerManager.getInstance().sendServerMessage("开始处理定时任务。");
-
+_root.帧计时器.eventBus.subscribe("frameUpdate", function(当前帧数) {
     var tasks = this.ScheduleTimer.tick();
-    // ServerManager.getInstance().sendServerMessage("调用 ScheduleTimer.tick() 完成。");
 
     if (tasks != null) {
-        // ServerManager.getInstance().sendServerMessage("存在待处理的任务。");
         var node = tasks.getFirst();
-        
         while (node != null) {
-            var nextNode = node.next;  // 先保存下一个节点，以防当前任务被移除
+            var nextNode = node.next;
             var taskID = node.taskID;
-            // ServerManager.getInstance().sendServerMessage("开始处理任务 ID: " + taskID);
-
             var 任务 = this.任务哈希表[taskID];
             if (任务) {
-                // 执行动作
                 任务.动作();
-                // ServerManager.getInstance().sendServerMessage("任务 " + taskID + " 的动作执行成功。");
-
                 // 处理任务重复逻辑
                 if (任务.重复次数 === 1) {
                     delete this.任务哈希表[taskID];
-                    // ServerManager.getInstance().sendServerMessage("任务 " + taskID + " 为一次性任务，已从任务哈希表中移除。");
-                } 
-                else if (任务.重复次数 === true) {
+                } else if (任务.重复次数 === true || 任务.重复次数 > 1) {
+                    if (任务.重复次数 !== true) {
+                        任务.重复次数 -= 1;
+                    }
                     任务.待执行帧数 = 任务.间隔帧数;
                     任务.node = this.ScheduleTimer.evaluateAndInsertTask(taskID, 任务.待执行帧数);
-                    // ServerManager.getInstance().sendServerMessage("任务 " + taskID + " 设置为无限重复，已重新调度。");
-                } 
-                else if (任务.重复次数 > 1) {
-                    任务.重复次数 -= 1;
-                    任务.待执行帧数 = 任务.间隔帧数;
-                    任务.node = this.ScheduleTimer.evaluateAndInsertTask(taskID, 任务.待执行帧数);
-                    // ServerManager.getInstance().sendServerMessage("任务 " + taskID + " 剩余重复次数: " + 任务.重复次数 + "，已重新调度。");
-                } 
-                else {
+                } else {
                     delete this.任务哈希表[taskID];
-                    // ServerManager.getInstance().sendServerMessage("任务 " + taskID + " 的重复次数无效，已从任务哈希表中移除。");
                 }
-            } else {
-                // ServerManager.getInstance().sendServerMessage("未在任务哈希表中找到任务 ID: " + taskID);
             }
-
-            node = nextNode;  // 使用保存的下一个节点继续遍历
+            node = nextNode;
         }
-    } else {
-        // ServerManager.getInstance().sendServerMessage("当前没有待处理的任务。");
     }
 
-
-    // Process zero-frame tasks
+    // 处理零帧任务
     for (var taskID in this.zeroFrameTasks) {
         var 任务 = this.zeroFrameTasks[taskID];
         任务.动作();
-        if (任务.重复次数 === true) {
-            // Infinite repetition; do nothing
-        } else if (任务.重复次数 > 1) {
+        if (任务.重复次数 !== true) {
             任务.重复次数 -= 1;
-        } else {
-            // Remove task if it's completed
-            delete this.zeroFrameTasks[taskID];
+            if (任务.重复次数 <= 0) {
+                delete this.zeroFrameTasks[taskID];
+            }
         }
     }
+}, _root.帧计时器);
 
+_root.帧计时器.onEnterFrame = function() {
+    this.当前帧数 += 1;
 
-    // ===================== 处理定时任务 结束 =====================
-
+    // 发布帧更新事件，传递当前帧数
+    this.eventBus.publish("frameUpdate", this.当前帧数);
 };
-
 
 
 _root.帧计时器.移除任务 = function(任务ID)
