@@ -46,7 +46,6 @@
         return this.items.hasOwnProperty(key);
     }
 
-    
     /**
      * 获取集合中所有的元素
      * @return 包含所有元素的数组
@@ -84,5 +83,84 @@
      */
     public function isEmpty():Boolean {
         return this.size() == 0;
+    }
+    
+    /**
+     * 集合的并集操作
+     * @param otherSet 另一个 Set 实例
+     * @return 一个新的 Set，包含当前集合和另一个集合的并集
+     */
+    public function union(otherSet:Set):Set {
+        var unionSet:Set = new Set();
+        var values:Array = this.values();
+        
+        // 添加当前集合的所有元素
+        for (var i:Number = 0; i < values.length; i++) {
+            unionSet.add(values[i]);
+        }
+        
+        // 添加另一个集合的元素
+        values = otherSet.values();
+        for (var i:Number = 0; i < values.length; i++) {
+            unionSet.add(values[i]);
+        }
+        
+        return unionSet;
+    }
+    
+    /**
+     * 集合的交集操作
+     * @param otherSet 另一个 Set 实例
+     * @return 一个新的 Set，包含当前集合和另一个集合的交集
+     */
+    public function intersection(otherSet:Set):Set {
+        var intersectionSet:Set = new Set();
+        var values:Array = this.values();
+        
+        // 只有当元素在另一个集合中也存在时才添加到交集
+        for (var i:Number = 0; i < values.length; i++) {
+            if (otherSet.has(values[i])) {
+                intersectionSet.add(values[i]);
+            }
+        }
+        
+        return intersectionSet;
+    }
+    
+    /**
+     * 集合的差集操作
+     * @param otherSet 另一个 Set 实例
+     * @return 一个新的 Set，包含当前集合中有但另一个集合中没有的元素
+     */
+    public function difference(otherSet:Set):Set {
+        var differenceSet:Set = new Set();
+        var values:Array = this.values();
+        
+        // 只添加当前集合中不在另一个集合中的元素
+        for (var i:Number = 0; i < values.length; i++) {
+            if (!otherSet.has(values[i])) {
+                differenceSet.add(values[i]);
+            }
+        }
+        
+        return differenceSet;
+    }
+    
+    /**
+     * 检查集合是否是另一个集合的子集
+     * @param otherSet 另一个 Set 实例
+     * @return 如果当前集合是另一个集合的子集，返回 true；否则返回 false
+     */
+    public function isSubsetOf(otherSet:Set):Boolean {
+        var values:Array = this.values();
+        
+        // 只要当前集合中有一个元素不在另一个集合中，返回 false
+        for (var i:Number = 0; i < values.length; i++) {
+            if (!otherSet.has(values[i])) {
+                return false;
+            }
+        }
+        
+        return true;
     }
 }
