@@ -466,7 +466,7 @@ class org.flashNight.naki.DataStructures.DoublyLinkedList {
         var result:String = "";
         var current:LLNode = head;
 
-        while (current != null) {a
+        while (current != null) {
             result += current.getString();
             if (current.getNext() != null) {
                 result += separator;
