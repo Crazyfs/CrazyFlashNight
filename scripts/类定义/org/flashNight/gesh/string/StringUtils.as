@@ -89,6 +89,149 @@
     }
     
     // ------------------- 静态方法 -------------------
+
+        /**
+     * 使用正则表达式在字符串中查找匹配项。
+     * 
+     * @param input 要搜索的字符串。
+     * @param pattern 正则表达式模式。
+     * @param flags 正则表达式标志，如 "g", "i", "m"。
+     * @return 一个包含所有匹配结果的数组。如果没有匹配，则返回 null。
+     */
+    public static function match(input:String, pattern:String, flags:String):Array {
+        var regex:org.flashNight.gesh.regexp.RegExp;
+        try {
+            regex = new org.flashNight.gesh.regexp.RegExp(pattern, flags);
+        } catch (e:Error) {
+            trace("StringUtils.match: 无效的正则表达式 - " + e.message);
+            return null;
+        }
+        
+        var matches:Array = [];
+        var matchResult:Array;
+        
+        // 如果设置了全局标志 'g'，则循环查找所有匹配
+        if (flags.indexOf('g') >= 0) {
+            while ((matchResult = regex.exec(input)) != null) {
+                matches.push(matchResult[0]);
+                // 防止零宽匹配导致无限循环
+                if (matchResult[0].length == 0) {
+                    regex.lastIndex++;
+                }
+            }
+        } else {
+            // 查找第一个匹配
+            matchResult = regex.exec(input);
+            if (matchResult != null) {
+                matches.push(matchResult[0]);
+            }
+        }
+        
+        return matches.length > 0 ? matches : null;
+    }
+    
+    /**
+     * 在字符串中搜索正则表达式的第一个匹配项，并返回其索引位置。
+     * 
+     * @param input 要搜索的字符串。
+     * @param pattern 正则表达式模式。
+     * @param flags 正则表达式标志，如 "i", "m"。
+     * @return 第一个匹配项的起始索引。如果没有匹配，则返回 -1。
+     */
+    public static function search(input:String, pattern:String, flags:String):Number {
+        var regex:org.flashNight.gesh.regexp.RegExp;
+        try {
+            regex = new org.flashNight.gesh.regexp.RegExp(pattern, flags);
+        } catch (e:Error) {
+            trace("StringUtils.search: 无效的正则表达式 - " + e.message);
+            return -1;
+        }
+        
+        var matchResult:Array = regex.exec(input);
+        if (matchResult != null && typeof(matchResult.index) == "number") {
+            return matchResult.index;
+        }
+        return -1;
+    }
+    
+    /**
+     * 使用正则表达式替换字符串中的匹配部分。
+     * 
+     * @param input 要处理的字符串。
+     * @param pattern 正则表达式模式。
+     * @param flags 正则表达式标志，如 "g", "i", "m"。
+     * @param replacement 替换字符串。
+     * @return 替换后的新字符串。
+     */
+    public static function replace(input:String, pattern:String, flags:String, replacement:String):String {
+        var regex:org.flashNight.gesh.regexp.RegExp;
+        try {
+            regex = new org.flashNight.gesh.regexp.RegExp(pattern, flags);
+        } catch (e:Error) {
+            trace("StringUtils.replace: 无效的正则表达式 - " + e.message);
+            return input;
+        }
+        
+        var result:String = "";
+        var lastIndex:Number = 0;
+        var matchResult:Array;
+        
+        while ((matchResult = regex.exec(input)) != null) {
+            var matchIndex:Number = matchResult.index;
+            var matchStr:String = matchResult[0];
+            result += input.substring(lastIndex, matchIndex) + replacement;
+            lastIndex = matchIndex + matchStr.length;
+            
+            // 如果没有设置全局标志 'g'，则只替换第一个匹配
+            if (flags.indexOf('g') < 0) {
+                break;
+            }
+            
+            // 防止零宽匹配导致无限循环
+            if (matchStr.length == 0) {
+                lastIndex++;
+            }
+        }
+        
+        result += input.substring(lastIndex);
+        return result;
+    }
+    
+    /**
+     * 使用正则表达式将字符串拆分为数组。
+     * 
+     * @param input 要拆分的字符串。
+     * @param pattern 正则表达式模式。
+     * @param flags 正则表达式标志，如 "g", "i", "m"。
+     * @return 拆分后的字符串数组。
+     */
+    public static function split(input:String, pattern:String, flags:String):Array {
+        var regex:org.flashNight.gesh.regexp.RegExp;
+        try {
+            regex = new org.flashNight.gesh.regexp.RegExp(pattern, flags);
+        } catch (e:Error) {
+            trace("StringUtils.split: 无效的正则表达式 - " + e.message);
+            return [input];
+        }
+        
+        var result:Array = [];
+        var lastIndex:Number = 0;
+        var matchResult:Array;
+        
+        while ((matchResult = regex.exec(input)) != null) {
+            var matchIndex:Number = matchResult.index;
+            result.push(input.substring(lastIndex, matchIndex));
+            lastIndex = matchIndex + matchResult[0].length;
+            
+            // 防止零宽匹配导致无限循环
+            if (matchResult[0].length == 0) {
+                lastIndex++;
+            }
+        }
+        
+        result.push(input.substring(lastIndex));
+        return result;
+    }
     
     // 检查字符串是否包含子字符串
     public static function includes(str:String, substring:String):Boolean {
