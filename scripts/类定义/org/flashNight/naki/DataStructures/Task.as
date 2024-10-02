@@ -1,4 +1,4 @@
-﻿import org.flashNight.naki.DataStructures.*;
+﻿import org.flashNight.naki.DataStructures.TaskIDNode;
 
 class org.flashNight.naki.DataStructures.Task {
     public var id:String;
@@ -28,13 +28,12 @@ class org.flashNight.naki.DataStructures.Task {
             this.remainingRepeats = (repeats === undefined || repeats === null || isNaN(repeats)) ? 1 : repeats;
             this.isInfinite = false;
         }
-        this.params = params;
+        this.params = (params != null && params instanceof Array) ? params : [];
         this.node = null;
     }
 
     // 执行任务动作并更新状态
     public function update():Void {
-        // 任务执行逻辑由 Scheduler 管理，此处仅执行动作并更新重复次数
         if (this.isInfinite || this.remainingRepeats > 0) {
             this.execute();
 
@@ -52,7 +51,12 @@ class org.flashNight.naki.DataStructures.Task {
     // 执行任务动作
     public function execute():Void {
         if (this.action) {
-            this.action.apply(null, this.params); // 不绑定对象，直接调用
+            try {
+                this.action.apply(this, this.params); // 确保 this 指向 Task 实例
+            } catch (error:Error) {
+                trace("Task " + this.id + " execution failed: " + error.message);
+                throw error; // 将异常抛出，交由 TaskManager 处理
+            }
         }
     }
 
@@ -72,4 +76,5 @@ class org.flashNight.naki.DataStructures.Task {
         this.node = null;
         this.isInfinite = false;
     }
+
 }

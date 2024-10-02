@@ -10,9 +10,6 @@ class org.flashNight.neur.ScheduleTimer.TaskManager {
     private var scheduler:CerberusScheduler; // 调度器实例
     private var taskIDCounter:Number;        // 自增任务ID计数器
 
-    private var taskPool:Array;              // 任务对象池
-    private var nodePool:Array;              // 节点对象池
-
     // 构造函数
     public function TaskManager(frameRate:Number, scheduler:CerberusScheduler) {
         this.tasks = {};
@@ -21,71 +18,29 @@ class org.flashNight.neur.ScheduleTimer.TaskManager {
         this.frameRatePerMillisecond = this.frameRate / 1000; // 预计算每毫秒对应的帧数
         this.scheduler = scheduler;
         this.taskIDCounter = 0; // 初始化计数器
-
-        this.taskPool = []; // 初始化任务对象池
-        this.nodePool = []; // 初始化节点对象池
-
-        // 设置调度器的节点回收回调函数
-        var self = this;
-        this.scheduler.setReturnNodesCallback(function(nodes:Array):Void {
-            self.receiveNodesFromScheduler(nodes);
-        });
     }
 
     // 生成唯一的任务ID
     private function generateUniqueTaskID():String {
-        return "task-" + (++this.taskIDCounter);
-    }
-
-    // 分配任务对象
-    private function allocateTask():Task {
-        var task:Task;
-        if (this.taskPool.length > 0) {
-            task = Task(this.taskPool.pop());
-        } else {
-            task = new Task();
+        var newTaskID:String = "task-" + (++this.taskIDCounter);
+        if (newTaskID == null || newTaskID == "") {
+            trace("TaskManager Error: Generated taskID is invalid.");
         }
-        return task;
-    }
-
-    // 回收任务对象
-    private function freeTask(task:Task):Void {
-        task.reset();
-        this.taskPool.push(task);
-    }
-
-    // 分配节点对象
-    public function allocateNode():TaskIDNode {
-        var node:TaskIDNode;
-        if (this.nodePool.length > 0) {
-            node = TaskIDNode(this.nodePool.pop());
-        } else {
-            node = new TaskIDNode(null);
-        }
-        return node;
-    }
-
-    // 回收节点对象
-    public function freeNode(node:TaskIDNode):Void {
-        node.reset(null);
-        this.nodePool.push(node);
-    }
-
-    // 接收来自调度器的节点
-    public function receiveNodesFromScheduler(nodes:Array):Void {
-        for (var i:Number = 0; i < nodes.length; i++) {
-            var node:TaskIDNode = nodes[i];
-            this.freeNode(node);
-        }
+        return newTaskID;
     }
 
     // 创建任务
     public function createTask(action:Function, intervalTime:Number, repeats:Number, params:Array):String {
         var taskID:String = this.generateUniqueTaskID();
+        if (taskID == null || taskID == "") {
+            trace("TaskManager Error: Generated taskID is invalid.");
+            return null;
+        }
+
         var intervalFrames:Number = Math.ceil(intervalTime * this.frameRatePerMillisecond); // 使用预计算的帧率转换
 
-        // 分配任务对象
-        var task:Task = this.allocateTask();
+        // 创建任务对象
+        var task:Task = new Task();
         task.initialize(taskID, action, intervalFrames, repeats, params);
 
         if (intervalFrames <= 0) {
@@ -99,8 +54,6 @@ class org.flashNight.neur.ScheduleTimer.TaskManager {
                 trace("TaskManager: Task " + taskID + " created and scheduled.");
             } else {
                 trace("TaskManager Error: Failed to schedule Task " + taskID);
-                // 回收任务对象
-                this.freeTask(task);
                 return null;
             }
         }
@@ -131,13 +84,17 @@ class org.flashNight.neur.ScheduleTimer.TaskManager {
     public function createLifecycleTask(tag:String, object:Object, action:Function, intervalTime:Number, repeats:Number, params:Array):String {
         var self = this;
         var taskID:String = this.createOrUpdateTask(tag, object, action, intervalTime, repeats, params);
-        
+        if (taskID == null || taskID == "") {
+            trace("TaskManager Error: Failed to create or update task with tag " + tag);
+            return null;
+        }
+
         // 使用 EventCoordinator 设置卸载回调，确保对象销毁时移除任务
         EventCoordinator.addUnloadCallback(object, function() {
             self.removeTask(taskID);
             delete object.taskIdentifiers[tag];
         });
-        
+
         return taskID;
     }
 
@@ -169,15 +126,13 @@ class org.flashNight.neur.ScheduleTimer.TaskManager {
             if (task.node != null) {
                 this.scheduler.removeTaskByNode(task.node);
                 trace("TaskManager: Task " + taskID + " removed from scheduler.");
-                // 不需要手动回收节点，节点由调度器管理
+                task.node = null; // 清除节点引用
             }
-            // 回收任务对象
-            this.freeTask(task);
             delete this.tasks[taskID];
             delete this.zeroFrameTasks[taskID];
             trace("TaskManager: Task " + taskID + " destroyed and removed.");
         } else {
-            trace("TaskManager Error: Remove failed. Task " + taskID + " not found.");
+            trace("TaskManager Warning: Remove failed. Task " + taskID + " not found.");
         }
     }
 
@@ -200,6 +155,15 @@ class org.flashNight.neur.ScheduleTimer.TaskManager {
                 var nextNode:TaskIDNode = node.next;
 
                 var taskID:String = node.taskID;
+                trace("Processing taskID: " + taskID);
+                if (taskID == null || taskID == "") {
+                    trace("TaskManager Error: Encountered a task with invalid ID.");
+                    // 从调度器中移除无效的任务节点，防止再次被调度
+                    this.scheduler.removeTaskByNode(node);
+                    node = nextNode;
+                    continue; // 跳过此任务
+                }
+
                 var task:Task = this.getTask(taskID);
                 if (task) {
                     this.executeTask(task);
@@ -208,8 +172,18 @@ class org.flashNight.neur.ScheduleTimer.TaskManager {
                         this.removeTask(taskID);
                     } else {
                         // 重新调度任务
-                        task.node = this.scheduler.evaluateAndInsertTask(taskID, task.intervalFrames);
+                        var newNode:TaskIDNode = this.scheduler.evaluateAndInsertTask(taskID, task.intervalFrames);
+                        if (newNode != null) {
+                            task.node = newNode;
+                            trace("TaskManager: Task " + taskID + " rescheduled with delayFrames " + task.intervalFrames);
+                        } else {
+                            trace("TaskManager Error: Failed to reschedule Task " + taskID);
+                        }
                     }
+                } else {
+                    trace("TaskManager Warning: Task " + taskID + " not found or already removed.");
+                    // 从调度器中移除无效的任务节点
+                    this.scheduler.removeTaskByID(taskID);
                 }
 
                 // 移动到下一个节点
@@ -220,11 +194,19 @@ class org.flashNight.neur.ScheduleTimer.TaskManager {
 
     // 执行任务并处理错误
     private function executeTask(task:Task):Void {
+        if (task == null || task.id == null) {
+            trace("TaskManager Warning: Attempted to execute an invalid or null task.");
+            return;
+        }
+        trace("Executing task: " + task.id);
         try {
             task.update();
         } catch (error:Error) {
             trace("TaskManager Error: Task execution failed. ID: " + task.id + ", Error: " + error.message);
-            this.removeTask(task.id);
+            // 确保任务被移除
+            if (this.getTask(task.id)) {
+                this.removeTask(task.id);
+            }
         }
     }
 
@@ -237,11 +219,15 @@ class org.flashNight.neur.ScheduleTimer.TaskManager {
         for (var i:Number = 0; i < taskIDs.length; i++) {
             var taskID:String = taskIDs[i];
             var task:Task = this.zeroFrameTasks[taskID];
+            
+            if (task == null) {
+                trace("TaskManager Warning: Zero-frame Task " + taskID + " not found.");
+                continue; // 跳过不存在的任务
+            }
+            
             this.executeTask(task);
 
             if (task.isComplete()) {
-                // 回收任务对象
-                this.freeTask(task);
                 delete this.zeroFrameTasks[taskID];
                 trace("TaskManager: Zero-frame Task " + taskID + " executed and removed.");
             } else {
@@ -269,7 +255,7 @@ class org.flashNight.neur.ScheduleTimer.TaskManager {
         if (this.tasks[taskID] != undefined) {
             if (task.node != null) {
                 this.scheduler.removeTaskByNode(task.node);
-                task.node = null;
+                task.node = null; // 清除节点引用
             }
             delete this.tasks[taskID];
             this.zeroFrameTasks[taskID] = task;

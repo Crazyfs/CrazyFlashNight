@@ -552,11 +552,13 @@ function rescheduleTasks():Void {
 ---
 
 */
-// CerberusScheduler.as
 
-import org.flashNight.naki.DataStructures.*;
-import org.flashNight.neur.ScheduleTimer.*;
-
+/**
+ * CerberusScheduler（地狱三头犬调度器）
+ * 
+ * 这是一个高级定时调度器，使用多级时间轮和最小堆来高效管理不同延迟的任务。
+ * 它能够处理从即时执行到远期执行的各种任务，提供了高精度和高性能的任务调度能力。
+ */
 class org.flashNight.neur.ScheduleTimer.CerberusScheduler {
     // ==========================
     // 三内核数据结构
@@ -618,16 +620,6 @@ class org.flashNight.neur.ScheduleTimer.CerberusScheduler {
 
     /** 任务哈希表，用于通过任务ID快速查找任务节点 */
     private var taskTable:Object;
-
-    // ==========================
-    // 节点池管理
-    // ==========================
-
-    /** 节点池，用于存储可复用的 TaskIDNode */
-    private var nodePool:Array;
-
-    /** 节点回收的回调函数 */
-    private var returnNodesCallback:Function;
 
     // ==========================
     // 初始化函数
@@ -694,55 +686,6 @@ class org.flashNight.neur.ScheduleTimer.CerberusScheduler {
         this.singleWheelMaxFrames = singleWheelSize;         // 单层时间轮最大帧数
         this.secondLevelMaxSeconds = multiLevelSecondsSize;  // 第二级时间轮最大秒数
         this.thirdLevelMaxMinutes = multiLevelMinutesSize;   // 第三级时间轮最大分钟数
-
-        // 初始化节点池
-        this.nodePool = [];
-
-        // 初始化节点回收回调函数为空
-        this.returnNodesCallback = null;
-    }
-
-    // ==========================
-    // 节点回收回调函数设置
-    // ==========================
-
-    /**
-     * 设置节点回收的回调函数
-     * 
-     * @param callback    当节点需要回收时调用的回调函数，接收节点数组作为参数
-     */
-    public function setReturnNodesCallback(callback:Function):Void {
-        this.returnNodesCallback = callback;
-    }
-
-    // ==========================
-    // 节点池管理方法
-    // ==========================
-
-    /**
-     * 接受外部提供的节点，并将其加入节点池
-     * 
-     * @param nodes    外部提供的节点数组
-     */
-    public function addNodesToPool(nodes:Array):Void {
-        this.nodePool = this.nodePool.concat(nodes);
-    }
-
-    /**
-     * 获取一个可用的 TaskIDNode 节点
-     * 
-     * @param taskID    任务的唯一标识符
-     * @return          可用的 TaskIDNode 节点
-     */
-    private function getNode(taskID:String):TaskIDNode {
-        var node:TaskIDNode;
-        if (this.nodePool.length > 0) {
-            node = TaskIDNode(this.nodePool.pop());
-            node.reset(taskID);
-        } else {
-            node = new TaskIDNode(taskID);
-        }
-        return node;
     }
 
     // ==========================
@@ -757,12 +700,12 @@ class org.flashNight.neur.ScheduleTimer.CerberusScheduler {
      * @return                 插入的任务节点
      */
     public function evaluateAndInsertTask(taskID:String, delayInFrames:Number):TaskIDNode {
-        var node:TaskIDNode = this.getNode(taskID);
+        var node:TaskIDNode = new TaskIDNode(taskID);
 
         // 1. 检查任务是否适合单层时间轮
         if (delayInFrames < this.singleWheelMaxFrames) {
             // 无精度损失，直接插入单层时间轮
-            var insertedNode = this.addToSingleLevelByNode(node, delayInFrames);
+            var insertedNode = addToSingleLevelByNode(node, delayInFrames);
             return insertedNode;
         }
 
@@ -792,7 +735,7 @@ class org.flashNight.neur.ScheduleTimer.CerberusScheduler {
 
             // 决定是使用时间轮还是最小堆
             if (minPrecisionLoss <= this.precisionThreshold) {
-                var insertedNode = this.addToSecondLevelByNode(node, bestSlot);
+                var insertedNode = addToSecondLevelByNode(node, bestSlot);
                 return insertedNode;
             }
         }
@@ -823,13 +766,13 @@ class org.flashNight.neur.ScheduleTimer.CerberusScheduler {
 
             // 决定是使用时间轮还是最小堆
             if (minPrecisionLoss <= this.precisionThreshold) {
-                var insertedNode = this.addToThirdLevelByNode(node, bestSlot);
+                var insertedNode = addToThirdLevelByNode(node, bestSlot);
                 return insertedNode;
             }
         }
 
         // 6. 如果精度要求无法满足，插入到最小堆
-        return this.addToMinHeapByNode(node, delayInFrames);
+        return addToMinHeapByNode(node, delayInFrames);
     }
 
     // ==========================
@@ -893,7 +836,7 @@ class org.flashNight.neur.ScheduleTimer.CerberusScheduler {
                 }
 
                 // 在第三级时间轮触发时维护节点池
-                this.manageNodePools();
+                manageNodePools();
             }
         }
 
@@ -968,15 +911,6 @@ class org.flashNight.neur.ScheduleTimer.CerberusScheduler {
 
         // 重置节点以清理引用
         node.reset(null);
-
-        // 将节点返回给节点池或通过回调函数返回
-        if (this.returnNodesCallback != null) {
-            // 通过回调函数返回节点
-            this.returnNodesCallback([node]);
-        } else {
-            // 放入调度器自己的节点池
-            this.nodePool.push(node);
-        }
     }
 
     /**
@@ -1019,140 +953,55 @@ class org.flashNight.neur.ScheduleTimer.CerberusScheduler {
     }
 
     // ==========================
-    // 任务插入函数
+    // 工具函数
     // ==========================
 
     /**
-     * 通过任务ID插入任务到最小堆
+     * 获取单层时间轮的当前槽大小
      * 
-     * @param taskID    任务ID
-     * @param delay     延迟时间（帧）
-     * @return          插入的任务节点
+     * @return    单层时间轮的槽大小
      */
-    public function addToMinHeapByID(taskID:String, delay:Number):TaskIDNode {
-        var node:TaskIDNode = this.getNode(taskID);  // 获取节点
-        return this.addToMinHeapByNode(node, delay); // 调用通过节点插入的方法
+    public function getSingleLevelSlotSize():Number {
+        var data:Object = this.singleLevelTimeWheel.getTimeWheelData();
+        return data.slotSize;
     }
 
     /**
-     * 通过节点插入任务到最小堆
+     * 获取第二级时间轮的槽大小
      * 
-     * @param node      任务节点
-     * @param delay     延迟时间（帧）
-     * @return          插入的任务节点
+     * @return    第二级时间轮的槽大小
      */
-    public function addToMinHeapByNode(node:TaskIDNode, delay:Number):TaskIDNode {
-        // 插入节点到最小堆
-        this.minHeap.addTimerByNode(node, delay);
-        
-        // 将节点和任务ID关联存入哈希表
-        this.addTaskToTable(node.taskID, node);
-
-        return node;
+    public function getMultiLevelSecondSlotSize():Number {
+        var data:Object = this.secondLevelTimeWheel.getTimeWheelData();
+        return data.slotSize;
     }
 
     /**
-     * 通过任务ID插入任务到单层时间轮
+     * 获取第三级时间轮的槽大小
      * 
-     * @param taskID           任务ID
-     * @param delayInFrames    延迟时间（帧）
-     * @return                 插入的任务节点
+     * @return    第三级时间轮的槽大小
      */
-    public function addToSingleLevelByID(taskID:String, delayInFrames:Number):TaskIDNode {
-        var node:TaskIDNode = this.getNode(taskID);  // 获取任务节点
-        return this.addToSingleLevelByNode(node, delayInFrames);  // 调用通过节点插入的方法
+    public function getMultiLevelMinuteSlotSize():Number {
+        var data:Object = this.thirdLevelTimeWheel.getTimeWheelData();
+        return data.slotSize;
     }
 
     /**
-     * 通过节点插入任务到单层时间轮
+     * 获取第一级多级时间轮计数器的上限值
      * 
-     * @param node             任务节点
-     * @param delayInFrames    延迟时间（帧）
-     * @return                 插入的任务节点
+     * @return    第一级计数器的上限值
      */
-    public function addToSingleLevelByNode(node:TaskIDNode, delayInFrames:Number):TaskIDNode {
-        // 插入任务节点到单层时间轮
-        this.singleLevelTimeWheel.addTimerByNode(node, delayInFrames - 1);
-        
-        // 将任务节点和任务ID关联存入哈希表
-        this.addTaskToTable(node.taskID, node);
-
-        return node;
+    public function getMultiLevelCounterLimit():Number {
+        return this.multiLevelCounterLimit;
     }
 
     /**
-     * 通过任务ID插入任务到第二级时间轮
+     * 获取第二级时间轮计数器的上限值
      * 
-     * @param taskID           任务ID
-     * @param delayInSeconds   延迟时间（秒）
-     * @return                 插入的任务节点
+     * @return    第二级计数器的上限值
      */
-    public function addToSecondLevelByID(taskID:String, delayInSeconds:Number):TaskIDNode {
-        var node:TaskIDNode = this.getNode(taskID);  // 获取任务节点
-        return this.addToSecondLevelByNode(node, delayInSeconds);  // 调用通过节点插入的方法
-    }
-
-    /**
-     * 通过节点插入任务到第二级时间轮
-     * 
-     * @param node             任务节点
-     * @param delayInSeconds   延迟时间（秒）
-     * @return                 插入的任务节点
-     */
-    public function addToSecondLevelByNode(node:TaskIDNode, delayInSeconds:Number):TaskIDNode {
-        // 插入任务节点到第二级时间轮
-        this.secondLevelTimeWheel.addTimerByNode(node, delayInSeconds - 1);
-        
-        // 将任务节点和任务ID关联存入哈希表
-        this.addTaskToTable(node.taskID, node);
-
-        return node;
-    }
-
-    /**
-     * 通过任务ID插入任务到第三级时间轮
-     * 
-     * @param taskID            任务ID
-     * @param delayInMinutes    延迟时间（分钟）
-     * @return                  插入的任务节点
-     */
-    public function addToThirdLevelByID(taskID:String, delayInMinutes:Number):TaskIDNode {
-        var node:TaskIDNode = this.getNode(taskID);  // 获取任务节点
-        return this.addToThirdLevelByNode(node, delayInMinutes);  // 调用通过节点插入的方法
-    }
-
-    /**
-     * 通过节点插入任务到第三级时间轮
-     * 
-     * @param node              任务节点
-     * @param delayInMinutes    延迟时间（分钟）
-     * @return                  插入的任务节点
-     */
-    public function addToThirdLevelByNode(node:TaskIDNode, delayInMinutes:Number):TaskIDNode {
-        // 插入任务节点到第三级时间轮
-        this.thirdLevelTimeWheel.addTimerByNode(node, delayInMinutes - 1);
-        
-        // 将任务节点和任务ID关联存入哈希表
-        this.addTaskToTable(node.taskID, node);
-
-        return node;
-    }
-
-    // ==========================
-    // 哈希表清理
-    // ==========================
-
-    /**
-     * 清理哈希表中已执行的任务，减少内存占用
-     * 
-     * @param taskList    已执行的任务列表
-     */
-    private function cleanUpHashTable(taskList:TaskIDLinkedList):Void {
-        var currentNode:TaskIDNode = taskList.getFirst();
-        while (currentNode != null) {
-            this.removeTaskFromTable(currentNode.taskID);  // 从哈希表中移除任务
-            currentNode = currentNode.next;
-        }
+    public function getSecondLevelCounterLimit():Number {
+        return this.secondLevelCounterLimit;
     }
 
     // ==========================
@@ -1191,24 +1040,141 @@ class org.flashNight.neur.ScheduleTimer.CerberusScheduler {
     }
 
     // ==========================
-    // 总结与说明
+    // 任务插入函数
     // ==========================
 
     /**
-     * 总结：
+     * 通过任务ID插入任务到最小堆
      * 
-     * - 调度器通过 `nodePool` 管理可复用的 `TaskIDNode` 对象，优先从池中获取节点，若池中无节点则创建新节点。
-     * - `TaskManager` 通过 `setReturnNodesCallback` 方法设置节点回收的回调函数，当调度器不再使用节点时，将节点返回给 `TaskManager` 以便复用。
-     * - 调度器在需要节点时调用 `getNode` 方法获取节点，并在任务完成或移除时通过 `removeTaskByNode` 方法将节点回收。
-     * - 通过 `addNodesToPool` 方法，`TaskManager` 可以主动向调度器提供额外的节点，避免集中性性能开销。
-     * - 调度器在没有外部节点供应时，仍然能够自行创建新节点，确保系统的鲁棒性。
-     * 
-     * 注意事项：
-     * 
-     * - 确保 `TaskManager` 设置了 `returnNodesCallback`，以便正确回收节点。
-     * - 调度器和 `TaskManager` 之间的接口设计应清晰，避免模块间的耦合。
-     * - 在实际使用中，确保 `SingleLevelTimeWheel` 和 `FrameTaskMinHeap` 等内核组件正确处理传入的节点，并在需要时调用调度器的回调函数回收节点。
+     * @param taskID    任务ID
+     * @param delay     延迟时间（帧）
+     * @return          插入的任务节点
      */
+    public function addToMinHeapByID(taskID:String, delay:Number):TaskIDNode {
+        var node:TaskIDNode = new TaskIDNode(taskID);  // 创建新任务节点
+        return addToMinHeapByNode(node, delay);        // 调用通过节点插入的方法
+    }
+
+    /**
+     * 通过节点插入任务到最小堆
+     * 
+     * @param node      任务节点
+     * @param delay     延迟时间（帧）
+     * @return          插入的任务节点
+     */
+    public function addToMinHeapByNode(node:TaskIDNode, delay:Number):TaskIDNode {
+        // 插入节点到最小堆
+        this.minHeap.addTimerByNode(node, delay);
+        
+        // 将节点和任务ID关联存入哈希表
+        this.addTaskToTable(node.taskID, node);
+
+        return node;
+    }
+
+    /**
+     * 通过任务ID插入任务到单层时间轮
+     * 
+     * @param taskID           任务ID
+     * @param delayInFrames    延迟时间（帧）
+     * @return                 插入的任务节点
+     */
+    public function addToSingleLevelByID(taskID:String, delayInFrames:Number):TaskIDNode {
+        var node:TaskIDNode = new TaskIDNode(taskID);  // 创建任务节点
+        return addToSingleLevelByNode(node, delayInFrames);  // 调用通过节点插入的方法
+    }
+
+    /**
+     * 通过节点插入任务到单层时间轮
+     * 
+     * @param node             任务节点
+     * @param delayInFrames    延迟时间（帧）
+     * @return                 插入的任务节点
+     */
+    public function addToSingleLevelByNode(node:TaskIDNode, delayInFrames:Number):TaskIDNode {
+        // 插入任务节点到单层时间轮
+        this.singleLevelTimeWheel.addTimerByNode(node, delayInFrames - 1);
+        
+        // 将任务节点和任务ID关联存入哈希表
+        this.addTaskToTable(node.taskID, node);
+
+        return node;
+    }
+
+    /**
+     * 通过任务ID插入任务到第二级时间轮
+     * 
+     * @param taskID           任务ID
+     * @param delayInSeconds   延迟时间（秒）
+     * @return                 插入的任务节点
+     */
+    public function addToSecondLevelByID(taskID:String, delayInSeconds:Number):TaskIDNode {
+        var node:TaskIDNode = new TaskIDNode(taskID);  // 创建任务节点
+        return addToSecondLevelByNode(node, delayInSeconds);  // 调用通过节点插入的方法
+    }
+
+    /**
+     * 通过节点插入任务到第二级时间轮
+     * 
+     * @param node             任务节点
+     * @param delayInSeconds   延迟时间（秒）
+     * @return                 插入的任务节点
+     */
+    public function addToSecondLevelByNode(node:TaskIDNode, delayInSeconds:Number):TaskIDNode {
+        // 插入任务节点到第二级时间轮
+        this.secondLevelTimeWheel.addTimerByNode(node, delayInSeconds - 1);
+        
+        // 将任务节点和任务ID关联存入哈希表
+        this.addTaskToTable(node.taskID, node);
+
+        return node;
+    }
+
+    /**
+     * 通过任务ID插入任务到第三级时间轮
+     * 
+     * @param taskID            任务ID
+     * @param delayInMinutes    延迟时间（分钟）
+     * @return                  插入的任务节点
+     */
+    public function addToThirdLevelByID(taskID:String, delayInMinutes:Number):TaskIDNode {
+        var node:TaskIDNode = new TaskIDNode(taskID);  // 创建任务节点
+        return addToThirdLevelByNode(node, delayInMinutes);  // 调用通过节点插入的方法
+    }
+
+    /**
+     * 通过节点插入任务到第三级时间轮
+     * 
+     * @param node              任务节点
+     * @param delayInMinutes    延迟时间（分钟）
+     * @return                  插入的任务节点
+     */
+    public function addToThirdLevelByNode(node:TaskIDNode, delayInMinutes:Number):TaskIDNode {
+        // 插入任务节点到第三级时间轮
+        this.thirdLevelTimeWheel.addTimerByNode(node, delayInMinutes - 1);
+        
+        // 将任务节点和任务ID关联存入哈希表
+        this.addTaskToTable(node.taskID, node);
+
+        return node;
+    }
+
+    // ==========================
+    // 哈希表清理
+    // ==========================
+
+    /**
+     * 清理哈希表中已执行的任务，减少内存占用
+     * 
+     * @param taskList    已执行的任务列表
+     */
+    private function cleanUpHashTable(taskList:TaskIDLinkedList):Void {
+        var currentNode:TaskIDNode = taskList.getFirst();
+        while (currentNode != null) {
+            this.removeTaskFromTable(currentNode.taskID);  // 从哈希表中移除任务
+            currentNode = currentNode.next;
+        }
+    }
 }
 
 
