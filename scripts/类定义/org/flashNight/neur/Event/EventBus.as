@@ -1,19 +1,42 @@
-﻿import org.flashNight.neur.Event.*; 
+﻿import org.flashNight.neur.Event.*;
 
 /**
  * EventBus 类用于事件的订阅、发布和管理。
- * 它使用 Allocator 来管理回调函数的内存分配，确保高效处理大量事件。
+ * 饿汉式单例模式确保在类加载时实例化。
  */
 class org.flashNight.neur.Event.EventBus {
     private var listeners:Object;   // 事件名 -> 回调函数索引数组映射
     private var allocator:Allocator; // 分配器，用于管理和分配回调函数
 
+    // 静态实例，立即初始化
+    private static var instance:EventBus = new EventBus();
+
     /**
-     * 构造函数，初始化事件总线和分配器。
+     * 私有化构造函数，防止外部直接创建对象。
      */
-    public function EventBus() {
+    private function EventBus() {
         this.listeners = {};   // 初始化空的事件监听器映射
         this.allocator = new Allocator(new Array(), 5);  // 初始化分配器，初始容量为 5
+    }
+
+    /**
+     * 初始化方法，显式调用一次初始化静态实例。
+     * 后续不再进行实例化检查，直接返回唯一实例。
+     * 
+     * @return 返回全局唯一的 EventBus 实例。
+     */
+    public static function initialize():EventBus {
+        instance = new EventBus();  // 初始化静态实例
+        return instance;  // 直接返回已经初始化的实例，无需再做任何判断
+    }
+
+    /**
+     * 获取单例实例的静态方法。
+     * 
+     * @return 返回全局唯一的 EventBus 实例。
+     */
+    public static function getInstance():EventBus {
+        return instance;
     }
 
     /**
@@ -160,7 +183,6 @@ class org.flashNight.neur.Event.EventBus {
         this.allocator.FreeAll();  // 释放分配器中所有资源
     }
 }
-
 
 /*
 
