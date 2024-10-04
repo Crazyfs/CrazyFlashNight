@@ -54,7 +54,7 @@ class org.flashNight.neur.Event.Allocator {
         }
 
         // 输出分配的索引
-        trace("Allocated index: " + index);
+        //trace("Allocated index: " + index);
         return index; // 返回分配对象的索引
     }
 
