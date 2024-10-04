@@ -1882,7 +1882,9 @@
     <use>颈部装备</use>
     <weight>0</weight>
     <price>50000</price>
-    <description>末日强者。</description>
+    <description>末日强者。
+    内部组员用来测试时候穿的装备，请勿推荐别人穿这个打流程。
+    也请不要在装备这个项链的情况下打流程还在群里表示游戏没难度，如果你这么做了，那么群主有大概率会让你出群留学。</description>
     <level>1</level>
     <equipped>
       <dressup>
@@ -2084,7 +2086,8 @@
       <cd>1000</cd>
       <mp>10</mp>
     </skill>
-    <description>&lt;font color=&quot;#FF0000&quot;&gt;“那块铁，挽着些儿就死，磕着些儿就亡，挨挨儿皮破，擦擦儿筋伤！”&lt;/font&gt;。</description>
+    <description>正常流程内无法获取，无法使用。无需反馈此武器的相关问题，也请勿推荐他人使用此武器进行流程。
+    &lt;font color=&quot;#FF0000&quot;&gt;“那块铁，挽着些儿就死，磕着些儿就亡，挨挨儿皮破，擦擦儿筋伤！”&lt;/font&gt;。</description>
     <level>342</level>
     <data>
       <power>1350</power>
