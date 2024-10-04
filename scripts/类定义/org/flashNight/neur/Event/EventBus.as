@@ -5,7 +5,7 @@
  * 饿汉式单例模式确保在类加载时实例化。
  */
 class org.flashNight.neur.Event.EventBus {
-    private var listeners:Object;          // 事件名 -> { callbackID: poolIndex }
+    private var listeners:Object;          // 事件名 -> { callbacks: { callbackID: poolIndex }, funcToID: { funcID: callbackID } }
     private var pool:Array;                // 回调函数池
     private var availSpace:Array;          // 可用索引列表
     private var idToCallback:Object;       // 唯一ID到原始回调函数的映射
@@ -13,7 +13,8 @@ class org.flashNight.neur.Event.EventBus {
 
     // 静态实例，立即初始化
     private static var instance:EventBus = new EventBus();
-    private static var callbackCounter:Number = 0; // 全局回调计数器
+    private static var callbackCounter:Number = 0;    // 全局回调计数器
+    private static var functionCounter:Number = 0;    // 全局函数ID计数器
 
     /**
      * 私有化构造函数，防止外部直接创建对象。
@@ -82,20 +83,20 @@ class org.flashNight.neur.Event.EventBus {
      */
     public function subscribe(eventName:String, callback:Function, scope:Object):Void {
         if (!this.listeners[eventName]) {
-            this.listeners[eventName] = {};
+            this.listeners[eventName] = { callbacks: {}, funcToID: {} };
         }
 
         var listenersForEvent:Object = this.listeners[eventName];
+        var funcToID:Object = listenersForEvent.funcToID;
+
+        // 为回调函数分配一个唯一的函数ID
+        if (typeof(callback.__eventBusID) == 'undefined') {
+            callback.__eventBusID = EventBus.functionCounter++;
+        }
+        var funcID:String = String(callback.__eventBusID);
 
         // 检查是否已经存在相同的回调，避免重复订阅
-        var existingCallbackID:String = null;
-        for (var cbID:String in listenersForEvent) {
-            if (this.idToCallback[cbID] == callback) {
-                existingCallbackID = cbID;
-                break;
-            }
-        }
-        if (existingCallbackID != null) {
+        if (funcToID[funcID] != undefined) {
             return; // 已存在，避免重复订阅
         }
 
@@ -122,8 +123,9 @@ class org.flashNight.neur.Event.EventBus {
             this.pool[allocIndex] = wrappedCallback;
         }
 
-        // 存储回调的分配索引
-        listenersForEvent[callbackID] = allocIndex;
+        // 存储回调的分配索引和函数ID映射
+        listenersForEvent.callbacks[callbackID] = allocIndex;
+        funcToID[funcID] = callbackID;
     }
 
     /**
@@ -137,26 +139,29 @@ class org.flashNight.neur.Event.EventBus {
         var listenersForEvent:Object = this.listeners[eventName];
         if (!listenersForEvent) return;
 
-        var callbackID:Number = null;
-        for (var cbID:String in listenersForEvent) {
-            if (this.idToCallback[cbID] == callback) {
-                callbackID = cbID;
-                break;
-            }
-        }
-        if (callbackID == null) return; // Callback not found
+        var funcToID:Object = listenersForEvent.funcToID;
 
-        var allocIndex:Number = listenersForEvent[callbackID];
+        // 获取回调函数的唯一函数ID
+        if (typeof(callback.__eventBusID) == 'undefined') {
+            return; // 函数未被订阅过
+        }
+        var funcID:String = String(callback.__eventBusID);
+
+        var callbackID:Number = funcToID[funcID];
+        if (callbackID == undefined) return; // Callback not found
+
+        var allocIndex:Number = listenersForEvent.callbacks[callbackID];
         if (allocIndex != undefined) {
             this.pool[allocIndex] = null;
             this.availSpace.push(allocIndex);
-            delete listenersForEvent[callbackID];
+            delete listenersForEvent.callbacks[callbackID];
             delete this.idToCallback[callbackID];
+            delete funcToID[funcID];
         }
 
         // 如果没有监听器，删除该事件的监听对象
         var hasListeners:Boolean = false;
-        for (var key:String in listenersForEvent) {
+        for (var key:String in listenersForEvent.callbacks) {
             hasListeners = true;
             break;
         }
@@ -184,8 +189,8 @@ class org.flashNight.neur.Event.EventBus {
 
         // 收集所有回调的索引
         var indices:Array = [];
-        for (var cbID:String in listenersForEvent) {
-            var index:Number = listenersForEvent[cbID];
+        for (var cbID:String in listenersForEvent.callbacks) {
+            var index:Number = listenersForEvent.callbacks[cbID];
             if (index != undefined && this.pool[index] != null) {
                 indices.push(index);
             }
@@ -218,9 +223,28 @@ class org.flashNight.neur.Event.EventBus {
         var self:EventBus = this;
         var originalCallback:Function = callback;
 
+        // 为回调函数分配一个唯一的函数ID
+        if (typeof(originalCallback.__eventBusID) == 'undefined') {
+            originalCallback.__eventBusID = EventBus.functionCounter++;
+        }
+        var funcID:String = String(originalCallback.__eventBusID);
+
+        var listenersForEvent:Object = this.listeners[eventName];
+        if (!listenersForEvent) {
+            listenersForEvent = { callbacks: {}, funcToID: {} };
+            this.listeners[eventName] = listenersForEvent;
+        }
+
+        var funcToID:Object = listenersForEvent.funcToID;
+
+        // 检查是否已经存在相同的回调，避免重复订阅
+        if (funcToID[funcID] != undefined) {
+            return; // 已存在，避免重复订阅
+        }
+
         // 分配一个唯一的回调ID
         var callbackID:Number = EventBus.callbackCounter++;
-        this.idToCallback[callbackID] = callback;
+        this.idToCallback[callbackID] = originalCallback;
 
         // 创建一次性回调的包装函数，并内联取消订阅逻辑
         var wrappedOnceCallback:Function = function() {
@@ -247,13 +271,9 @@ class org.flashNight.neur.Event.EventBus {
             this.pool[allocIndex] = wrappedCallback;
         }
 
-        // 存储回调的分配索引
-        var listenersForEvent:Object = this.listeners[eventName];
-        if (!listenersForEvent) {
-            this.listeners[eventName] = {};
-            listenersForEvent = this.listeners[eventName];
-        }
-        listenersForEvent[callbackID] = allocIndex;
+        // 存储回调的分配索引和函数ID映射
+        listenersForEvent.callbacks[callbackID] = allocIndex;
+        funcToID[funcID] = callbackID;
     }
 
     /**
@@ -263,8 +283,8 @@ class org.flashNight.neur.Event.EventBus {
     public function destroy():Void {
         for (var eventName:String in this.listeners) {
             var listenersForEvent:Object = this.listeners[eventName];
-            for (var cbID:String in listenersForEvent) {
-                var index:Number = listenersForEvent[cbID];
+            for (var cbID:String in listenersForEvent.callbacks) {
+                var index:Number = listenersForEvent.callbacks[cbID];
                 if (index != undefined) {
                     this.pool[index] = null;
                     this.availSpace.push(index);
@@ -288,6 +308,7 @@ class org.flashNight.neur.Event.EventBus {
         this.wrappedCallbacks = {};
     }
 }
+
 
 /*
 
