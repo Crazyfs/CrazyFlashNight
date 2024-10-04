@@ -2,34 +2,35 @@
 
 /**
  * EventBus 类用于事件的订阅、发布和管理。
- * 饿汉式单例模式确保在类加载时实例化。
+ * 采用饿汉式单例模式，确保在类加载时实例化。
  */
 class org.flashNight.neur.Event.EventBus {
-    private var listeners:Object;          // 事件名 -> { callbacks: { callbackID: poolIndex }, funcToID: { funcID: callbackID } }
-    private var pool:Array;                // 回调函数池
-    private var availSpace:Array;          // 可用索引列表
+    private var listeners:Object;          // 存储事件监听器，结构为事件名 -> { callbacks: { callbackID: poolIndex }, funcToID: { funcID: callbackID }, count: Number }
+    private var pool:Array;                // 回调函数池，用于存储回调函数的索引位置
+    private var availSpace:Array;          // 可用索引列表，存储空闲的池位置
     private var idToCallback:Object;       // 唯一ID到原始回调函数的映射
     private var wrappedCallbacks:Object;   // 作用域绑定的包装函数映射
 
-    // 静态实例，立即初始化
+    // 静态实例，类加载时初始化，采用饿汉式单例
     private static var instance:EventBus = new EventBus();
     private static var callbackCounter:Number = 0;    // 全局回调计数器
     private static var functionCounter:Number = 0;    // 全局函数ID计数器
-    private var tempArgs:Array = [];                  // 缓存区
-    private var callbacksToExecute:Array = [];
-
+    private var tempArgs:Array = [];                  // 参数缓存区，重用避免频繁创建
+    private var tempCallbacks:Array = [];             // 重用的回调函数存储数组
 
     /**
      * 私有化构造函数，防止外部直接创建对象。
+     * 初始化回调池，并为可用空间列表预分配 1000 个空闲位置。
      */
     private function EventBus() {
-        this.listeners = {};
-        this.pool = [];
-        this.availSpace = [];
-        this.idToCallback = {};
-        this.wrappedCallbacks = {};
-        // 预分配更大的池空间，减少扩展次数
-        for (var i:Number = 0; i < 1000; i++) { // 增加预分配量到1000
+        this.listeners = {};           // 初始化监听器字典
+        this.pool = [];                // 初始化回调函数池
+        this.availSpace = [];          // 初始化可用索引列表
+        this.idToCallback = {};        // 初始化回调 ID 映射
+        this.wrappedCallbacks = {};    // 初始化包装的回调字典
+
+        // 预分配 1000 个空闲池位，减少运行时扩展的开销
+        for (var i:Number = 0; i < 1000; i++) {
             this.pool.push(null);
             this.availSpace.push(i);
         }
@@ -37,86 +38,121 @@ class org.flashNight.neur.Event.EventBus {
 
     /**
      * 初始化方法，显式调用一次初始化静态实例。
-     * 后续不再进行实例化检查，直接返回唯一实例。
+     * 后续直接返回唯一的实例，不再检查。
      * 
-     * @return 返回全局唯一的 EventBus 实例。
+     * @return EventBus 单例实例
      */
     public static function initialize():EventBus {
-        // 由于是饿汉式单例，直接返回实例
         return instance;
     }
 
     /**
-     * 获取单例实例的静态方法。
+     * 获取 EventBus 单例实例的静态方法。
      * 
-     * @return 返回全局唯一的 EventBus 实例。
+     * @return EventBus 单例实例
      */
     public static function getInstance():EventBus {
         return instance;
     }
 
     /**
-     * 创建统一的包装回调函数，绑定作用域。
-     * 尽量复用包装函数，减少函数创建次数。
+     * 创建绑定了作用域的包装回调函数。
+     * 尽量复用已有的包装函数，减少重复创建。
      * 
-     * @param callback 要包装的回调函数。
-     * @param scope 回调函数执行时的作用域。
-     * @return 返回绑定了作用域的包装函数。
+     * @param callback 要包装的回调函数
+     * @param scope 回调函数执行时的作用域
+     * @return 返回绑定了作用域的包装函数
      */
     private function getWrappedCallback(callback:Function, scope:Object):Function {
-        var scopeKey:String = scope != null ? String(scope) : "default";
-        if (!this.wrappedCallbacks[scopeKey]) {
-            // 为每个scope创建一个包装函数模板
-            this.wrappedCallbacks[scopeKey] = function(cb:Function, sc:Object):Function {
-                return function() {
-                    cb.apply(sc, arguments);
-                };
-            };
+        // 创建回调函数的唯一标识符，确保每个回调函数都有独立的 ID
+        if (typeof(callback.__eventBusID) == 'undefined') {
+            callback.__eventBusID = EventBus.functionCounter++;
         }
-        return this.wrappedCallbacks[scopeKey](callback, scope);
+
+        // 生成缓存键值，使用回调函数 ID 和作用域的组合作为唯一键
+        var cacheKey:String = String(callback.__eventBusID) + "_" + (scope != null ? String(scope) : "default");
+
+        // 如果该回调和作用域组合已经存在缓存，则直接返回
+        if (this.wrappedCallbacks[cacheKey]) {
+            return this.wrappedCallbacks[cacheKey];
+        }
+
+        // 创建新的包装回调并缓存
+        var wrappedCallback:Function = function() {
+            if (scope == null) {
+                // 如果作用域为 null，直接调用函数，不需要使用 call
+                switch (arguments.length) {
+                    case 0: callback(); break;
+                    case 1: callback(arguments[0]); break;
+                    case 2: callback(arguments[0], arguments[1]); break;
+                    case 3: callback(arguments[0], arguments[1], arguments[2]); break;
+                    case 4: callback(arguments[0], arguments[1], arguments[2], arguments[3]); break;
+                    case 5: callback(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4]); break;
+                    default: callback.apply(null, arguments);  // 当参数超过 5 个时，使用 apply
+                }
+            } else {
+                // 否则使用 call 绑定作用域
+                switch (arguments.length) {
+                    case 0: callback.call(scope); break;
+                    case 1: callback.call(scope, arguments[0]); break;
+                    case 2: callback.call(scope, arguments[0], arguments[1]); break;
+                    case 3: callback.call(scope, arguments[0], arguments[1], arguments[2]); break;
+                    case 4: callback.call(scope, arguments[0], arguments[1], arguments[2], arguments[3]); break;
+                    case 5: callback.call(scope, arguments[0], arguments[1], arguments[2], arguments[3], arguments[4]); break;
+                    default: callback.apply(scope, arguments);  // 当参数超过 5 个时，使用 apply
+                }
+            }
+        };
+
+        // 将包装回调存入缓存
+        this.wrappedCallbacks[cacheKey] = wrappedCallback;
+        return wrappedCallback;
     }
 
+
+
+
     /**
-     * 订阅事件，将回调函数与特定的事件绑定。
-     * 避免重复订阅，通过唯一ID管理回调。
+     * 订阅事件，将回调函数与特定事件绑定。
+     * 避免重复订阅，通过唯一 ID 管理回调。
      * 
-     * @param eventName 事件的名称，用于标识事件。
-     * @param callback 要订阅的回调函数，当事件触发时执行。
-     * @param scope 回调函数执行时的作用域（即 `this` 的指向对象）。
+     * @param eventName 事件名称
+     * @param callback 要订阅的回调函数
+     * @param scope 回调函数执行时的作用域
      */
     public function subscribe(eventName:String, callback:Function, scope:Object):Void {
         if (!this.listeners[eventName]) {
-            this.listeners[eventName] = { callbacks: {}, funcToID: {} };
+            this.listeners[eventName] = { callbacks: {}, funcToID: {}, count: 0 };  // 初始化事件的监听器对象，包含回调、ID 映射和计数
         }
 
         var listenersForEvent:Object = this.listeners[eventName];
         var funcToID:Object = listenersForEvent.funcToID;
 
-        // 为回调函数分配一个唯一的函数ID
+        // 分配唯一的函数 ID
         if (typeof(callback.__eventBusID) == 'undefined') {
             callback.__eventBusID = EventBus.functionCounter++;
         }
         var funcID:String = String(callback.__eventBusID);
 
-        // 检查是否已经存在相同的回调，避免重复订阅
+        // 如果已存在该回调，避免重复订阅
         if (funcToID[funcID] != undefined) {
-            return; // 已存在，避免重复订阅
+            return;
         }
 
-        // 分配一个唯一的回调ID
+        // 为回调分配唯一的回调 ID
         var callbackID:Number = EventBus.callbackCounter++;
         this.idToCallback[callbackID] = callback;
 
-        // 创建代理回调，绑定作用域
+        // 创建作用域绑定的包装回调
         var wrappedCallback:Function = this.getWrappedCallback(callback, scope);
 
-        // 分配索引
+        // 分配池中的可用索引位置
         var allocIndex:Number;
         if (this.availSpace.length > 0) {
             allocIndex = Number(this.availSpace.pop());
             this.pool[allocIndex] = wrappedCallback;
         } else {
-            // 如果 pool 已满，采用双倍扩展策略，倒序遍历优化
+            // 如果池已满，采用双倍扩展策略
             var newCapacity:Number = this.pool.length * 2;
             for (var j:Number = newCapacity - 1; j >= this.pool.length; j--) {
                 this.pool.push(null);
@@ -126,17 +162,19 @@ class org.flashNight.neur.Event.EventBus {
             this.pool[allocIndex] = wrappedCallback;
         }
 
-        // 存储回调的分配索引和函数ID映射
+        // 将回调 ID 和分配的索引位置存储起来
         listenersForEvent.callbacks[callbackID] = allocIndex;
         funcToID[funcID] = callbackID;
+
+        listenersForEvent.count++;  // 增加该事件的回调计数
     }
 
     /**
      * 取消订阅事件，移除指定的回调函数。
-     * 通过回调的唯一ID快速定位并移除回调。
+     * 通过唯一 ID 快速定位并移除回调函数。
      * 
-     * @param eventName 事件的名称。
-     * @param callback 要取消的回调函数。
+     * @param eventName 事件名称
+     * @param callback 要取消的回调函数
      */
     public function unsubscribe(eventName:String, callback:Function):Void {
         var listenersForEvent:Object = this.listeners[eventName];
@@ -144,15 +182,15 @@ class org.flashNight.neur.Event.EventBus {
 
         var funcToID:Object = listenersForEvent.funcToID;
 
-        // 获取回调函数的唯一函数ID
         if (typeof(callback.__eventBusID) == 'undefined') {
-            return; // 函数未被订阅过
+            return;
         }
         var funcID:String = String(callback.__eventBusID);
 
         var callbackID:Number = funcToID[funcID];
-        if (callbackID == undefined) return; // Callback not found
+        if (callbackID == undefined) return;
 
+        // 根据回调 ID 获取其索引位置并释放该回调
         var allocIndex:Number = listenersForEvent.callbacks[callbackID];
         if (allocIndex != undefined) {
             this.pool[allocIndex] = null;
@@ -162,13 +200,10 @@ class org.flashNight.neur.Event.EventBus {
             delete funcToID[funcID];
         }
 
-        // 如果没有监听器，删除该事件的监听对象
-        var hasListeners:Boolean = false;
-        for (var key:String in listenersForEvent.callbacks) {
-            hasListeners = true;
-            break;
-        }
-        if (!hasListeners) {
+        listenersForEvent.count--;  // 减少该事件的回调计数
+
+        // 如果没有剩余的回调函数，则删除该事件的监听器对象
+        if (listenersForEvent.count === 0) {
             delete this.listeners[eventName];
         }
     }
@@ -176,109 +211,75 @@ class org.flashNight.neur.Event.EventBus {
     /**
      * 发布事件，通知所有订阅者，并传递可选的参数。
      * 
-     * @param eventName 事件名称。
-     * @param ...args 传递给回调函数的参数。
+     * @param eventName 事件名称
      */
-
     public function publish(eventName:String):Void {
         var listenersForEvent:Object = this.listeners[eventName];
         if (!listenersForEvent) return;
 
-        // 直接检查 callbacks 对象是否为空，避免调用辅助函数
-        var hasCallbacks:Boolean = false;
-        for (var cbID:String in listenersForEvent.callbacks) {
-            hasCallbacks = true;
-            break; // 如果至少找到一个回调，立即中断循环
-        }
-
-        if (!hasCallbacks) {
-            return; // 如果没有回调，直接返回
-        }
-
-        // 缓存常用引用
         var callbacks:Object = listenersForEvent.callbacks;
         var poolRef:Array = this.pool;
 
-        // 如果 arguments.length 小于 2，表示没有额外参数，直接执行不带参数的回调
-        if (arguments.length < 2) {
-            // 直接遍历回调并执行不带参数的回调
-            var callbackCount:Number = 0;
-            for (var cbID:String in callbacks) {
-                callbackCount++;
-            }
+        this.tempCallbacks.length = 0;  // 清空并重用临时回调数组
 
-            // 创建一个临时数组存储回调引用，倒序遍历
-            var tempCallbacks:Array = new Array(callbackCount);
-            var idx:Number = callbackCount - 1;
-            for (var cbID:String in callbacks) {
-                var index:Number = callbacks[cbID];
-                var callback:Function = poolRef[index];
-                if (callback != null) {
-                    tempCallbacks[idx--] = callback;
-                }
+        // 将所有回调函数存入 tempCallbacks 数组
+        for (var cbID:String in callbacks) {
+            var index:Number = callbacks[cbID];
+            var callback:Function = poolRef[index];
+            if (callback != null) {
+                this.tempCallbacks.push(callback);
             }
+        }
 
-            // 倒序遍历并执行不带参数的回调
-            for (var j:Number = callbackCount - 1; j >= 0; j--) {
-                var cb:Function = tempCallbacks[j];
-                try {
-                    cb(); // 无参数调用
-                } catch (error:Error) {
-                    trace("Error executing callback for event '" + eventName + "': " + error.message);
-                }
-            }
-        } else {
-            // 否则，处理传递的参数
-            // 清空并重用 tempArgs
+        var callbackCount:Number = this.tempCallbacks.length;
+        var hasArguments:Boolean = arguments.length >= 2;
+
+        // 如果存在额外参数，则将参数传递到 tempArgs 中
+        if (hasArguments) {
             this.tempArgs.length = 0;
             var argsLen:Number = arguments.length;
             for (var i:Number = 1; i < argsLen; i++) {
                 this.tempArgs.push(arguments[i]);
             }
+        }
 
-            // 直接遍历回调并执行，倒序遍历提升性能
-            var callbackCount:Number = 0;
-            for (var cbID:String in callbacks) {
-                callbackCount++;
-            }
-
-            // 创建一个临时数组存储回调引用，倒序遍历
-            var tempCallbacks:Array = new Array(callbackCount);
-            var idx:Number = callbackCount - 1;
-            for (var cbID:String in callbacks) {
-                var index:Number = callbacks[cbID];
-                var callback:Function = poolRef[index];
-                if (callback != null) {
-                    tempCallbacks[idx--] = callback;
+        // 倒序遍历并执行回调函数
+        for (var j:Number = callbackCount - 1; j >= 0; j--) {
+            var cb:Function = this.tempCallbacks[j];
+            try {
+                if (hasArguments) {
+                    // 手动展开常见参数情况，避免使用 apply 带来的性能损耗
+                    switch (this.tempArgs.length) {
+                        case 0: cb(); break;
+                        case 1: cb(this.tempArgs[0]); break;
+                        case 2: cb(this.tempArgs[0], this.tempArgs[1]); break;
+                        case 3: cb(this.tempArgs[0], this.tempArgs[1], this.tempArgs[2]); break;
+                        case 4: cb(this.tempArgs[0], this.tempArgs[1], this.tempArgs[2], this.tempArgs[3]); break;
+                        case 5: cb(this.tempArgs[0], this.tempArgs[1], this.tempArgs[2], this.tempArgs[3], this.tempArgs[4]); break;
+                        case 6: cb(this.tempArgs[0], this.tempArgs[1], this.tempArgs[2], this.tempArgs[3], this.tempArgs[4], this.tempArgs[5]); break;
+                        case 7: cb(this.tempArgs[0], this.tempArgs[1], this.tempArgs[2], this.tempArgs[3], this.tempArgs[4], this.tempArgs[5], this.tempArgs[6]); break;
+                        default: cb.apply(null, this.tempArgs);  // 参数超过 7 个时，使用 apply
+                    }
+                } else {
+                    cb();
                 }
-            }
-
-            // 倒序遍历并执行回调，传递参数
-            for (var j:Number = callbackCount - 1; j >= 0; j--) {
-                var cb:Function = tempCallbacks[j];
-                try {
-                    cb.apply(null, this.tempArgs); // 传递参数调用
-                } catch (error:Error) {
-                    trace("Error executing callback for event '" + eventName + "': " + error.message);
-                }
+            } catch (error:Error) {
+                trace("Error executing callback for event '" + eventName + "': " + error.message);
             }
         }
     }
 
-
-
     /**
      * 一次性订阅事件，回调执行一次后即自动取消订阅。
      * 
-     * @param eventName 事件的名称。
-     * @param callback 要订阅的回调函数。
-     * @param scope 回调函数的作用域（即 `this` 指向的对象）。
+     * @param eventName 事件名称
+     * @param callback 要订阅的回调函数
+     * @param scope 回调函数的作用域
      */
     public function subscribeOnce(eventName:String, callback:Function, scope:Object):Void {
         var self:EventBus = this;
         var originalCallback:Function = callback;
 
-        // 为回调函数分配一个唯一的函数ID
         if (typeof(originalCallback.__eventBusID) == 'undefined') {
             originalCallback.__eventBusID = EventBus.functionCounter++;
         }
@@ -286,37 +287,32 @@ class org.flashNight.neur.Event.EventBus {
 
         var listenersForEvent:Object = this.listeners[eventName];
         if (!listenersForEvent) {
-            listenersForEvent = { callbacks: {}, funcToID: {} };
+            listenersForEvent = { callbacks: {}, funcToID: {}, count: 0 };  // 初始化事件的监听器对象
             this.listeners[eventName] = listenersForEvent;
         }
 
         var funcToID:Object = listenersForEvent.funcToID;
 
-        // 检查是否已经存在相同的回调，避免重复订阅
         if (funcToID[funcID] != undefined) {
-            return; // 已存在，避免重复订阅
+            return;  // 避免重复订阅
         }
 
-        // 分配一个唯一的回调ID
         var callbackID:Number = EventBus.callbackCounter++;
         this.idToCallback[callbackID] = originalCallback;
 
-        // 创建一次性回调的包装函数，并内联取消订阅逻辑
+        // 创建一次性回调的包装函数
         var wrappedOnceCallback:Function = function() {
             originalCallback.apply(scope, arguments);
-            self.unsubscribe(eventName, originalCallback);
+            self.unsubscribe(eventName, originalCallback);  // 回调执行后自动取消订阅
         };
 
-        // 创建代理回调，绑定作用域
         var wrappedCallback:Function = this.getWrappedCallback(wrappedOnceCallback, scope);
 
-        // 分配索引
         var allocIndex:Number;
         if (this.availSpace.length > 0) {
             allocIndex = Number(this.availSpace.pop());
             this.pool[allocIndex] = wrappedCallback;
         } else {
-            // 如果 pool 已满，采用双倍扩展策略，倒序遍历优化
             var newCapacity:Number = this.pool.length * 2;
             for (var j:Number = newCapacity - 1; j >= this.pool.length; j--) {
                 this.pool.push(null);
@@ -326,17 +322,16 @@ class org.flashNight.neur.Event.EventBus {
             this.pool[allocIndex] = wrappedCallback;
         }
 
-        // 存储回调的分配索引和函数ID映射
         listenersForEvent.callbacks[callbackID] = allocIndex;
         funcToID[funcID] = callbackID;
+        listenersForEvent.count++;  // 增加该事件的回调计数
     }
 
     /**
-     * 销毁事件总线，释放所有监听器和回调。
-     * 清空回调函数池和可用索引列表，防止内存泄漏。
+     * 销毁事件总线，释放所有监听器和回调函数。
+     * 清理回调池、可用索引列表及临时缓存，防止内存泄漏。
      */
     public function destroy():Void {
-        // 清空 listeners 和 pool 中的所有数据
         for (var eventName:String in this.listeners) {
             var listenersForEvent:Object = this.listeners[eventName];
             for (var cbID:String in listenersForEvent.callbacks) {
@@ -350,7 +345,7 @@ class org.flashNight.neur.Event.EventBus {
             delete this.listeners[eventName];
         }
 
-        // 清空所有回调函数池中的剩余回调
+        // 清空回调池中的所有剩余回调
         for (var i:Number = this.pool.length - 1; i >= 0; i--) {
             if (this.pool[i] != null) {
                 this.pool[i] = null;
@@ -358,23 +353,20 @@ class org.flashNight.neur.Event.EventBus {
             }
         }
 
-        // 清空 mappings
         this.listeners = {};
         this.idToCallback = {};
 
-        // 清空 wrappedCallbacks，防止内存泄漏
+        // 清空作用域绑定的包装回调字典
         for (var scopeKey:String in this.wrappedCallbacks) {
             delete this.wrappedCallbacks[scopeKey];
         }
         this.wrappedCallbacks = {};
 
-        // 清空预分配的临时数组
+        // 清空临时参数和回调数组
         this.tempArgs.length = 0;
-        this.callbacksToExecute.length = 0;
+        this.tempCallbacks.length = 0;
     }
-
 }
-
 
 
 /*
@@ -842,5 +834,34 @@ Error executing callback for event 'ERROR_EVENT': Intentional error in callbackW
 [PERFORMANCE] Test 14: EventBus Complex Argument Passing took 0 ms
 [PASS] Test 15: EventBus handles bulk subscriptions and unsubscriptions correctly
 [PERFORMANCE] Test 15: EventBus Bulk Subscribe and Unsubscribe took 4642 ms
+All tests completed.
+
+
+[PASS] Test 1: EventBus subscribe and publish single event
+[PASS] Test 2: EventBus unsubscribe callback
+[PASS] Test 3: EventBus subscribeOnce - first publish
+[PASS] Test 3: EventBus subscribeOnce - second publish
+[PASS] Test 4: EventBus publish event with arguments
+Error executing callback for event 'ERROR_EVENT': Intentional error in callbackWithError
+[PASS] Test 5: EventBus callback error handling
+[PASS] Test 6: EventBus destroy and ensure callbacks are not called
+[PASS] Test 7: EventBus handles high volume of subscriptions and publishes correctly
+[PERFORMANCE] Test 7: EventBus High Volume Subscriptions and Publish took 26 ms
+[PASS] Test 8: EventBus handles high frequency publishes correctly
+[PERFORMANCE] Test 8: EventBus High Frequency Publish took 892 ms
+[PASS] Test 9: EventBus handles concurrent subscriptions and publishes correctly
+[PERFORMANCE] Test 9: EventBus Concurrent Subscriptions and Publishes took 11492 ms
+[PASS] Test 10: EventBus handles mixed subscribe and unsubscribe operations correctly
+[PERFORMANCE] Test 10: EventBus Mixed Subscribe and Unsubscribe took 349 ms
+[PASS] Test 11: EventBus handles nested event publishes correctly
+[PERFORMANCE] Test 11: EventBus Nested Event Publish took 0 ms
+[PASS] Test 12: EventBus handles parallel event processing correctly
+[PERFORMANCE] Test 12: EventBus Parallel Event Processing took 144 ms
+[PASS] Test 13: EventBus handles long-running subscriptions and cleanups correctly
+[PERFORMANCE] Test 13: EventBus Long Running Subscriptions and Cleanups took 17 ms
+[PASS] Test 14: EventBus handles complex argument passing correctly
+[PERFORMANCE] Test 14: EventBus Complex Argument Passing took 0 ms
+[PASS] Test 15: EventBus handles bulk subscriptions and unsubscriptions correctly
+[PERFORMANCE] Test 15: EventBus Bulk Subscribe and Unsubscribe took 1058 ms
 All tests completed.
 */
