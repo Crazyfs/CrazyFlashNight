@@ -628,4 +628,3 @@ function runAllTests():Void {
 
 // Execute tests
 runAllTests();
-*/
