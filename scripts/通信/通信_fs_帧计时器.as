@@ -489,98 +489,206 @@ _root.帧计时器.移除任务 = function(任务ID)
 _root.帧计时器.添加任务 = function(动作, 间隔时间, 重复次数) {
     var 任务ID = ++this.任务ID计数器;
     var 间隔帧数 = Math.ceil(间隔时间 * this.毫秒每帧);
+    
+    // 提取额外参数（动态参数）
     var 参数数组 = arguments.length > 3 ? Array.prototype.slice.call(arguments, 3) : [];
 
+    // 创建任务对象，直接优化动作的定义
     var 任务 = {
         id: 任务ID,
-        动作: function() { 动作.apply(任务, 参数数组); },
+        动作: function() {
+            switch (参数数组.length) {
+                case 0: return 动作.call(this);
+                case 1: return 动作.call(this, 参数数组[0]);
+                case 2: return 动作.call(this, 参数数组[0], 参数数组[1]);
+                case 3: return 动作.call(this, 参数数组[0], 参数数组[1], 参数数组[2]);
+                case 4: return 动作.call(this, 参数数组[0], 参数数组[1], 参数数组[2], 参数数组[3]);
+                case 5: return 动作.call(this, 参数数组[0], 参数数组[1], 参数数组[2], 参数数组[3], 参数数组[4]);
+                default: return 动作.apply(this, 参数数组); // 动态传递多余参数
+            }
+        },
         间隔帧数: 间隔帧数,
-        重复次数: 重复次数 === undefined || 重复次数 === null ? 1 : 重复次数,
-        参数数组: 参数数组
+        重复次数: 重复次数 === undefined || 重复次数 === null ? 1 : 重复次数
     };
 
     if (间隔帧数 <= 0) {
-        this.zeroFrameTasks[任务ID] = 任务;
+        this.zeroFrameTasks[任务ID] = 任务; // 立即执行任务
     } else {
         任务.待执行帧数 = 间隔帧数;
-        任务.节点 = this.ScheduleTimer.evaluateAndInsertTask(任务ID, 间隔帧数);
-        this.任务哈希表[任务ID] = 任务;
+        任务.节点 = this.ScheduleTimer.evaluateAndInsertTask(任务ID, 间隔帧数);  // 调度任务
+        this.任务哈希表[任务ID] = 任务; // 将任务存储在哈希表中
     }
 
-    return 任务ID;
+    return 任务ID; // 返回任务 ID
 };
 
 
-_root.帧计时器.添加单次任务 = function(动作, 间隔时间)
-{
+
+_root.帧计时器.添加单次任务 = function(动作, 间隔时间) {
     // 检查间隔时间是否小于或等于0
     if (间隔时间 <= 0) {
-        // 立即执行任务动作
-        动作.apply(null, arguments.length > 2 ? Array.prototype.slice.call(arguments, 2) : []);
-        // 返回特殊值，表示任务已立即执行（例如，返回null或0）
-        return null; 
+        // 优化展开 apply 调用逻辑，避免使用 apply
+        var 参数数量 = arguments.length - 2;
+        switch (参数数量) {
+            case 0: 
+                动作();
+                break;
+            case 1: 
+                动作(arguments[2]);
+                break;
+            case 2: 
+                动作(arguments[2], arguments[3]);
+                break;
+            case 3: 
+                动作(arguments[2], arguments[3], arguments[4]);
+                break;
+            case 4: 
+                动作(arguments[2], arguments[3], arguments[4], arguments[5]);
+                break;
+            case 5: 
+                动作(arguments[2], arguments[3], arguments[4], arguments[5], arguments[6]);
+                break;
+            default: 
+                // 当参数数量超过5时，仍然可以使用 apply 处理动态参数
+                动作.apply(null, Array.prototype.slice.call(arguments, 2));
+                break;
+        }
+        return null; // 返回特殊值，表示任务已立即执行
     } else {
-        // 正常添加任务，重复次数为1
-        var 完整参数 = [动作, 间隔时间, 1].concat(arguments.length > 2 ? Array.prototype.slice.call(arguments, 2) : []);
-        return this.添加任务.apply(this, 完整参数); // 返回任务ID
+        // 任务ID生成
+        var 任务ID = ++this.任务ID计数器;
+        var 间隔帧数 = Math.ceil(间隔时间 * this.毫秒每帧);
+        
+        // 创建任务对象
+        var 任务 = {
+            id: 任务ID,
+            动作: function() {
+                var 参数数量 = arguments.length;
+                switch (参数数量) {
+                    case 0: return 动作();
+                    case 1: return 动作(arguments[0]);
+                    case 2: return 动作(arguments[0], arguments[1]);
+                    case 3: return 动作(arguments[0], arguments[1], arguments[2]);
+                    case 4: return 动作(arguments[0], arguments[1], arguments[2], arguments[3]);
+                    case 5: return 动作(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4]);
+                    default: return 动作.apply(null, arguments); // 超过5个参数时使用 apply
+                }
+            },
+            间隔帧数: 间隔帧数,
+            重复次数: 1
+        };
+
+        // 判断是否需要立即执行
+        if (间隔帧数 <= 0) {
+            this.zeroFrameTasks[任务ID] = 任务; // 立即执行任务
+        } else {
+            任务.待执行帧数 = 间隔帧数;
+            任务.节点 = this.ScheduleTimer.evaluateAndInsertTask(任务ID, 间隔帧数); // 调度任务
+            this.任务哈希表[任务ID] = 任务; // 将任务存储在哈希表中
+        }
+
+        return 任务ID; // 返回任务ID
     }
 };
 
 
-_root.帧计时器.添加循环任务 = function(动作, 间隔时间)
- {
-    var 完整参数 = [动作, 间隔时间, true].concat(arguments.length > 2 ? Array.prototype.slice.call(arguments, 2) : []);// 使用_apply_调用添加任务，确保_this_指向帧计时器对象
 
-    return this.添加任务.apply(this, 完整参数); // 返回任务ID
+_root.帧计时器.添加循环任务 = function(动作, 间隔时间) {
+    // 任务ID生成
+    var 任务ID = ++this.任务ID计数器;
+    var 间隔帧数 = Math.ceil(间隔时间 * this.毫秒每帧);
+
+    // 动态参数处理
+    var 参数数组 = arguments.length > 2 ? Array.prototype.slice.call(arguments, 2) : [];
+
+    // 创建任务对象
+    var 任务 = {
+        id: 任务ID,
+        动作: function() {
+            // 展开参数调用逻辑，避免多余的 apply 开销
+            switch (参数数组.length) {
+                case 0: return 动作();
+                case 1: return 动作(参数数组[0]);
+                case 2: return 动作(参数数组[0], 参数数组[1]);
+                case 3: return 动作(参数数组[0], 参数数组[1], 参数数组[2]);
+                case 4: return 动作(参数数组[0], 参数数组[1], 参数数组[2], 参数数组[3]);
+                case 5: return 动作(参数数组[0], 参数数组[1], 参数数组[2], 参数数组[3], 参数数组[4]);
+                default: return 动作.apply(null, 参数数组); // 动态传递多余参数
+            }
+        },
+        间隔帧数: 间隔帧数,
+        重复次数: true  // 循环任务的标志
+    };
+
+    // 判断是否需要立即执行
+    if (间隔帧数 <= 0) {
+        this.zeroFrameTasks[任务ID] = 任务; // 立即执行任务
+    } else {
+        任务.待执行帧数 = 间隔帧数;
+        任务.节点 = this.ScheduleTimer.evaluateAndInsertTask(任务ID, 间隔帧数); // 调度任务
+        this.任务哈希表[任务ID] = 任务; // 将任务存储在哈希表中
+    }
+
+    return 任务ID; // 返回任务ID
 };
 
-_root.帧计时器.添加或更新任务 = function(对象, 标签名, 动作, 间隔时间) 
-{
+
+_root.帧计时器.添加或更新任务 = function(对象, 标签名, 动作, 间隔时间) {
     if (!对象.任务标识) 对象.任务标识 = {};
-    if (!对象.任务标识[标签名]) 
-    {
+    if (!对象.任务标识[标签名]) {
         对象.任务标识[标签名] = ++this.任务ID计数器;
     }
 
     var 任务ID = 对象.任务标识[标签名];
     var 间隔帧数 = Math.ceil(间隔时间 * this.毫秒每帧);
+    
+    // 优化参数数组处理
     var 参数数组 = arguments.length > 4 ? Array.prototype.slice.call(arguments, 4) : [];
-    var 动作封装 = function() { 动作.apply(对象, 参数数组); };  // Ensure correct context and parameter passing
 
-    // Retrieve the task from either 任务哈希表 or zeroFrameTasks
+    // 动作封装，直接展开 apply 调用逻辑
+    var 动作封装 = function() {
+        switch (参数数组.length) {
+            case 0: 动作.call(对象); break;
+            case 1: 动作.call(对象, 参数数组[0]); break;
+            case 2: 动作.call(对象, 参数数组[0], 参数数组[1]); break;
+            case 3: 动作.call(对象, 参数数组[0], 参数数组[1], 参数数组[2]); break;
+            case 4: 动作.call(对象, 参数数组[0], 参数数组[1], 参数数组[2], 参数数组[3]); break;
+            case 5: 动作.call(对象, 参数数组[0], 参数数组[1], 参数数组[2], 参数数组[3], 参数数组[4]); break;
+            default: 动作.apply(对象, 参数数组); break;
+        }
+    };
+
+    // 获取任务，从任务哈希表或者 zeroFrameTasks
     var 任务 = this.任务哈希表[任务ID] || this.zeroFrameTasks[任务ID];
-    if (任务) 
-    {
+    if (任务) {
+        // 更新现有任务
         任务.动作 = 动作封装;
         任务.间隔帧数 = 间隔帧数;
         任务.参数数组 = 参数数组;
 
         if (间隔帧数 === 0) {
-            // Move task to zeroFrameTasks if necessary
+            // 将任务移到 zeroFrameTasks
             if (this.任务哈希表[任务ID]) {
                 this.ScheduleTimer.removeTaskByNode(任务.节点);
-                delete 任务.节点; // Remove node reference
+                delete 任务.节点;
                 delete this.任务哈希表[任务ID];
                 this.zeroFrameTasks[任务ID] = 任务;
             }
-            // No need to reschedule zero-frame tasks
         } else {
             if (this.zeroFrameTasks[任务ID]) {
-                // Move task from zeroFrameTasks to 任务哈希表
+                // 从 zeroFrameTasks 移动到任务哈希表
                 delete this.zeroFrameTasks[任务ID];
                 任务.待执行帧数 = 间隔帧数;
                 任务.节点 = this.ScheduleTimer.evaluateAndInsertTask(任务ID, 间隔帧数);
                 this.任务哈希表[任务ID] = 任务;
             } else {
-                // Reschedule the task in ScheduleTimer
+                // 重新调度任务
                 任务.待执行帧数 = 间隔帧数;
                 this.ScheduleTimer.rescheduleTaskByNode(任务.节点, 间隔帧数);
             }
         }
-    } 
-    else 
-    {
-        // Task does not exist, create a new one
+    } else {
+        // 如果任务不存在，创建新任务
         任务 = {
             id: 任务ID,
             动作: 动作封装,
@@ -602,28 +710,43 @@ _root.帧计时器.添加或更新任务 = function(对象, 标签名, 动作, �
 };
 
 
+
 _root.帧计时器.添加生命周期任务 = function(对象, 标签名, 动作, 间隔时间) {
     if (!对象.任务标识) 对象.任务标识 = {};
-    if (!对象.任务标识[标签名]) 
-    {
+    if (!对象.任务标识[标签名]) {
         对象.任务标识[标签名] = ++this.任务ID计数器;
     }
 
     var 任务ID = 对象.任务标识[标签名];
     var 间隔帧数 = Math.ceil(间隔时间 * this.毫秒每帧);
-    var 参数数组 = arguments.length > 4 ? Array.prototype.slice.call(arguments, 4) : [];
-    var 动作封装 = function() { 动作.apply(对象, 参数数组); };
 
-    // Create or update the task
+    // 优化参数数组处理
+    var 参数数组 = arguments.length > 4 ? Array.prototype.slice.call(arguments, 4) : [];
+
+    // 优化后的动作封装，避免使用 apply
+    var 动作封装 = function() {
+        switch (参数数组.length) {
+            case 0: 动作.call(对象); break;
+            case 1: 动作.call(对象, 参数数组[0]); break;
+            case 2: 动作.call(对象, 参数数组[0], 参数数组[1]); break;
+            case 3: 动作.call(对象, 参数数组[0], 参数数组[1], 参数数组[2]); break;
+            case 4: 动作.call(对象, 参数数组[0], 参数数组[1], 参数数组[2], 参数数组[3]); break;
+            default: 动作.apply(对象, 参数数组); break;
+        }
+    };
+
+    // 获取或创建任务
     var 任务 = this.任务哈希表[任务ID] || this.zeroFrameTasks[任务ID];
     if (任务) {
+        // 更新现有任务
         任务.动作 = 动作封装;
         任务.间隔帧数 = 间隔帧数;
         任务.参数数组 = 参数数组;
-        任务.重复次数 = true; // Set to infinite repetition
+        任务.重复次数 = true; // 无限循环
 
         if (间隔帧数 === 0) {
             if (this.任务哈希表[任务ID]) {
+                // 移动任务到 zeroFrameTasks
                 this.ScheduleTimer.removeTaskByNode(任务.节点);
                 delete 任务.节点;
                 delete this.任务哈希表[任务ID];
@@ -631,22 +754,24 @@ _root.帧计时器.添加生命周期任务 = function(对象, 标签名, 动作
             }
         } else {
             if (this.zeroFrameTasks[任务ID]) {
+                // 从 zeroFrameTasks 移到任务哈希表
                 delete this.zeroFrameTasks[任务ID];
                 任务.待执行帧数 = 间隔帧数;
                 任务.节点 = this.ScheduleTimer.evaluateAndInsertTask(任务ID, 间隔帧数);
                 this.任务哈希表[任务ID] = 任务;
             } else {
+                // 重新调度任务
                 任务.待执行帧数 = 间隔帧数;
                 this.ScheduleTimer.rescheduleTaskByNode(任务.节点, 间隔帧数);
             }
         }
     } else {
-        // Create a new task
+        // 创建新任务
         任务 = {
             id: 任务ID,
             动作: 动作封装,
             间隔帧数: 间隔帧数,
-            重复次数: true, // Infinite repetition
+            重复次数: true, // 无限循环
             参数数组: 参数数组
         };
 
@@ -659,7 +784,7 @@ _root.帧计时器.添加生命周期任务 = function(对象, 标签名, 动作
         }
     }
 
-    // Set unload callback to remove the task when the object is destroyed
+    // 设置卸载回调函数
     _root.常用工具函数.设置卸载回调(对象, function() {
         _root.帧计时器.移除任务(任务ID);
         delete this.任务标识[标签名];
@@ -667,6 +792,7 @@ _root.帧计时器.添加生命周期任务 = function(对象, 标签名, 动作
 
     return 任务ID;
 };
+
 
 
 

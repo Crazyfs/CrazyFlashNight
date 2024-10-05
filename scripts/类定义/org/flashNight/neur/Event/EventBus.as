@@ -56,13 +56,12 @@ class org.flashNight.neur.Event.EventBus {
     }
 
     /**
-     * 创建绑定了作用域的包装回调函数。
-     * 尽量复用已有的包装函数，减少重复创建。
-     * 
-     * @param callback 要包装的回调函数
-     * @param scope 回调函数执行时的作用域
-     * @return 返回绑定了作用域的包装函数
-     */
+    * 创建绑定了作用域的包装回调函数，并进行缓存。
+    * 
+    * @param callback 要包装的回调函数
+    * @param scope 回调函数执行时的作用域
+    * @return 返回绑定了作用域的包装函数
+    */
     private function getWrappedCallback(callback:Function, scope:Object):Function {
         // 创建回调函数的唯一标识符，确保每个回调函数都有独立的 ID
         if (typeof(callback.__eventBusID) == 'undefined') {
@@ -77,39 +76,13 @@ class org.flashNight.neur.Event.EventBus {
             return this.wrappedCallbacks[cacheKey];
         }
 
-        // 创建新的包装回调并缓存
-        var wrappedCallback:Function = function() {
-            if (scope == null) {
-                // 如果作用域为 null，直接调用函数，不需要使用 call
-                switch (arguments.length) {
-                    case 0: callback(); break;
-                    case 1: callback(arguments[0]); break;
-                    case 2: callback(arguments[0], arguments[1]); break;
-                    case 3: callback(arguments[0], arguments[1], arguments[2]); break;
-                    case 4: callback(arguments[0], arguments[1], arguments[2], arguments[3]); break;
-                    case 5: callback(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4]); break;
-                    default: callback.apply(null, arguments);  // 当参数超过 5 个时，使用 apply
-                }
-            } else {
-                // 否则使用 call 绑定作用域
-                switch (arguments.length) {
-                    case 0: callback.call(scope); break;
-                    case 1: callback.call(scope, arguments[0]); break;
-                    case 2: callback.call(scope, arguments[0], arguments[1]); break;
-                    case 3: callback.call(scope, arguments[0], arguments[1], arguments[2]); break;
-                    case 4: callback.call(scope, arguments[0], arguments[1], arguments[2], arguments[3]); break;
-                    case 5: callback.call(scope, arguments[0], arguments[1], arguments[2], arguments[3], arguments[4]); break;
-                    default: callback.apply(scope, arguments);  // 当参数超过 5 个时，使用 apply
-                }
-            }
-        };
+        // 使用 Delegate.create 创建新的包装回调函数，并缓存
+        var wrappedCallback:Function = Delegate.create(scope, callback);
 
         // 将包装回调存入缓存
         this.wrappedCallbacks[cacheKey] = wrappedCallback;
         return wrappedCallback;
     }
-
-
 
 
     /**
@@ -863,5 +836,34 @@ Error executing callback for event 'ERROR_EVENT': Intentional error in callbackW
 [PERFORMANCE] Test 14: EventBus Complex Argument Passing took 0 ms
 [PASS] Test 15: EventBus handles bulk subscriptions and unsubscriptions correctly
 [PERFORMANCE] Test 15: EventBus Bulk Subscribe and Unsubscribe took 1058 ms
+All tests completed.
+
+
+[PASS] Test 1: EventBus subscribe and publish single event
+[PASS] Test 2: EventBus unsubscribe callback
+[PASS] Test 3: EventBus subscribeOnce - first publish
+[PASS] Test 3: EventBus subscribeOnce - second publish
+[PASS] Test 4: EventBus publish event with arguments
+Error executing callback for event 'ERROR_EVENT': Intentional error in callbackWithError
+[PASS] Test 5: EventBus callback error handling
+[PASS] Test 6: EventBus destroy and ensure callbacks are not called
+[PASS] Test 7: EventBus handles high volume of subscriptions and publishes correctly
+[PERFORMANCE] Test 7: EventBus High Volume Subscriptions and Publish took 27 ms
+[PASS] Test 8: EventBus handles high frequency publishes correctly
+[PERFORMANCE] Test 8: EventBus High Frequency Publish took 790 ms
+[PASS] Test 9: EventBus handles concurrent subscriptions and publishes correctly
+[PERFORMANCE] Test 9: EventBus Concurrent Subscriptions and Publishes took 10943 ms
+[PASS] Test 10: EventBus handles mixed subscribe and unsubscribe operations correctly
+[PERFORMANCE] Test 10: EventBus Mixed Subscribe and Unsubscribe took 312 ms
+[PASS] Test 11: EventBus handles nested event publishes correctly
+[PERFORMANCE] Test 11: EventBus Nested Event Publish took 0 ms
+[PASS] Test 12: EventBus handles parallel event processing correctly
+[PERFORMANCE] Test 12: EventBus Parallel Event Processing took 133 ms
+[PASS] Test 13: EventBus handles long-running subscriptions and cleanups correctly
+[PERFORMANCE] Test 13: EventBus Long Running Subscriptions and Cleanups took 15 ms
+[PASS] Test 14: EventBus handles complex argument passing correctly
+[PERFORMANCE] Test 14: EventBus Complex Argument Passing took 0 ms
+[PASS] Test 15: EventBus handles bulk subscriptions and unsubscriptions correctly
+[PERFORMANCE] Test 15: EventBus Bulk Subscribe and Unsubscribe took 880 ms
 All tests completed.
 */

@@ -24,8 +24,28 @@ class org.flashNight.neur.Event.Delegate {
 
         // 定义一个包装函数，将方法绑定到指定的作用域（scope）
         var wrappedFunction:Function = function() {
-            // 使用 apply 将当前作用域（scope）和传递的参数一起调用方法
-            return method.apply(scope, Array.prototype.slice.call(arguments));
+            // 优化参数传递，避免不必要的 apply 调用
+            if (scope == null) {
+                switch (arguments.length) {
+                    case 0: return method(); 
+                    case 1: return method(arguments[0]); 
+                    case 2: return method(arguments[0], arguments[1]);
+                    case 3: return method(arguments[0], arguments[1], arguments[2]);
+                    case 4: return method(arguments[0], arguments[1], arguments[2], arguments[3]);
+                    case 5: return method(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4]);
+                    default: return method.apply(null, arguments); // fallback to apply for more than 5 arguments
+                }
+            } else {
+                switch (arguments.length) {
+                    case 0: return method.call(scope);
+                    case 1: return method.call(scope, arguments[0]);
+                    case 2: return method.call(scope, arguments[0], arguments[1]);
+                    case 3: return method.call(scope, arguments[0], arguments[1], arguments[2]);
+                    case 4: return method.call(scope, arguments[0], arguments[1], arguments[2], arguments[3]);
+                    case 5: return method.call(scope, arguments[0], arguments[1], arguments[2], arguments[3], arguments[4]);
+                    default: return method.apply(scope, arguments);  // fallback for more than 5 arguments
+                }
+            }
         };
 
         // 记录原始回调函数和作用域，以便以后可以访问
@@ -34,146 +54,59 @@ class org.flashNight.neur.Event.Delegate {
 
         return wrappedFunction; // 返回包装后的函数
     }
-
 }
+
 
 
 /*
 
-// 定义一个对象作为作用域
-var myObject:Object = {name: "myObject"};
+// 假设该代码在 _root 上下文执行
 
-// 定义一个期望在特定作用域中执行的函数
-function printName():Void {
-    trace("当前作用域中的 name 为: " + this.name);
+// 定义一个简单的类用于测试 scope 绑定
+var TestClass = function(name) {
+    this.name = name;
+};
+
+TestClass.prototype.sayHello = function(greeting) {
+    return greeting + ", my name is " + this.name;
+};
+
+// 定义不同的函数用于测试
+function globalTestFunction() {
+    return "Global function called!";
 }
 
-// 使用 Delegate.create 将 `printName` 绑定到 `myObject`
-var boundFunction:Function = Delegate.create(myObject, printName);
+// 实例化一个对象用于绑定 scope
+var testInstance = new TestClass("Alice");
 
-// 调用委托函数，输出 "当前作用域中的 name 为: myObject"
-boundFunction();
+// 测试用例 1：没有参数的函数绑定到全局作用域
+var globalDelegate = org.flashNight.neur.Event.Delegate.create(null, globalTestFunction);
+trace(globalDelegate()); // 输出: Global function called!
 
+// 测试用例 2：带参数的函数绑定到指定对象作用域
+var helloDelegate = org.flashNight.neur.Event.Delegate.create(testInstance, testInstance.sayHello);
+trace(helloDelegate("Hello")); // 输出: Hello, my name is Alice
 
-import org.flashNight.neur.Event.Delegate;
+// 测试用例 3：改变作用域后执行相同的方法
+var anotherInstance = new TestClass("Bob");
+var anotherHelloDelegate = org.flashNight.neur.Event.Delegate.create(anotherInstance, testInstance.sayHello);
+trace(anotherHelloDelegate("Hi")); // 输出: Hi, my name is Bob
 
-trace("Testing Delegate functionality...");
-
-// Test 1: 基础作用域绑定和参数传递
-trace("Test 1: 基础作用域绑定和参数传递");
-var scope:Object = {name: "testScope"};
-function callbackBasic(arg1:String, arg2:Number):Void {
-    trace("Callback in scope: " + this.name);
-    trace("Arguments received: " + arg1 + ", " + arg2);
+// 测试用例 4：测试超过5个参数的调用
+function testMultipleArguments(arg1, arg2, arg3, arg4, arg5, arg6) {
+    return [arg1, arg2, arg3, arg4, arg5, arg6].join(", ");
 }
-var delegateBasic:Function = Delegate.create(scope, callbackBasic);
-delegateBasic("Hello", 42); // 预期输出：Callback in scope: testScope, Arguments received: Hello, 42
 
-// Test 2: 无参数传递
-trace("Test 2: 无参数传递");
-function callbackNoArgs():Void {
-    trace("Callback in scope: " + this.name + " without arguments");
-}
-var delegateNoArgs:Function = Delegate.create(scope, callbackNoArgs);
-delegateNoArgs();  // 预期输出：Callback in scope: testScope without arguments
+var multiArgDelegate = org.flashNight.neur.Event.Delegate.create(null, testMultipleArguments);
+trace(multiArgDelegate(1, 2, 3, 4, 5, 6)); // 输出: 1, 2, 3, 4, 5, 6
 
-// Test 3: 多参数传递
-trace("Test 3: 多参数传递");
-function callbackMultipleArgs(arg1, arg2, arg3, arg4):Void {
-    trace("Multiple arguments received: " + arg1 + ", " + arg2 + ", " + arg3 + ", " + arg4);
-}
-var delegateMultipleArgs:Function = Delegate.create(scope, callbackMultipleArgs);
-delegateMultipleArgs("A", 1, true, [10, 20]); // 预期输出：Multiple arguments received: A, 1, true, 10,20
-
-// Test 4: 无作用域绑定
-trace("Test 4: 无作用域绑定");
-function callbackNoScope():Void {
-    trace("Callback with no scope, this is: " + this);
-}
-var delegateNoScope:Function = Delegate.create(undefined, callbackNoScope);
-delegateNoScope();  // 预期输出：Callback with no scope, this is: undefined
-
-// Test 5: 异常处理测试
-trace("Test 5: 异常处理测试");
-function callbackWithErrorHandling():Void {
-    trace("Callback that throws error");
-    throw new Error("Intentional error in callback");
-}
-var delegateWithErrorHandling:Function = Delegate.create(this, callbackWithErrorHandling);
+// 测试用例 5：测试 null method 抛出错误
 try {
-    delegateWithErrorHandling();
+    var nullDelegate = org.flashNight.neur.Event.Delegate.create(null, null);
+    trace(nullDelegate());
 } catch (e:Error) {
-    trace("Caught error: " + e.message);  // 预期输出：Caught error: Intentional error in callback
+    trace("Error caught: " + e.message); // 输出: Error caught: The provided method is undefined or null
 }
 
-// Test 6: 带返回值的回调
-trace("Test 6: 带返回值的回调");
-function callbackWithReturn(arg1:Number):Number {
-    return arg1 * 2;
-}
-var delegateWithReturn:Function = Delegate.create(this, callbackWithReturn);
-var result:Number = delegateWithReturn(21);  // 预期返回值为 42
-trace("Callback returned: " + result);  // 预期输出：Callback returned: 42
-
-// Test 7: 空回调函数
-trace("Test 7: 空回调函数");
-var delegateNullCallback:Function = Delegate.create(scope, null);
-try {
-    delegateNullCallback();  // 预期不会有输出或可能抛出异常
-} catch (e:Error) {
-    trace("Caught error for null callback: " + e.message);
-}
-
-var delegateUndefinedCallback:Function = Delegate.create(scope, undefined);
-try {
-    delegateUndefinedCallback();  // 预期不会有输出或可能抛出异常
-} catch (e:Error) {
-    trace("Caught error for undefined callback: " + e.message);
-}
-
-// Test 8: 深层嵌套作用域测试
-trace("Test 8: 深层嵌套作用域测试");
-var outerScope:Object = {name: "OuterScope"};
-var innerScope:Object = {name: "InnerScope"};
-
-function callbackNested():Void {
-    trace("Callback in scope: " + this.name);
-}
-
-var delegateOuter:Function = Delegate.create(outerScope, function() {
-    trace("Inside outer scope");
-    var delegateInner:Function = Delegate.create(innerScope, callbackNested);
-    delegateInner();  // 预期输出：Callback in scope: InnerScope
-});
-delegateOuter();  // 预期输出：Inside outer scope
-
-// Test 9: 使用 apply 传参
-trace("Test 9: 使用 apply 传参");
-function callbackWithApply():Void {
-    trace("Arguments received via apply: " + arguments);
-}
-var delegateWithApply:Function = Delegate.create(this, callbackWithApply);
-delegateWithApply.apply(null, ["ApplyArg1", "ApplyArg2"]);  // 预期输出：Arguments received via apply: ApplyArg1,ApplyArg2
-
-// Test 10: 重复调用测试
-trace("Test 10: 重复调用测试");
-function callbackMultipleCalls():Void {
-    trace("Callback executed in scope: " + this.name);
-}
-var delegateMultipleCalls:Function = Delegate.create(scope, callbackMultipleCalls);
-delegateMultipleCalls();  // 第一次调用
-delegateMultipleCalls();  // 第二次调用，预期输出应一致
-
-// Test 11: 大数据测试
-trace("Test 11: 大数据测试");
-function callbackWithManyArgs():Void {
-    trace("Received " + arguments.length + " arguments.");
-}
-var delegateWithManyArgs:Function = Delegate.create(this, callbackWithManyArgs);
-var largeArgs:Array = [];
-for (var i:Number = 0; i < 100; i++) {
-    largeArgs.push(i);
-}
-delegateWithManyArgs.apply(null, largeArgs);  // 预期输出：Received 1000 arguments.
 
 */
