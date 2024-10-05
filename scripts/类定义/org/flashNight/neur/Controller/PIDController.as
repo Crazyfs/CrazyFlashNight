@@ -9,12 +9,13 @@
     private var derivativePrev:Number; // 上次的微分项
 
     // 构造函数
-    function PIDController(kp:Number, ki:Number, kd:Number, integralMax:Number, derivativeFilter:Number) {
+    public function PIDController(kp:Number, ki:Number, kd:Number, integralMax:Number, derivativeFilter:Number) {
         this.kp = kp;
         this.ki = ki;
         this.kd = kd;
         this.errorPrev = 0;
         this.integral = 0;
+        // 使用局部常量缓存，减少重复赋值和传递的开销
         this.integralMax = (integralMax != undefined) ? integralMax : 1000; // 设定积分限幅
         this.derivativeFilter = (derivativeFilter != undefined) ? derivativeFilter : 0.1; // 微分项滤波
         this.derivativePrev = 0;
@@ -22,31 +23,29 @@
 
     // 更新 PID 控制器，并返回控制输出
     public function update(setPoint:Number, actualValue:Number, deltaTime:Number):Number {
+        // 确保 deltaTime > 0，避免负值或者零的场景
         if (deltaTime <= 0) {
-            _root.服务器.发布服务器消息("警告: deltaTime <= 0，返回输出为 0");
-            return 0; // 确保 deltaTime > 0
+            return 0;
         }
-        
+
+        // 计算误差
         var error:Number = setPoint - actualValue;
         
         // 积分项更新，同时应用反积分饱和
         integral += error * deltaTime;
-        integral = Math.max(-integralMax, Math.min(integral, integralMax));
-        
-        // 微分项平滑处理
-        var derivative:Number = (error - errorPrev) / deltaTime;
-        derivative = derivativePrev * (1 - derivativeFilter) + derivative * derivativeFilter;
-        derivativePrev = derivative;
-        
-        // 计算 PID 输出
-        var output:Number = kp * error + ki * integral + kd * derivative;
-        
+        // 替换 Math.max 和 Math.min 函数，使用三元表达式进行限幅操作
+        integral = (integral < -integralMax) ? -integralMax : (integral > integralMax) ? integralMax : integral;
+
+        // 微分项平滑处理，提前计算 errorPrev 和 error 差值
+        var errorDiff:Number = (error - errorPrev) / deltaTime;
+        derivativePrev = derivativePrev * (1 - derivativeFilter) + errorDiff * derivativeFilter;
+
+        // 计算 PID 输出，内联计算，减少临时变量和重复计算
+        var output:Number = kp * error + ki * integral + kd * derivativePrev;
+
         // 更新上一次误差
         errorPrev = error;
-        
-        // 调试信息输出
-        //_root.服务器.发布服务器消息(actualValue + " PID 输出: 比例项=" + (kp * error) + ", 积分项=" + (ki * integral) + ", 微分项=" + (kd * derivative) + ", 总输出=" + output);
-        
+
         return output;
     }
 
