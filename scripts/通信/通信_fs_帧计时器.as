@@ -3,7 +3,7 @@ import org.flashNight.neur.ScheduleTimer.CerberusScheduler;
 import org.flashNight.naki.DataStructures.*;
 import org.flashNight.sara.*;
 import org.flashNight.neur.Server.*; 
-import org.flashNight.neur.Event.EventBus;
+import org.flashNight.neur.Event.*;
 _root.帧计时器 = _root.createEmptyMovieClip("帧计时器", _root.getNextHighestDepth());
 
 
@@ -493,23 +493,14 @@ _root.帧计时器.添加任务 = function(动作, 间隔时间, 重复次数) {
     // 提取额外参数（动态参数）
     var 参数数组 = arguments.length > 3 ? Array.prototype.slice.call(arguments, 3) : [];
 
-    // 创建任务对象，直接优化动作的定义
+    // 创建任务对象
     var 任务 = {
         id: 任务ID,
-        动作: function() {
-            switch (参数数组.length) {
-                case 0: return 动作.call(this);
-                case 1: return 动作.call(this, 参数数组[0]);
-                case 2: return 动作.call(this, 参数数组[0], 参数数组[1]);
-                case 3: return 动作.call(this, 参数数组[0], 参数数组[1], 参数数组[2]);
-                case 4: return 动作.call(this, 参数数组[0], 参数数组[1], 参数数组[2], 参数数组[3]);
-                case 5: return 动作.call(this, 参数数组[0], 参数数组[1], 参数数组[2], 参数数组[3], 参数数组[4]);
-                default: return 动作.apply(this, 参数数组); // 动态传递多余参数
-            }
-        },
         间隔帧数: 间隔帧数,
         重复次数: 重复次数 === undefined || 重复次数 === null ? 1 : 重复次数
     };
+
+    任务.动作 = Delegate.createWithParams(任务, 动作, 参数数组);
 
     if (间隔帧数 <= 0) {
         this.zeroFrameTasks[任务ID] = 任务; // 立即执行任务
@@ -524,59 +515,31 @@ _root.帧计时器.添加任务 = function(动作, 间隔时间, 重复次数) {
 
 
 
-_root.帧计时器.添加单次任务 = function(动作, 间隔时间) {
+
+_root.帧计时器.添加单次任务 = function(动作, 间隔时间) 
+{
+    var 参数数组 = arguments.length > 2 ? Array.prototype.slice.call(arguments, 2) : [];
+
     // 检查间隔时间是否小于或等于0
     if (间隔时间 <= 0) {
-        // 优化展开 apply 调用逻辑，避免使用 apply
-        var 参数数量 = arguments.length - 2;
-        switch (参数数量) {
-            case 0: 
-                动作();
-                break;
-            case 1: 
-                动作(arguments[2]);
-                break;
-            case 2: 
-                动作(arguments[2], arguments[3]);
-                break;
-            case 3: 
-                动作(arguments[2], arguments[3], arguments[4]);
-                break;
-            case 4: 
-                动作(arguments[2], arguments[3], arguments[4], arguments[5]);
-                break;
-            case 5: 
-                动作(arguments[2], arguments[3], arguments[4], arguments[5], arguments[6]);
-                break;
-            default: 
-                // 当参数数量超过5时，仍然可以使用 apply 处理动态参数
-                动作.apply(null, Array.prototype.slice.call(arguments, 2));
-                break;
-        }
+        // 使用 Delegate.createWithParams 预绑定参数
+        var 绑定动作 = Delegate.createWithParams(null, 动作, 参数数组);
+        绑定动作(); // 执行预绑定的动作函数
+
         return null; // 返回特殊值，表示任务已立即执行
     } else {
         // 任务ID生成
         var 任务ID = ++this.任务ID计数器;
         var 间隔帧数 = Math.ceil(间隔时间 * this.毫秒每帧);
-        
+
         // 创建任务对象
         var 任务 = {
             id: 任务ID,
-            动作: function() {
-                var 参数数量 = arguments.length;
-                switch (参数数量) {
-                    case 0: return 动作();
-                    case 1: return 动作(arguments[0]);
-                    case 2: return 动作(arguments[0], arguments[1]);
-                    case 3: return 动作(arguments[0], arguments[1], arguments[2]);
-                    case 4: return 动作(arguments[0], arguments[1], arguments[2], arguments[3]);
-                    case 5: return 动作(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4]);
-                    default: return 动作.apply(null, arguments); // 超过5个参数时使用 apply
-                }
-            },
             间隔帧数: 间隔帧数,
             重复次数: 1
         };
+        
+        任务.动作 = Delegate.createWithParams(任务, 动作, 参数数组);
 
         // 判断是否需要立即执行
         if (间隔帧数 <= 0) {
@@ -593,32 +556,23 @@ _root.帧计时器.添加单次任务 = function(动作, 间隔时间) {
 
 
 
+
 _root.帧计时器.添加循环任务 = function(动作, 间隔时间) {
     // 任务ID生成
     var 任务ID = ++this.任务ID计数器;
     var 间隔帧数 = Math.ceil(间隔时间 * this.毫秒每帧);
 
-    // 动态参数处理
+    // 提取额外参数（动态参数）
     var 参数数组 = arguments.length > 2 ? Array.prototype.slice.call(arguments, 2) : [];
 
     // 创建任务对象
     var 任务 = {
         id: 任务ID,
-        动作: function() {
-            // 展开参数调用逻辑，避免多余的 apply 开销
-            switch (参数数组.length) {
-                case 0: return 动作();
-                case 1: return 动作(参数数组[0]);
-                case 2: return 动作(参数数组[0], 参数数组[1]);
-                case 3: return 动作(参数数组[0], 参数数组[1], 参数数组[2]);
-                case 4: return 动作(参数数组[0], 参数数组[1], 参数数组[2], 参数数组[3]);
-                case 5: return 动作(参数数组[0], 参数数组[1], 参数数组[2], 参数数组[3], 参数数组[4]);
-                default: return 动作.apply(null, 参数数组); // 动态传递多余参数
-            }
-        },
         间隔帧数: 间隔帧数,
         重复次数: true  // 循环任务的标志
     };
+
+    任务.动作 = Delegate.createWithParams(任务, 动作, 参数数组);
 
     // 判断是否需要立即执行
     if (间隔帧数 <= 0) {
@@ -642,27 +596,14 @@ _root.帧计时器.添加或更新任务 = function(对象, 标签名, 动作, �
     var 任务ID = 对象.任务标识[标签名];
     var 间隔帧数 = Math.ceil(间隔时间 * this.毫秒每帧);
     
-    // 优化参数数组处理
+    // 提取额外参数（动态参数）
     var 参数数组 = arguments.length > 4 ? Array.prototype.slice.call(arguments, 4) : [];
-
-    // 动作封装，直接展开 apply 调用逻辑
-    var 动作封装 = function() {
-        switch (参数数组.length) {
-            case 0: 动作.call(对象); break;
-            case 1: 动作.call(对象, 参数数组[0]); break;
-            case 2: 动作.call(对象, 参数数组[0], 参数数组[1]); break;
-            case 3: 动作.call(对象, 参数数组[0], 参数数组[1], 参数数组[2]); break;
-            case 4: 动作.call(对象, 参数数组[0], 参数数组[1], 参数数组[2], 参数数组[3]); break;
-            case 5: 动作.call(对象, 参数数组[0], 参数数组[1], 参数数组[2], 参数数组[3], 参数数组[4]); break;
-            default: 动作.apply(对象, 参数数组); break;
-        }
-    };
 
     // 获取任务，从任务哈希表或者 zeroFrameTasks
     var 任务 = this.任务哈希表[任务ID] || this.zeroFrameTasks[任务ID];
     if (任务) {
         // 更新现有任务
-        任务.动作 = 动作封装;
+        任务.动作 = Delegate.createWithParams(对象, 动作, 参数数组);
         任务.间隔帧数 = 间隔帧数;
         任务.参数数组 = 参数数组;
 
@@ -691,11 +632,12 @@ _root.帧计时器.添加或更新任务 = function(对象, 标签名, 动作, �
         // 如果任务不存在，创建新任务
         任务 = {
             id: 任务ID,
-            动作: 动作封装,
             间隔帧数: 间隔帧数,
             重复次数: 1,
             参数数组: 参数数组
         };
+
+        任务.动作 = Delegate.createWithParams(对象, 动作, 参数数组);
 
         if (间隔帧数 === 0) {
             this.zeroFrameTasks[任务ID] = 任务;
@@ -720,26 +662,17 @@ _root.帧计时器.添加生命周期任务 = function(对象, 标签名, 动作
     var 任务ID = 对象.任务标识[标签名];
     var 间隔帧数 = Math.ceil(间隔时间 * this.毫秒每帧);
 
-    // 优化参数数组处理
+    // 提取额外参数（动态参数）
     var 参数数组 = arguments.length > 4 ? Array.prototype.slice.call(arguments, 4) : [];
 
-    // 优化后的动作封装，避免使用 apply
-    var 动作封装 = function() {
-        switch (参数数组.length) {
-            case 0: 动作.call(对象); break;
-            case 1: 动作.call(对象, 参数数组[0]); break;
-            case 2: 动作.call(对象, 参数数组[0], 参数数组[1]); break;
-            case 3: 动作.call(对象, 参数数组[0], 参数数组[1], 参数数组[2]); break;
-            case 4: 动作.call(对象, 参数数组[0], 参数数组[1], 参数数组[2], 参数数组[3]); break;
-            default: 动作.apply(对象, 参数数组); break;
-        }
-    };
+    // 使用 Delegate.createWithParams 预绑定参数
+    var 绑定动作 = Delegate.createWithParams(对象, 动作, 参数数组);
 
     // 获取或创建任务
     var 任务 = this.任务哈希表[任务ID] || this.zeroFrameTasks[任务ID];
     if (任务) {
         // 更新现有任务
-        任务.动作 = 动作封装;
+        任务.动作 = 绑定动作;
         任务.间隔帧数 = 间隔帧数;
         任务.参数数组 = 参数数组;
         任务.重复次数 = true; // 无限循环
@@ -769,7 +702,7 @@ _root.帧计时器.添加生命周期任务 = function(对象, 标签名, 动作
         // 创建新任务
         任务 = {
             id: 任务ID,
-            动作: 动作封装,
+            动作: 绑定动作,
             间隔帧数: 间隔帧数,
             重复次数: true, // 无限循环
             参数数组: 参数数组
