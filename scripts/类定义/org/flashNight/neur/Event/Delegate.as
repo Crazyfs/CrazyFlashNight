@@ -1,20 +1,17 @@
-﻿/**
- * Delegate 类用于将一个函数绑定到特定的作用域（对象上下文）。
- * 这对于确保在调用方法时，`this` 始终指向预期的对象非常有用。
- */
-class org.flashNight.neur.Event.Delegate {
+﻿class org.flashNight.neur.Event.Delegate {
+    // 缓存对象，用于存储已创建的委托函数
+    private static var cache:Object = {};
     
+    // 唯一标识符计数器
+    private static var uidCounter:Number = 0;
+
     /**
      * 创建一个委托函数，将指定方法绑定到给定的作用域。
+     * 利用缓存机制优化委托函数的创建，避免重复创建相同的委托函数。
      * 
      * @param scope  将作为 `this` 绑定的对象。
      * @param method 需要在该作用域内执行的函数。
      * @return 返回一个新函数，可以带参数调用，并在指定的作用域内执行。
-     * 
-     * 使用场景：
-     * 1. 在事件处理器中防止 `this` 指向错误的对象。
-     * 2. 将方法作为回调函数传递时确保作用域正确。
-     * 3. 定时器或延迟执行的函数需要保持正确的上下文。
      */
     public static function create(scope:Object, method:Function):Function {
         // 如果传入的方法为空，则抛出错误
@@ -22,40 +19,115 @@ class org.flashNight.neur.Event.Delegate {
             throw new Error("The provided method is undefined or null");
         }
 
-        // 定义一个包装函数，将方法绑定到指定的作用域（scope）
-        var wrappedFunction:Function = function() {
-            // 优化参数传递，避免不必要的 apply 调用
+        var cacheKey:Number;
+        var loccache = cache;
+
+        // 为方法分配唯一标识符
+        if (method.__delegateUID == undefined) {
+            // 方法尚未分配 UID，直接分配并创建包装函数
+            method.__delegateUID = uidCounter++;
+            
             if (scope == null) {
-                switch (arguments.length) {
-                    case 0: return method(); 
-                    case 1: return method(arguments[0]); 
-                    case 2: return method(arguments[0], arguments[1]);
-                    case 3: return method(arguments[0], arguments[1], arguments[2]);
-                    case 4: return method(arguments[0], arguments[1], arguments[2], arguments[3]);
-                    case 5: return method(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4]);
-                    default: return method.apply(null, arguments); // fallback to apply for more than 5 arguments
-                }
+                // 当 scope 为 null 时，仅使用方法的 UID 作为缓存键
+                cacheKey = method.__delegateUID;
+                
+                // 定义包装函数
+                var wrappedFunction:Function = function() {
+                    var len = arguments.length;
+                    if (len == 0) return method();
+                    else if (len == 1) return method(arguments[0]);
+                    else if (len == 2) return method(arguments[0], arguments[1]);
+                    else if (len == 3) return method(arguments[0], arguments[1], arguments[2]);
+                    else if (len == 4) return method(arguments[0], arguments[1], arguments[2], arguments[3]);
+                    else if (len == 5) return method(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4]);
+                    else return method.apply(null, arguments);  // 参数超过 5 个时，使用 apply
+                };
             } else {
-                switch (arguments.length) {
-                    case 0: return method.call(scope);
-                    case 1: return method.call(scope, arguments[0]);
-                    case 2: return method.call(scope, arguments[0], arguments[1]);
-                    case 3: return method.call(scope, arguments[0], arguments[1], arguments[2]);
-                    case 4: return method.call(scope, arguments[0], arguments[1], arguments[2], arguments[3]);
-                    case 5: return method.call(scope, arguments[0], arguments[1], arguments[2], arguments[3], arguments[4]);
-                    default: return method.apply(scope, arguments);  // fallback for more than 5 arguments
+                // 确保 scope 对象有唯一的 UID
+                if (scope.__scopeUID == undefined) {
+                    scope.__scopeUID = uidCounter++;
                 }
+                // 使用 scope 的 UID 和方法的 UID 组合生成缓存键
+                cacheKey = (scope.__scopeUID << 16) | method.__delegateUID;
+                
+                // 定义包装函数
+                var wrappedFunction:Function = function() {
+                    var len = arguments.length;
+                    if (len == 0) return method.call(scope);
+                    else if (len == 1) return method.call(scope, arguments[0]);
+                    else if (len == 2) return method.call(scope, arguments[0], arguments[1]);
+                    else if (len == 3) return method.call(scope, arguments[0], arguments[1], arguments[2]);
+                    else if (len == 4) return method.call(scope, arguments[0], arguments[1], arguments[2], arguments[3]);
+                    else if (len == 5) return method.call(scope, arguments[0], arguments[1], arguments[2], arguments[3], arguments[4]);
+                    else return method.apply(scope, arguments);  // 参数超过 5 个时，使用 apply
+                };
             }
-        };
 
-        // 记录原始回调函数和作用域，以便以后可以访问
-        wrappedFunction._originalCallback = method;  // 保存原始回调方法
-        wrappedFunction._scope = scope;              // 保存作用域
+            // 将包装函数存入缓存
+            loccache[cacheKey] = wrappedFunction;
+            
+            return wrappedFunction; // 返回包装后的函数
+        } else {
+            // 方法已经有 UID，尝试从缓存中获取包装函数
+            if (scope == null) {
+                cacheKey = method.__delegateUID;
 
-        return wrappedFunction; // 返回包装后的函数
+                var cachedFunction:Function = loccache[cacheKey];
+                if (cachedFunction != undefined) {
+                    return cachedFunction;
+                }
+
+                var wrappedFunction:Function = function() {
+                    var len = arguments.length;
+                    if (len == 0) return method();
+                    else if (len == 1) return method(arguments[0]);
+                    else if (len == 2) return method(arguments[0], arguments[1]);
+                    else if (len == 3) return method(arguments[0], arguments[1], arguments[2]);
+                    else if (len == 4) return method(arguments[0], arguments[1], arguments[2], arguments[3]);
+                    else if (len == 5) return method(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4]);
+                    else return method.apply(null, arguments);  // 参数超过 5 个时，使用 apply
+                };
+
+            } else {
+                if (scope.__scopeUID == undefined) {
+                    scope.__scopeUID = uidCounter++;
+                }
+                cacheKey = (scope.__scopeUID << 16) | method.__delegateUID;
+
+                var cachedFunction:Function = loccache[cacheKey];
+                if (cachedFunction != undefined) {
+                    return cachedFunction;
+                }
+
+                var wrappedFunction:Function = function() {
+                    var len = arguments.length;
+                    if (len == 0) return method.call(scope);
+                    else if (len == 1) return method.call(scope, arguments[0]);
+                    else if (len == 2) return method.call(scope, arguments[0], arguments[1]);
+                    else if (len == 3) return method.call(scope, arguments[0], arguments[1], arguments[2]);
+                    else if (len == 4) return method.call(scope, arguments[0], arguments[1], arguments[2], arguments[3]);
+                    else if (len == 5) return method.call(scope, arguments[0], arguments[1], arguments[2], arguments[3], arguments[4]);
+                    else return method.apply(scope, arguments);  // 参数超过 5 个时，使用 apply
+                };
+            }
+
+            // 将包装函数存入缓存
+            loccache[cacheKey] = wrappedFunction;
+            
+            return wrappedFunction; // 返回包装后的函数
+        }
+    }
+    
+    /**
+     * 清理缓存中的所有委托函数。
+     * 需要在适当的时候调用，以防止内存泄漏。
+     */
+    public static function clearCache():Void {
+        for (var key:String in cache) {
+            delete cache[key];
+        }
     }
 }
-
 
 
 /*

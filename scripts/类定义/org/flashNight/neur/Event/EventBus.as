@@ -9,12 +9,10 @@ class org.flashNight.neur.Event.EventBus {
     private var pool:Array;                // 回调函数池，用于存储回调函数的索引位置
     private var availSpace:Array;          // 可用索引列表，存储空闲的池位置
     private var idToCallback:Object;       // 唯一ID到原始回调函数的映射
-    private var wrappedCallbacks:Object;   // 作用域绑定的包装函数映射
 
     // 静态实例，类加载时初始化，采用饿汉式单例
     private static var instance:EventBus = new EventBus();
     private static var callbackCounter:Number = 0;    // 全局回调计数器
-    private static var functionCounter:Number = 0;    // 全局函数ID计数器
     private var tempArgs:Array = [];                  // 参数缓存区，重用避免频繁创建
     private var tempCallbacks:Array = [];             // 重用的回调函数存储数组
 
@@ -27,7 +25,6 @@ class org.flashNight.neur.Event.EventBus {
         this.pool = [];                // 初始化回调函数池
         this.availSpace = [];          // 初始化可用索引列表
         this.idToCallback = {};        // 初始化回调 ID 映射
-        this.wrappedCallbacks = {};    // 初始化包装的回调字典
 
         // 预分配 1000 个空闲池位，减少运行时扩展的开销
         for (var i:Number = 0; i < 1000; i++) {
@@ -56,36 +53,6 @@ class org.flashNight.neur.Event.EventBus {
     }
 
     /**
-    * 创建绑定了作用域的包装回调函数，并进行缓存。
-    * 
-    * @param callback 要包装的回调函数
-    * @param scope 回调函数执行时的作用域
-    * @return 返回绑定了作用域的包装函数
-    */
-    private function getWrappedCallback(callback:Function, scope:Object):Function {
-        // 创建回调函数的唯一标识符，确保每个回调函数都有独立的 ID
-        if (typeof(callback.__eventBusID) == 'undefined') {
-            callback.__eventBusID = EventBus.functionCounter++;
-        }
-
-        // 生成缓存键值，使用回调函数 ID 和作用域的组合作为唯一键
-        var cacheKey:String = String(callback.__eventBusID) + "_" + (scope != null ? String(scope) : "default");
-
-        // 如果该回调和作用域组合已经存在缓存，则直接返回
-        if (this.wrappedCallbacks[cacheKey]) {
-            return this.wrappedCallbacks[cacheKey];
-        }
-
-        // 使用 Delegate.create 创建新的包装回调函数，并缓存
-        var wrappedCallback:Function = Delegate.create(scope, callback);
-
-        // 将包装回调存入缓存
-        this.wrappedCallbacks[cacheKey] = wrappedCallback;
-        return wrappedCallback;
-    }
-
-
-    /**
      * 订阅事件，将回调函数与特定事件绑定。
      * 避免重复订阅，通过唯一 ID 管理回调。
      * 
@@ -103,7 +70,7 @@ class org.flashNight.neur.Event.EventBus {
 
         // 分配唯一的函数 ID
         if (typeof(callback.__eventBusID) == 'undefined') {
-            callback.__eventBusID = EventBus.functionCounter++;
+            callback.__eventBusID = EventBus.callbackCounter++;
         }
         var funcID:String = String(callback.__eventBusID);
 
@@ -112,12 +79,12 @@ class org.flashNight.neur.Event.EventBus {
             return;
         }
 
-        // 为回调分配唯一的回调 ID
+        // 分配唯一的回调 ID
         var callbackID:Number = EventBus.callbackCounter++;
         this.idToCallback[callbackID] = callback;
 
         // 创建作用域绑定的包装回调
-        var wrappedCallback:Function = this.getWrappedCallback(callback, scope);
+        var wrappedCallback:Function = Delegate.create(scope, callback);
 
         // 分配池中的可用索引位置
         var allocIndex:Number;
@@ -127,7 +94,7 @@ class org.flashNight.neur.Event.EventBus {
         } else {
             // 如果池已满，采用双倍扩展策略
             var newCapacity:Number = this.pool.length * 2;
-            for (var j:Number = newCapacity - 1; j >= this.pool.length; j--) {
+            for (var j:Number = this.pool.length; j < newCapacity; j++) {
                 this.pool.push(null);
                 this.availSpace.push(j);
             }
@@ -254,7 +221,7 @@ class org.flashNight.neur.Event.EventBus {
         var originalCallback:Function = callback;
 
         if (typeof(originalCallback.__eventBusID) == 'undefined') {
-            originalCallback.__eventBusID = EventBus.functionCounter++;
+            originalCallback.__eventBusID = EventBus.callbackCounter++;
         }
         var funcID:String = String(originalCallback.__eventBusID);
 
@@ -279,7 +246,8 @@ class org.flashNight.neur.Event.EventBus {
             self.unsubscribe(eventName, originalCallback);  // 回调执行后自动取消订阅
         };
 
-        var wrappedCallback:Function = this.getWrappedCallback(wrappedOnceCallback, scope);
+        // 使用 Delegate.create 获取包装后的回调函数
+        var wrappedCallback:Function = Delegate.create(scope, wrappedOnceCallback);
 
         var allocIndex:Number;
         if (this.availSpace.length > 0) {
@@ -287,7 +255,7 @@ class org.flashNight.neur.Event.EventBus {
             this.pool[allocIndex] = wrappedCallback;
         } else {
             var newCapacity:Number = this.pool.length * 2;
-            for (var j:Number = newCapacity - 1; j >= this.pool.length; j--) {
+            for (var j:Number = this.pool.length; j < newCapacity; j++) {
                 this.pool.push(null);
                 this.availSpace.push(j);
             }
@@ -329,11 +297,8 @@ class org.flashNight.neur.Event.EventBus {
         this.listeners = {};
         this.idToCallback = {};
 
-        // 清空作用域绑定的包装回调字典
-        for (var scopeKey:String in this.wrappedCallbacks) {
-            delete this.wrappedCallbacks[scopeKey];
-        }
-        this.wrappedCallbacks = {};
+        // 清空 Delegate 缓存中的包装回调函数
+        Delegate.clearCache();
 
         // 清空临时参数和回调数组
         this.tempArgs.length = 0;
@@ -866,4 +831,33 @@ Error executing callback for event 'ERROR_EVENT': Intentional error in callbackW
 [PASS] Test 15: EventBus handles bulk subscriptions and unsubscriptions correctly
 [PERFORMANCE] Test 15: EventBus Bulk Subscribe and Unsubscribe took 880 ms
 All tests completed.
+
+[PASS] Test 1: EventBus subscribe and publish single event
+[PASS] Test 2: EventBus unsubscribe callback
+[PASS] Test 3: EventBus subscribeOnce - first publish
+[PASS] Test 3: EventBus subscribeOnce - second publish
+[PASS] Test 4: EventBus publish event with arguments
+Error executing callback for event 'ERROR_EVENT': Intentional error in callbackWithError
+[PASS] Test 5: EventBus callback error handling
+[PASS] Test 6: EventBus destroy and ensure callbacks are not called
+[PASS] Test 7: EventBus handles high volume of subscriptions and publishes correctly
+[PERFORMANCE] Test 7: EventBus High Volume Subscriptions and Publish took 30 ms
+[PASS] Test 8: EventBus handles high frequency publishes correctly
+[PERFORMANCE] Test 8: EventBus High Frequency Publish took 759 ms
+[PASS] Test 9: EventBus handles concurrent subscriptions and publishes correctly
+[PERFORMANCE] Test 9: EventBus Concurrent Subscriptions and Publishes took 10815 ms
+[PASS] Test 10: EventBus handles mixed subscribe and unsubscribe operations correctly
+[PERFORMANCE] Test 10: EventBus Mixed Subscribe and Unsubscribe took 366 ms
+[PASS] Test 11: EventBus handles nested event publishes correctly
+[PERFORMANCE] Test 11: EventBus Nested Event Publish took 0 ms
+[PASS] Test 12: EventBus handles parallel event processing correctly
+[PERFORMANCE] Test 12: EventBus Parallel Event Processing took 147 ms
+[PASS] Test 13: EventBus handles long-running subscriptions and cleanups correctly
+[PERFORMANCE] Test 13: EventBus Long Running Subscriptions and Cleanups took 17 ms
+[PASS] Test 14: EventBus handles complex argument passing correctly
+[PERFORMANCE] Test 14: EventBus Complex Argument Passing took 0 ms
+[PASS] Test 15: EventBus handles bulk subscriptions and unsubscriptions correctly
+[PERFORMANCE] Test 15: EventBus Bulk Subscribe and Unsubscribe took 1049 ms
+All tests completed.
+
 */
