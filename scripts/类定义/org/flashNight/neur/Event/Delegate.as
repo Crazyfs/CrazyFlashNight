@@ -215,6 +215,94 @@ try {
 } catch (e:Error) {
     trace("Error caught: " + e.message); // 输出: Error caught: The provided method is undefined or null
 }
+// 测试用例 6：测试函数动态参数传递
+function dynamicArgumentTest() {
+    return Array.prototype.join.call(arguments, ", ");
+}
+
+var dynamicDelegate = org.flashNight.neur.Event.Delegate.create(null, dynamicArgumentTest);
+trace(dynamicDelegate(1, "a", true, null)); // 输出: 1, a, true, null
+
+// 测试用例 7：测试绑定到全局作用域且动态传递大量参数
+function largeArgumentTest() {
+    return Array.prototype.join.call(arguments, ", ");
+}
+
+var largeArgDelegate = org.flashNight.neur.Event.Delegate.create(null, largeArgumentTest);
+trace(largeArgDelegate(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)); // 输出: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+
+// 测试用例 8：测试绑定到指定作用域的函数动态传参
+var scopedDynamicDelegate = org.flashNight.neur.Event.Delegate.create(testInstance, function() {
+    return this.name + ": " + Array.prototype.join.call(arguments, ", ");
+});
+trace(scopedDynamicDelegate("apple", "banana", "orange")); // 输出: Alice: apple, banana, orange
+
+// 测试用例 9：测试边界情况 - 空参数
+var noArgumentDelegate = org.flashNight.neur.Event.Delegate.create(null, function() {
+    return "No arguments";
+});
+trace(noArgumentDelegate()); // 输出: No arguments
+
+// 测试用例 10：测试函数传递 null 和 undefined 作为参数
+var nullUndefinedDelegate = org.flashNight.neur.Event.Delegate.create(null, function(arg1, arg2) {
+    return "arg1: " + arg1 + ", arg2: " + arg2;
+});
+trace(nullUndefinedDelegate(null, undefined)); // 输出: arg1: null, arg2: undefined
+
+// 测试用例 11：使用作用域的包装函数调用嵌套函数，保证作用域不丢失
+function nestedFunctionTest() {
+    var innerFunction = function() {
+        return this.name + " from inner function";
+    };
+    return innerFunction.call(this);
+}
+
+var nestedDelegate = org.flashNight.neur.Event.Delegate.create(testInstance, nestedFunctionTest);
+trace(nestedDelegate()); // 输出: Alice from inner function
+
+// 测试用例 12：绑定到不同作用域并动态传递对象作为参数
+function objectArgumentTest(obj) {
+    return obj.name + " is " + obj.age + " years old.";
+}
+
+var objectDelegate = org.flashNight.neur.Event.Delegate.create(null, objectArgumentTest);
+trace(objectDelegate({name: "Charlie", age: 28})); // 输出: Charlie is 28 years old.
+
+// 测试用例 13：多层作用域绑定传递带有函数参数的对象
+var advancedObjectDelegate = org.flashNight.neur.Event.Delegate.create(testInstance, function(obj) {
+    return this.name + " received: " + obj.saySomething();
+});
+trace(advancedObjectDelegate({ saySomething: function() { return "a message from object"; } })); 
+// 输出: Alice received: a message from object
+
+// 测试用例 14：测试传递嵌套数组作为参数
+function arrayArgumentTest(arr) {
+    return arr.join(", ");
+}
+
+var arrayDelegate = org.flashNight.neur.Event.Delegate.create(null, arrayArgumentTest);
+trace(arrayDelegate([1, [2, 3], 4, ["nested", "array"]])); // 输出: 1, 2,3, 4, nested,array
+
+// 测试用例 15：测试传递包含方法的对象
+var methodInObjectDelegate = org.flashNight.neur.Event.Delegate.create(testInstance, function(obj) {
+    return obj.method();
+});
+
+trace(methodInObjectDelegate({
+    method: function() {
+        return testInstance.name + " method called!";
+    }
+})); // 输出应为: Alice method called!
+
+
+// 测试用例 16：作用域绑定后动态传递多个复杂类型参数
+var complexParamDelegate = org.flashNight.neur.Event.Delegate.create(testInstance, function(num, arr, obj, str) {
+    return this.name + " got: " + num + ", " + arr.join(", ") + ", " + obj.info + ", " + str;
+});
+
+trace(complexParamDelegate(42, [1, 2, 3], {info: "some info"}, "test string")); 
+// 输出: Alice got: 42, 1, 2, 3, some info, test string
+
 
 
 */
