@@ -1,47 +1,34 @@
-﻿// 文件路径: org/flashNight/gesh/object/ObjectUtil.as
-
-import org.flashNight.gesh.string.StringUtils;
+﻿import org.flashNight.gesh.string.StringUtils;
 import org.flashNight.naki.Sort.InsertionSort;
 import JSON;
+import org.flashNight.naki.DataStructures.Dictionary;
 
 class org.flashNight.gesh.object.ObjectUtil {
     
     /**
      * 克隆一个对象，生成它的深拷贝。
      * @param obj 要克隆的对象。
-     * @return 克隆后的新对象。  不显式返回object以免需要再构造
+     * @return 克隆后的新对象。
      */
     public static function clone(obj:Object) {
-        var seenObjects:Object = {}; // 用于跟踪已处理的对象
-        var cloneID:Object = { count: 0 }; // 唯一标识符计数器，以对象形式传递
-
-        // 开始克隆过程
-        var result:Object = cloneRecursive(obj, seenObjects, cloneID);
-
-        // 清理所有对象上的 __objectutil_clone_id__ 标识
-        for (var id:String in seenObjects) {
-            var original:Object = seenObjects[id].original;
-            delete original.__objectutil_clone_id__;
-        }
-
-        return result;
+        var seenObjects:Dictionary = new Dictionary(); // 使用 Dictionary 追踪已处理的对象
+        return cloneRecursive(obj, seenObjects);
     }
 
     /**
      * 递归克隆对象的辅助方法。
      * @param obj 当前要克隆的对象。
      * @param seenObjects 已处理对象的映射表。
-     * @param cloneID 当前的唯一标识符计数器。
      * @return 克隆后的对象。
      */
-    private static function cloneRecursive(obj:Object, seenObjects:Object, cloneID:Object):Object {
+    private static function cloneRecursive(obj:Object, seenObjects:Dictionary):Object {
         if (obj == null || typeof(obj) != "object") {
             return obj;
         }
 
-        // 检查对象是否已经被标记
-        if (obj.__objectutil_clone_id__ != undefined) {
-            return seenObjects[obj.__objectutil_clone_id__].clone;
+        // 检查对象是否已经被克隆过
+        if (seenObjects.getItem(obj) != undefined) {
+            return seenObjects.getItem(obj);
         }
 
         var copy:Object;
@@ -59,27 +46,19 @@ class org.flashNight.gesh.object.ObjectUtil {
         // 处理 Array
         if (obj instanceof Array) {
             copy = [];
-            // 标记对象
-            cloneID.count++;
-            obj.__objectutil_clone_id__ = cloneID.count;
-            seenObjects[cloneID.count] = { original: obj, clone: copy };
-
-            // 递归拷贝数组中的每个元素
+            seenObjects.setItem(obj, copy);  // 标记对象，防止循环引用
             for (var i:Number = 0; i < obj.length; i++) {
-                copy[i] = cloneRecursive(obj[i], seenObjects, cloneID);
+                copy[i] = cloneRecursive(obj[i], seenObjects);
             }
             return copy;
         }
 
-        // 处理普通对象
+        // 处理一般对象
         copy = {};
-        cloneID.count++;
-        obj.__objectutil_clone_id__ = cloneID.count;
-        seenObjects[cloneID.count] = { original: obj, clone: copy };
-
+        seenObjects.setItem(obj, copy);  // 标记对象
         for (var key:String in obj) {
-            if (obj.hasOwnProperty(key) && key != "__objectutil_clone_id__") {
-                copy[key] = cloneRecursive(obj[key], seenObjects, cloneID);
+            if (obj.hasOwnProperty(key) && !isInternalKey(key)) {  // 忽略 __dictUID
+                copy[key] = cloneRecursive(obj[key], seenObjects);
             }
         }
 
@@ -90,83 +69,61 @@ class org.flashNight.gesh.object.ObjectUtil {
      * 比较两个对象，返回它们的差异。
      * @param obj1 第一个对象。
      * @param obj2 第二个对象。
+     * @param seenObjects (可选) 追踪已比较的对象，防止循环引用
      * @return Number -1 表示 obj1 < obj2, 1 表示 obj1 > obj2, 0 表示相等。
      */
-    public static function compare(obj1:Object, obj2:Object):Number {
-        if (obj1 === obj2) {
-            return 0;
+    public static function compare(obj1:Object, obj2:Object, seenObjects:Dictionary):Number {
+        // 如果 seenObjects 为空，则在此处初始化
+        if (seenObjects == null) {
+            seenObjects = new Dictionary();
         }
-        
-        // 如果其中一个为 null 或 undefined
-        if (obj1 == null) {
-            return -1;
-        }
-        if (obj2 == null) {
-            return 1;
-        }
-        
-        // 如果类型不同
+
+        if (obj1 === obj2) return 0;
+
+        // 防止循环比较，标记已比较的对象
+        if (seenObjects.getItem(obj1) === obj2) return 0;
+
+        seenObjects.setItem(obj1, obj2);
+
+        // 如果其中一个为 null
+        if (obj1 == null) return -1;
+        if (obj2 == null) return 1;
+
+        // 类型比较
         var type1:String = typeof(obj1);
         var type2:String = typeof(obj2);
-        if (type1 != type2) {
-            return (type1 > type2) ? 1 : -1;
-        }
-        
-        // 处理简单类型
-        if (isSimple(obj1)) {
-            if (obj1 > obj2) {
-                return 1;
-            } else if (obj1 < obj2) {
-                return -1;
-            } else {
-                return 0;
-            }
-        }
-        
-        // 处理数组
+        if (type1 != type2) return (type1 > type2) ? 1 : -1;
+
+        // 简单类型比较
+        if (isSimple(obj1)) return (obj1 > obj2) ? 1 : (obj1 < obj2 ? -1 : 0);
+
+        // 数组比较
         if (obj1 instanceof Array && obj2 instanceof Array) {
-            var len1:Number = obj1.length;
-            var len2:Number = obj2.length;
-            if (len1 > len2) return 1;
-            if (len1 < len2) return -1;
-            for (var i:Number = 0; i < len1; i++) {
-                var result:Number = compare(obj1[i], obj2[i]);
-                if (result != 0) {
-                    return result;
-                }
+            if (obj1.length != obj2.length) return (obj1.length > obj2.length) ? 1 : -1;
+            for (var i:Number = 0; i < obj1.length; i++) {
+                var result:Number = compare(obj1[i], obj2[i], seenObjects);
+                if (result != 0) return result;
             }
             return 0;
         }
-        
-        // 处理一般对象
-        var keys1:Array = [];
-        var keys2:Array = [];
-        for (var key1:String in obj1) {
-            keys1.push(key1);
-        }
-        for (var key2:String in obj2) {
-            keys2.push(key2);
-        }
-        
-        keys1 = InsertionSort.sort(keys1, function(a, b) { return a > b ? 1 : (a < b ? -1 : 0); });
-        keys2 = InsertionSort.sort(keys2, function(a, b) { return a > b ? 1 : (a < b ? -1 : 0); });
-        
-        var lenKeys1:Number = keys1.length;
-        var lenKeys2:Number = keys2.length;
-        if (lenKeys1 > lenKeys2) return 1;
-        if (lenKeys1 < lenKeys2) return -1;
-        
+
+        // 对象属性比较
+        var keys1:Array = getKeys(obj1);
+        var keys2:Array = getKeys(obj2);
+        keys1 = InsertionSort.sort(keys1, function(a, b):Number { return a > b ? 1 : (a < b ? -1 : 0); });
+        keys2 = InsertionSort.sort(keys2, function(a, b):Number { return a > b ? 1 : (a < b ? -1 : 0); });
+
+        if (keys1.length != keys2.length) return (keys1.length > keys2.length) ? 1 : -1;
+
         for (var j:Number = 0; j < keys1.length; j++) {
-            if (keys1[j] > keys2[j]) return 1;
-            if (keys1[j] < keys2[j]) return -1;
-            var compareResult:Number = compare(obj1[keys1[j]], obj2[keys2[j]]);
-            if (compareResult != 0) {
-                return compareResult;
-            }
+            if (keys1[j] != keys2[j]) return (keys1[j] > keys2[j]) ? 1 : -1;
+            var compareResult:Number = compare(obj1[keys1[j]], obj2[keys2[j]], seenObjects);
+            if (compareResult != 0) return compareResult;
         }
+
         return 0;
     }
-    
+
     /**
      * 检查对象是否为简单数据类型（Number, String, Boolean）。
      * @param obj 要检查的对象。
@@ -180,212 +137,136 @@ class org.flashNight.gesh.object.ObjectUtil {
     /**
      * 将对象转换为字符串表示形式（类似于 JSON 格式）。
      * @param obj 要转换的对象。
+     * @param seenObjects (可选) 追踪已转换的对象，防止循环引用
      * @return String 对象的字符串表示。
      */
-    public static function toString(obj:Object):String {
-        if (obj == null) {
-            return "null";
+    public static function toString(obj:Object, seenObjects:Dictionary):String {
+        if (seenObjects == null) {
+            seenObjects = new Dictionary();
         }
 
-        var stack:Array = []; // 栈用于存储待处理的对象
-        var result:String = ""; // 最终生成的字符串
-        var current:Object = { type: "start", value: obj, isArray: (obj instanceof Array), keys: null, index: 0 };
-        stack.push(current);
+        if (obj == null) return "null";
 
-        while (stack.length > 0) {
-            current = stack.pop();
+        if (seenObjects.getItem(obj) != undefined) {
+            return "[Circular]";
+        }
 
-            switch (current.type) {
-                case "start":
-                    if (current.value instanceof Array) {
-                        result += "[";
-                        if (current.value.length > 0) {
-                            // 将结束标记压入栈
-                            stack.push({ type: "endArray" });
-                            // 逆序压入数组元素
-                            for (var i:Number = current.value.length - 1; i >= 0; i--) {
-                                stack.push({ type: "value", value: current.value[i], isArray: true, isFirst: (i == 0) });
-                            }
-                        } else {
-                            result += "]";
-                        }
-                    } else if (current.value instanceof Date) {
-                        result += '"' + current.value.toString() + '"';
-                    } else if (current.value instanceof RegExp) {
-                        result += '"' + current.value.source + '"';
-                    } else {
-                        result += "{";
-                        var keys:Array = [];
-                        for (var key:String in current.value) {
-                            if (current.value.hasOwnProperty(key)) {
-                                keys.push(key);
-                            }
-                        }
-                        keys = InsertionSort.sort(keys, function(a, b) { return a > b ? 1 : (a < b ? -1 : 0); });
-                        if (keys.length > 0) {
-                            // 将结束标记压入栈
-                            stack.push({ type: "endObject" });
-                            // 逆序压入属性
-                            for (var j:Number = keys.length - 1; j >= 0; j--) {
-                                var prop:String = keys[j];
-                                var propValue:Object = current.value[prop];
-                                stack.push({ type: "property", key: prop, value: propValue, isFirst: (j == 0) });
-                            }
-                        } else {
-                            result += "}";
-                        }
-                    }
-                    break;
+        seenObjects.setItem(obj, true);
 
-                case "endArray":
-                    result += "]";
-                    break;
-
-                case "endObject":
-                    result += "}";
-                    break;
-
-                case "property":
-                    if (!current.isFirst) {
-                        result += ", ";
-                    }
-                    result += '"' + current.key + '": ';
-                    // 处理属性值
-                    if (current.value == null) {
-                        result += "null";
-                    } else if (typeof(current.value) != "object") {
-                        if (typeof(current.value) == "string") {
-                            result += '"' + current.value + '"';
-                        } else {
-                            result += current.value.toString();
-                        }
-                    } else {
-                        // 将对象的开始压入栈
-                        stack.push({ type: "afterProperty" }); // 标记属性处理完毕
-                        stack.push({ type: "start", value: current.value });
-                    }
-                    break;
-
-                case "value":
-                    if (!current.isFirst) {
-                        result += ", ";
-                    }
-                    if (current.value == null) {
-                        result += "null";
-                    } else if (typeof(current.value) != "object") {
-                        if (typeof(current.value) == "string") {
-                            result += '"' + current.value + '"';
-                        } else {
-                            result += current.value.toString();
-                        }
-                    } else {
-                        // 将对象的开始压入栈
-                        stack.push({ type: "afterValue", isArray: current.isArray });
-                        stack.push({ type: "start", value: current.value });
-                    }
-                    break;
-
-                case "afterProperty":
-                    // Nothing to do here; the comma is already handled
-                    break;
-
-                case "afterValue":
-                    if (current.isArray) {
-                        // Nothing additional needed
-                    }
-                    break;
+        var result:String = "";
+        if (obj instanceof Array) {
+            result += "[";
+            for (var i:Number = 0; i < obj.length; i++) {
+                if (i > 0) result += ", ";
+                result += toString(obj[i], seenObjects);
             }
+            result += "]";
+        } else if (typeof(obj) == "object") {
+            result += "{";
+            var keys:Array = getKeys(obj);
+            keys = InsertionSort.sort(keys, function(a, b):Number { return a > b ? 1 : (a < b ? -1 : 0); });
+            for (var j:Number = 0; j < keys.length; j++) {
+                if (j > 0) result += ", ";
+                if (!isInternalKey(keys[j])) {  // 忽略 __dictUID
+                    result += '"' + keys[j] + '": ' + toString(obj[keys[j]], seenObjects);
+                }
+            }
+            result += "}";
+        } else {
+            result = String(obj);
         }
 
         return result;
     }
 
     /**
-     * 从源对象复制所有属性到目标对象中。
-     * @param source 源对象。
-     * @param destination 目标对象。
+     * 忽略对象的内部键。
+     * @param key 要检查的键。
+     * @return Boolean true 表示这是一个内部键，应该忽略。
      */
+    private static function isInternalKey(key:String):Boolean {
+        return key.indexOf("__") == 0;  // 忽略所有以 "__" 开头的内部键
+    }
+
+    /**
+    * 从源对象复制所有属性到目标对象中。
+    * @param source 源对象。
+    * @param destination 目标对象。
+    */
     public static function copyProperties(source:Object, destination:Object):Void {
         if (source == null || destination == null) {
             return;
         }
+
         for (var key:String in source) {
-            destination[key] = source[key];
+            if (source.hasOwnProperty(key) && !isInternalKey(key)) {  // 忽略内部键
+                destination[key] = source[key];
+            }
         }
     }
-    
+
+    /**
+     * 从对象获取所有的键。
+     * @param obj 要获取键的对象。
+     * @return Array 键数组。
+     */
+    public static function getKeys(obj:Object):Array {
+        var keys:Array = [];
+        for (var key:String in obj) {
+            if (obj.hasOwnProperty(key) && !isInternalKey(key)) {  // 忽略内部键
+                keys.push(key);
+            }
+        }
+        return keys;
+    }
+
     /**
      * 比较两个对象是否相等（递归比较所有属性）。
      * @param obj1 第一个对象。
      * @param obj2 第二个对象。
+     * @param seenObjects (可选) 追踪已比较的对象，防止循环引用
      * @return Boolean true 表示相等，false 表示不相等。
      */
-    public static function equals(obj1:Object, obj2:Object):Boolean {
-        // 如果是相同的引用，返回 true
-        if (obj1 === obj2) {
-            return true;
+    public static function equals(obj1:Object, obj2:Object, seenObjects:Dictionary):Boolean {
+        if (seenObjects == null) {
+            seenObjects = new Dictionary();
         }
 
-        // 如果其中一个是 null 或 undefined，另一个不是，返回 false
-        if (obj1 == null || obj2 == null) {
-            return false;
-        }
+        if (obj1 === obj2) return true;
 
-        // 如果类型不同，返回 false
+        // 防止循环引用
+        if (seenObjects.getItem(obj1) === obj2) return true;
+
+        seenObjects.setItem(obj1, obj2);
+
+        if (obj1 == null || obj2 == null) return false;
+
         var type1:String = typeof(obj1);
         var type2:String = typeof(obj2);
-        if (type1 != type2) {
-            return false;
-        }
+        if (type1 != type2) return false;
 
-        // 处理简单类型
-        if (isSimple(obj1)) {
-            return obj1 === obj2;
-        }
+        // 简单类型比较
+        if (isSimple(obj1)) return obj1 === obj2;
 
-        // 处理数组
+        // 数组比较
         if (obj1 instanceof Array && obj2 instanceof Array) {
             if (obj1.length != obj2.length) return false;
             for (var i:Number = 0; i < obj1.length; i++) {
-                if (!equals(obj1[i], obj2[i])) {
-                    return false;
-                }
+                if (!equals(obj1[i], obj2[i], seenObjects)) return false;
             }
             return true;
         }
 
-        // 处理普通对象
-        var keys1:Array = [];
-        var keys2:Array = [];
-
-        // 仅比较自有属性，忽略原型链上的属性
-        for (var key1:String in obj1) {
-            if (obj1.hasOwnProperty(key1)) {
-                keys1.push(key1);
-            }
-        }
-        for (var key2:String in obj2) {
-            if (obj2.hasOwnProperty(key2)) {
-                keys2.push(key2);
-            }
-        }
-
-        // 比较属性数量是否相同
-        if (keys1.length != keys2.length) {
-            return false;
-        }
-
-        // 按照属性名称排序后逐个比较
-        keys1 = InsertionSort.sort(keys1, function(a, b) { return a > b ? 1 : (a < b ? -1 : 0); });
-        keys2 = InsertionSort.sort(keys2, function(a, b) { return a > b ? 1 : (a < b ? -1 : 0); });
+        // 对象属性比较
+        var keys1:Array = getKeys(obj1);
+        var keys2:Array = getKeys(obj2);
+        keys1 = InsertionSort.sort(keys1, function(a, b):Number { return a > b ? 1 : (a < b ? -1 : 0); });
+        keys2 = InsertionSort.sort(keys2, function(a, b):Number { return a > b ? 1 : (a < b ? -1 : 0); });
+        if (keys1.length != keys2.length) return false;
 
         for (var j:Number = 0; j < keys1.length; j++) {
-            if (keys1[j] != keys2[j]) {
-                return false;
-            }
-            if (!equals(obj1[keys1[j]], obj2[keys2[j]])) {
-                return false;
-            }
+            if (keys1[j] != keys2[j]) return false;
+            if (!equals(obj1[keys1[j]], obj2[keys2[j]], seenObjects)) return false;
         }
 
         return true;
@@ -403,7 +284,7 @@ class org.flashNight.gesh.object.ObjectUtil {
         for (var key:String in source) {
             if (typeof(source[key]) == "object" && typeof(result[key]) == "object") {
                 result[key] = merge(result[key], source[key]);
-            } else {
+            } else if (!isInternalKey(key)) {  // 忽略内部键
                 result[key] = source[key];
             }
         }
@@ -418,9 +299,9 @@ class org.flashNight.gesh.object.ObjectUtil {
      * @return Boolean true 表示对象具有相同的属性和属性值，false 表示不同。
      */
     public static function deepEquals(obj1:Object, obj2:Object):Boolean {
-        return equals(obj1, obj2);
+        return equals(obj1, obj2, null);
     }
-    
+
     /**
      * 将对象序列化为 JSON 字符串。
      * @param obj 要序列化的对象。
@@ -453,6 +334,7 @@ class org.flashNight.gesh.object.ObjectUtil {
         }
     }
 }
+
 
 /*
 
