@@ -860,4 +860,32 @@ Error executing callback for event 'ERROR_EVENT': Intentional error in callbackW
 [PERFORMANCE] Test 15: EventBus Bulk Subscribe and Unsubscribe took 1049 ms
 All tests completed.
 
+
+[PASS] Test 1: EventBus subscribe and publish single event
+[PASS] Test 2: EventBus unsubscribe callback
+[PASS] Test 3: EventBus subscribeOnce - first publish
+[PASS] Test 3: EventBus subscribeOnce - second publish
+[PASS] Test 4: EventBus publish event with arguments
+Error executing callback for event 'ERROR_EVENT': Intentional error in callbackWithError
+[PASS] Test 5: EventBus callback error handling
+[PASS] Test 6: EventBus destroy and ensure callbacks are not called
+[PASS] Test 7: EventBus handles high volume of subscriptions and publishes correctly
+[PERFORMANCE] Test 7: EventBus High Volume Subscriptions and Publish took 28 ms
+[PASS] Test 8: EventBus handles high frequency publishes correctly
+[PERFORMANCE] Test 8: EventBus High Frequency Publish took 764 ms
+[PASS] Test 9: EventBus handles concurrent subscriptions and publishes correctly
+[PERFORMANCE] Test 9: EventBus Concurrent Subscriptions and Publishes took 10986 ms
+[PASS] Test 10: EventBus handles mixed subscribe and unsubscribe operations correctly
+[PERFORMANCE] Test 10: EventBus Mixed Subscribe and Unsubscribe took 385 ms
+[PASS] Test 11: EventBus handles nested event publishes correctly
+[PERFORMANCE] Test 11: EventBus Nested Event Publish took 0 ms
+[PASS] Test 12: EventBus handles parallel event processing correctly
+[PERFORMANCE] Test 12: EventBus Parallel Event Processing took 152 ms
+[PASS] Test 13: EventBus handles long-running subscriptions and cleanups correctly
+[PERFORMANCE] Test 13: EventBus Long Running Subscriptions and Cleanups took 19 ms
+[PASS] Test 14: EventBus handles complex argument passing correctly
+[PERFORMANCE] Test 14: EventBus Complex Argument Passing took 0 ms
+[PASS] Test 15: EventBus handles bulk subscriptions and unsubscriptions correctly
+[PERFORMANCE] Test 15: EventBus Bulk Subscribe and Unsubscribe took 1095 ms
+All tests completed.
 */
