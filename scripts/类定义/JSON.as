@@ -394,11 +394,11 @@ class JSON {
     public function stringify(arg, indent:String):String {
         this.seen = []; // 初始化循环引用检测的对象列表
         this.currentDepth = 0; // 初始化当前解析深度
-        return this.serialize(arg, indent, 0); // 开始递归序列化
+        return this.serialize(arg, indent, 0); // 开始迭代序列化
     }
 
     /**
-     * 序列化函数，递归处理不同类型的数据。
+     * 序列化函数，迭代处理不同类型的数据。
      * 支持对象、数组、字符串、数字和布尔值等类型。
      * @param value 要序列化的值
      * @param indent 缩进字符串，用于格式化输出
@@ -432,13 +432,13 @@ class JSON {
                 }
                 this.seen.push(value); // 将当前对象存入循环检测数组中
 
-                // 如果是数组，递归处理数组内容
+                // 如果是数组，使用迭代处理数组内容
                 if (value instanceof Array) {
                     var arrayString:String = this.stringifyArray(value, indent, level);
                     this.seen.pop();
                     this.currentDepth--;
                     return arrayString;
-                } else { // 处理普通对象
+                } else { // 迭代处理普通对象
                     var objectString:String = this.stringifyObject(value, indent, level);
                     this.seen.pop();
                     this.currentDepth--;
@@ -460,7 +460,7 @@ class JSON {
     }
 
     /**
-     * 检测对象是否存在循环引用，防止无限递归。
+     * 检测对象是否存在循环引用，防止无限迭代。
      * @param obj 要检测的对象
      * @return 如果存在循环引用则返回 true，否则返回 false
      */
@@ -474,7 +474,7 @@ class JSON {
     }
 
     /**
-     * 序列化数组，递归处理每个数组元素。
+     * 使用迭代处理数组，处理每个数组元素。
      * @param array 要序列化的数组
      * @param indent 缩进字符串
      * @param level 当前嵌套级别
@@ -482,32 +482,38 @@ class JSON {
      */
     private function stringifyArray(array:Array, indent:String, level:Number):String {
         var parts:Array = [];
-        var newLine:String = "";
-        var separator:String = ",";
+        var stack:Array = []; // 显式栈，用于保存待处理的数组元素
+        var indexes:Array = []; // 保存每个数组的当前处理位置索引
+        var results:Array = []; // 保存处理后的结果
 
-        // 根据是否需要缩进，设置换行符和分隔符
-        if (indent) {
-            newLine = "\n";
-            separator += newLine + this.getIndent(indent, level + 1);
+        stack.push(array); // 初始数组入栈
+        indexes.push(0);   // 索引位置初始化为0
+
+        while (stack.length > 0) {
+            var currentArray:Array = stack[stack.length - 1]; // 获取当前数组
+            var index:Number = indexes[indexes.length - 1]; // 获取当前索引
+
+            if (index >= currentArray.length) {
+                // 当数组处理完成后，弹出栈顶
+                stack.pop();
+                indexes.pop();
+
+                // 将当前数组的序列化结果放入结果栈
+                results.push("[" + parts.join(",") + "]");
+                parts = [];
+            } else {
+                // 处理当前数组的元素
+                var serializedValue:String = this.serialize(currentArray[index], indent, level + 1); 
+                parts.push(serializedValue);
+                indexes[indexes.length - 1]++; // 处理下一个元素
+            }
         }
 
-        // 递归序列化数组中的每个元素
-        for (var i:Number = 0; i < array.length; i++) {
-            var serializedValue:String = this.serialize(array[i], indent, level + 1);
-            parts.push(serializedValue);
-        }
-
-        // 组合数组元素为 JSON 字符串
-        var joined:String = parts.join(separator);
-        if (indent) {
-            return "[" + newLine + this.getIndent(indent, level + 1) + joined + newLine + this.getIndent(indent, level) + "]";
-        } else {
-            return "[" + joined + "]";
-        }
+        return String(results.pop()); // 返回最终结果
     }
 
     /**
-     * 序列化对象，递归处理每个键值对。
+     * 使用迭代处理对象，处理每个键值对。
      * @param obj 要序列化的对象
      * @param indent 缩进字符串
      * @param level 当前嵌套级别
@@ -515,40 +521,53 @@ class JSON {
      */
     private function stringifyObject(obj:Object, indent:String, level:Number):String {
         var parts:Array = [];
-        var keys:Array = [];
+        var stack:Array = []; // 显式栈用于保存待处理的对象
+        var keys:Array = [];  // 保存每个对象的键数组
+        var indexes:Array = []; // 保存当前处理的键位置
+        var results:Array = []; // 保存处理结果
 
-        // 收集对象中的所有有效键
-        for (var key in obj) {
-            var value = obj[key];
-            if (typeof value !== "undefined" && typeof value !== "function") {
-                keys.push(key);
+        stack.push(obj);
+        keys.push(this.getKeys(obj)); // 保存对象的键
+        indexes.push(0);              // 初始化索引为0
+
+        while (stack.length > 0) {
+            var currentObj:Object = stack[stack.length - 1];
+            var currentKeys:Array = keys[keys.length - 1];
+            var index:Number = indexes[indexes.length - 1];
+
+            if (index >= currentKeys.length) {
+                // 当对象所有键处理完成后，弹出栈顶
+                stack.pop();
+                keys.pop();
+                indexes.pop();
+
+                // 将当前对象的序列化结果放入结果栈
+                results.push("{" + parts.join(",") + "}");
+                parts = [];
+            } else {
+                // 处理当前对象的键值对
+                var key:String = currentKeys[index];
+                var serializedKey:String = this.stringifyString(key);
+                var serializedValue:String = this.serialize(currentObj[key], indent, level + 1);
+                parts.push(serializedKey + ":" + serializedValue);
+                indexes[indexes.length - 1]++; // 处理下一个键
             }
         }
 
-        var newLine:String = "";
-        var separator:String = ",";
+        return String(results.pop()); // 返回最终结果
+    }
 
-        // 根据是否需要缩进，设置换行符和分隔符
-        if (indent) {
-            newLine = "\n";
-            separator += newLine + this.getIndent(indent, level + 1);
+    /**
+     * 获取对象的键数组。
+     * @param obj 要获取键的对象
+     * @return 对象的键数组
+     */
+    private function getKeys(obj:Object):Array {
+        var result:Array = [];
+        for (var key in obj) {
+            result.push(key);
         }
-
-        // 递归序列化每个键值对
-        for (var i:Number = 0; i < keys.length; i++) {
-            var currentKey:String = keys[i];
-            var serializedKey:String = this.stringifyString(currentKey);
-            var serializedValue:String = this.serialize(obj[currentKey], indent, level + 1);
-            parts.push(serializedKey + ":" + serializedValue);
-        }
-
-        // 组合对象的键值对为 JSON 字符串
-        var joined:String = parts.join(separator);
-        if (indent) {
-            return "{" + newLine + this.getIndent(indent, level + 1) + joined + newLine + this.getIndent(indent, level) + "}";
-        } else {
-            return "{" + joined + "}";
-        }
+        return result;
     }
 
     /**
@@ -785,29 +804,27 @@ class JSON {
      */
     private function arr():Array {
         var array:Array = [];
+        var stack:Array = []; // 显式栈
+        var tempArray:Array = [];
+        
         if (this.ch == "[") {
+            stack.push({ type: "array", value: array });
             this.next();
-            this.white();
-            if (this.ch == "]") {
-                this.next();
-                return array; // 空数组
-            }
-            while (this.ch) {
-                array.push(this.value()); // 递归解析数组中的值
-                this.white();
+            
+            while (stack.length > 0) {
                 if (this.ch == "]") {
                     this.next();
-                    return array;
+                    var currentContext:Object = stack.pop(); 
+                    array = currentContext.value; // 返回结果数组
+                } else if (this.ch == ",") {
+                    this.next();
+                } else {
+                    tempArray.push(this.value()); // 解析数组中的值
+                    this.white();
                 }
-                if (this.ch != ",") {
-                    break;
-                }
-                this.next();
-                this.white();
             }
         }
-        this.error("数组解析错误");
-        return null; // 实际上不会到达这里
+        return array;
     }
 
     /**
@@ -816,36 +833,30 @@ class JSON {
      */
     private function obj():Object {
         var object:Object = {};
+        var stack:Array = [];
+        
         if (this.ch == "{") {
+            stack.push({ type: "object", value: object });
             this.next();
-            this.white();
-            if (this.ch == "}") {
-                this.next();
-                return object; // 空对象
-            }
-            while (this.ch) {
-                var key:String = this.str(); // 解析键
-                this.white();
-                if (this.ch != ":") {
-                    this.error("对象解析错误：期望 ':'");
-                }
-                this.next();
-                var value:Object = this.value(); // 解析值
-                object[key] = value;
-                this.white();
+            
+            while (stack.length > 0) {
+                var currentContext:Object = stack[stack.length - 1];
                 if (this.ch == "}") {
                     this.next();
-                    return object;
+                    stack.pop(); // 解析完成
+                } else {
+                    var key:String = this.str();
+                    this.white();
+                    this.next(); // 跳过 ':'
+                    currentContext.value[key] = this.value(); // 处理值
+                    this.white();
+                    if (this.ch == ",") {
+                        this.next();
+                    }
                 }
-                if (this.ch != ",") {
-                    this.error("对象解析错误：期望 ','");
-                }
-                this.next();
-                this.white();
             }
         }
-        this.error("对象解析错误");
-        return null; // 实际上不会到达这里
+        return object;
     }
 
     /**
