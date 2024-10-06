@@ -6,7 +6,6 @@ import org.flashNight.neur.Server.*;
 import org.flashNight.neur.Event.*;
 _root.帧计时器 = _root.createEmptyMovieClip("帧计时器", _root.getNextHighestDepth());
 
-
 _root.帧计时器.初始化任务栈 = function()
  {  
     //this.任务栈 = []; 

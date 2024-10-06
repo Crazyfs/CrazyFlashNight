@@ -137,12 +137,26 @@ import org.flashNight.gesh.object.ObjectUtil;
 import org.flashNight.naki.DataStructures.Dictionary;
 
 class org.flashNight.neur.Event.Delegate {
-    // 使用 Dictionary 作为缓存对象
-    private static var cacheCreate:Dictionary = new Dictionary();    // 不带预定义参数的委托函数缓存
-    private static var cacheCreateWithParams:Dictionary = new Dictionary(); // 带预定义参数的委托函数缓存
-    private static var paramsCache:Dictionary = new Dictionary();    // 参数组合的唯一ID缓存
-    private static var uidCounter:Number = 1; // 唯一标识符计数器，用于为每个方法、作用域和参数组合分配唯一的ID
-
+    // 使用嵌套 Dictionary 作为缓存对象
+    private static var cacheCreate:Dictionary; // 不带预定义参数的委托函数缓存
+    private static var cacheCreateWithParams:Dictionary; // 带预定义参数的委托函数缓存
+    private static var paramsCache:Dictionary; // 参数组合的唯一ID缓存
+    
+    private static var GLOBAL_SCOPE:String = "__global__"; // 用于表示全局作用域的特殊键
+    private static var isInitialized:Boolean = false; // 标志位，确保初始化只进行一次
+    
+    /**
+     * 初始化缓存字典。需要在使用 Delegate 类之前调用此方法。
+     */
+    public static function init():Void {
+        if (!isInitialized) {
+            cacheCreate = new Dictionary();
+            cacheCreateWithParams = new Dictionary();
+            paramsCache = new Dictionary();
+            isInitialized = true;
+        }
+    }
+    
     /**
      * 创建一个委托函数，将指定方法绑定到给定的作用域。
      * 利用缓存机制优化委托函数的创建，避免重复创建相同的委托函数。
@@ -153,31 +167,38 @@ class org.flashNight.neur.Event.Delegate {
      *         则返回缓存中的委托函数，避免重复创建。
      */
     public static function create(scope:Object, method:Function):Function {
-        // 如果传入的方法为空，则抛出错误，确保后续操作的合法性
+        // 确保字典已初始化
+        if (!isInitialized) {
+            throw new Error("Delegate class not initialized. Call Delegate.init() before using.");
+        }
+        
+        // 检查 method 是否有效
         if (method == null) {
             throw new Error("The provided method is undefined or null");
         }
-
-        var cacheKey:String;  // 使用字符串作为缓存键
-        var loccache:Dictionary = cacheCreate; // 本地引用缓存对象
-
-        // 为方法分配唯一标识符，确保每个方法都有一个独特的ID
-        if (method.__delegateUID == undefined) {
-            method.__delegateUID = uidCounter++;
+        
+        // 使用特殊键表示全局作用域
+        var actualScope:Object = (scope == null) ? GLOBAL_SCOPE : scope;
+        
+        // 获取与 scope 相关的 Dictionary
+        var scopeCache:Dictionary = cacheCreate.getItem(actualScope);
+        // 因为已经初始化，scopeCache 不会为 null
+        if (scopeCache == null) {
+            scopeCache = new Dictionary();
+            cacheCreate.setItem(actualScope, scopeCache);
         }
-
+        
+        // 检查是否已经缓存了该 method 的委托函数
+        var cachedFunction:Function = scopeCache.getItem(method);
+        if (cachedFunction != null) {
+            return cachedFunction;
+        }
+        
+        // 定义包装函数，根据参数数量选择调用方式
+        var wrappedFunction:Function;
         if (scope == null) {
-            // 当 scope 为 null 时，仅使用方法的 UID 作为缓存键
-            cacheKey = String(method.__delegateUID);
-            
-            // 尝试从缓存中获取已存在的包装函数
-            var cachedFunction:Function = loccache.getItem(cacheKey);
-            if (cachedFunction != null) {
-                return cachedFunction;
-            }
-
-            // 定义包装函数，该函数在调用时会执行原始方法
-            var wrappedFunction:Function = function() {
+            // 全局作用域
+            wrappedFunction = function() {
                 var len:Number = arguments.length;
                 if (len == 0) return method();
                 else if (len == 1) return method(arguments[0]);
@@ -185,29 +206,11 @@ class org.flashNight.neur.Event.Delegate {
                 else if (len == 3) return method(arguments[0], arguments[1], arguments[2]);
                 else if (len == 4) return method(arguments[0], arguments[1], arguments[2], arguments[3]);
                 else if (len == 5) return method(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4]);
-                else return method.apply(null, arguments);  // 参数超过5个时，使用 apply 调用
+                else return method.apply(null, arguments); // 参数超过5个时，使用 apply 调用
             };
-
-            // 将包装函数存入缓存
-            loccache.setItem(cacheKey, wrappedFunction);
-            
-            return wrappedFunction;
         } else {
-            // 确保 scope 对象有唯一的 UID，以区分不同的作用域
-            if (scope.__scopeUID == undefined) {
-                scope.__scopeUID = uidCounter++;
-            }
-            // 使用 scope 的 UID 和 method 的 UID 组合生成缓存键
-            cacheKey = scope.__scopeUID + "::" + method.__delegateUID;
-
-            // 尝试从缓存中获取已存在的包装函数
-            var cachedFunctionScope:Function = loccache.getItem(cacheKey);
-            if (cachedFunctionScope != null) {
-                return cachedFunctionScope;
-            }
-
-            // 定义包装函数，该函数在调用时会以指定的作用域执行原始方法
-            var wrappedFunctionScope:Function = function() {
+            // 指定作用域
+            wrappedFunction = function() {
                 var len:Number = arguments.length;
                 if (len == 0) return method.call(scope);
                 else if (len == 1) return method.call(scope, arguments[0]);
@@ -215,16 +218,16 @@ class org.flashNight.neur.Event.Delegate {
                 else if (len == 3) return method.call(scope, arguments[0], arguments[1], arguments[2]);
                 else if (len == 4) return method.call(scope, arguments[0], arguments[1], arguments[2], arguments[3]);
                 else if (len == 5) return method.call(scope, arguments[0], arguments[1], arguments[2], arguments[3], arguments[4]);
-                else return method.apply(scope, arguments);  // 参数超过5个时，使用 apply 调用
+                else return method.apply(scope, arguments); // 参数超过5个时，使用 apply 调用
             };
-
-            // 将包装函数存入缓存
-            loccache.setItem(cacheKey, wrappedFunctionScope);
-            
-            return wrappedFunctionScope;
         }
+        
+        // 将包装函数存入缓存
+        scopeCache.setItem(method, wrappedFunction);
+        
+        return wrappedFunction;
     }
-
+    
     /**
      * 创建一个带有预定义参数的委托函数。
      * 该方法会创建一个委托函数，并将预定义参数封装在闭包中，
@@ -236,41 +239,46 @@ class org.flashNight.neur.Event.Delegate {
      * @return 返回一个新函数，可以在调用时执行，并在指定的作用域内使用预定义参数。
      */
     public static function createWithParams(scope:Object, method:Function, params:Array):Function {
-        // 如果传入的方法为空，则抛出错误，确保后续操作的合法性
+        // 确保字典已初始化
+        if (!isInitialized) {
+            throw new Error("Delegate class not initialized. Call Delegate.init() before using.");
+        }
+        
+        // 检查 method 是否有效
         if (method == null) {
             throw new Error("The provided method is undefined or null");
         }
         
-        var cacheKey:String;        // 用于生成缓存键
-        var loccache:Dictionary = cacheCreateWithParams; // 本地引用缓存对象
-
-        // 为方法分配唯一标识符
-        if (method.__delegateUID == undefined) {
-            method.__delegateUID = uidCounter++;
+        // 使用特殊键表示全局作用域
+        var actualScope:Object = (scope == null) ? GLOBAL_SCOPE : scope;
+        
+        // 获取与 scope 相关的 Dictionary
+        var scopeCache:Dictionary = cacheCreateWithParams.getItem(actualScope);
+        if (scopeCache == null) {
+            scopeCache = new Dictionary();
+            cacheCreateWithParams.setItem(actualScope, scopeCache);
         }
-
-        // 获取参数的唯一标识符，通过拼接生成唯一键
+        
+        // 获取与 method 相关的 Dictionary
+        var methodCache:Dictionary = scopeCache.getItem(method);
+        if (methodCache == null) {
+            methodCache = new Dictionary();
+            scopeCache.setItem(method, methodCache);
+        }
+        
+        // 生成参数的唯一键
         var paramsKey:String = params.join("|");
-        var paramsUID:Number;
-        if (paramsCache.getItem(paramsKey) == undefined) {
-            paramsUID = uidCounter++;
-            paramsCache.setItem(paramsKey, paramsUID);
-        } else {
-            paramsUID = paramsCache.getItem(paramsKey);
+        
+        // 检查是否已经缓存了该参数组合的委托函数
+        var cachedFunctionWithParams:Function = methodCache.getItem(paramsKey);
+        if (cachedFunctionWithParams != null) {
+            return cachedFunctionWithParams;
         }
-
-        if (scope == null) {
-            // 当 scope 为 null 时，使用 methodUID 和 paramsUID 组合生成缓存键
-            cacheKey = method.__delegateUID + "::" + paramsUID;
-            
-            // 尝试从缓存中获取已存在的包装函数
-            var cachedFunctionWithParams:Function = loccache.getItem(cacheKey);
-            if (cachedFunctionWithParams != null) {
-                return cachedFunctionWithParams;
-            }
-
-            // 定义包装函数，该函数在调用时会执行原始方法并传入预定义参数
-            var wrappedFunctionWithParams:Function = function() {
+        
+        // 定义包装函数，预定义参数并调用 method
+        var wrappedFunctionWithParams:Function;
+        if (actualScope === GLOBAL_SCOPE) {
+            wrappedFunctionWithParams = function() {
                 var len:Number = params.length;
                 if (len == 0) return method();
                 else if (len == 1) return method(params[0]);
@@ -278,29 +286,10 @@ class org.flashNight.neur.Event.Delegate {
                 else if (len == 3) return method(params[0], params[1], params[2]);
                 else if (len == 4) return method(params[0], params[1], params[2], params[3]);
                 else if (len == 5) return method(params[0], params[1], params[2], params[3], params[4]);
-                else return method.apply(null, params);  // 参数超过5个时，使用 apply 调用
+                else return method.apply(null, params); // 参数超过5个时，使用 apply 调用
             };
-            
-            // 将包装函数存入缓存
-            loccache.setItem(cacheKey, wrappedFunctionWithParams);
-            
-            return wrappedFunctionWithParams;
         } else {
-            // 确保 scope 对象有唯一的 UID，以区分不同的作用域
-            if (scope.__scopeUID == undefined) {
-                scope.__scopeUID = uidCounter++;
-            }
-            // 使用 scope 的 UID、method 的 UID 和 paramsUID 组合生成缓存键
-            cacheKey = scope.__scopeUID + "::" + method.__delegateUID + "::" + paramsUID;
-
-            // 尝试从缓存中获取已存在的包装函数
-            var cachedFunctionWithParamsScope:Function = loccache.getItem(cacheKey);
-            if (cachedFunctionWithParamsScope != null) {
-                return cachedFunctionWithParamsScope;
-            }
-
-            // 定义包装函数，该函数在调用时会以指定的作用域执行原始方法并传入预定义参数
-            var wrappedFunctionWithParamsScope:Function = function() {
+            wrappedFunctionWithParams = function() {
                 var len:Number = params.length;
                 if (len == 0) return method.call(scope);
                 else if (len == 1) return method.call(scope, params[0]);
@@ -308,33 +297,51 @@ class org.flashNight.neur.Event.Delegate {
                 else if (len == 3) return method.call(scope, params[0], params[1], params[2]);
                 else if (len == 4) return method.call(scope, params[0], params[1], params[2], params[3]);
                 else if (len == 5) return method.call(scope, params[0], params[1], params[2], params[3], params[4]);
-                else return method.apply(scope, params);  // 参数超过5个时，使用 apply 调用
+                else return method.apply(scope, params); // 参数超过5个时，使用 apply 调用
             };
-            
-            // 将包装函数存入缓存
-            loccache.setItem(cacheKey, wrappedFunctionWithParamsScope);
-            
-            return wrappedFunctionWithParamsScope;
         }
+        
+        // 将包装函数存入缓存
+        methodCache.setItem(paramsKey, wrappedFunctionWithParams);
+        
+        return wrappedFunctionWithParams;
     }
-
+    
     /**
      * 清理缓存中的所有委托函数。
      * 需要在适当的时候调用，以防止内存泄漏。
      */
     public static function clearCache():Void {
-        // 清理缓存
+        // 确保字典已初始化
+        if (!isInitialized) {
+            return; // 如果未初始化，无需清理
+        }
+        
+        // 清理不带参数的委托缓存
+        cacheCreate.forEach(function(scope, methodDict:Dictionary):Void {
+            methodDict.destroy();
+        });
         cacheCreate.clear();
+        
+        // 清理带参数的委托缓存
+        cacheCreateWithParams.forEach(function(scope, methodDict:Dictionary):Void {
+            methodDict.forEach(function(method, paramsDict:Dictionary):Void {
+                paramsDict.destroy();
+            });
+            methodDict.destroy();
+        });
         cacheCreateWithParams.clear();
+        
+        // 清理参数缓存
         paramsCache.clear();
     }
 }
 
 
+
 /*
 
-// 假设该代码在 _root 上下文执行
-
+org.flashNight.neur.Event.Delegate.init();
 // 定义一个简单的类用于测试 scope 绑定
 var TestClass = function(name) {
     this.name = name;
@@ -515,7 +522,6 @@ trace(delegateD1 === delegateD2); // 输出: false
 var delegateE1 = org.flashNight.neur.Event.Delegate.createWithParams(null, preBoundTest, ["foo", "bar"]);
 var delegateE2 = org.flashNight.neur.Event.Delegate.createWithParams(null, preBoundTest, ["foo", "baz"]);
 trace(delegateE1 === delegateE2); // 输出: false
-
 
 
 */

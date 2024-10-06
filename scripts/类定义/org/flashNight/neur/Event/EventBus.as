@@ -40,6 +40,7 @@ class org.flashNight.neur.Event.EventBus {
      * @return EventBus 单例实例
      */
     public static function initialize():EventBus {
+        Delegate.init();
         return instance;
     }
 
