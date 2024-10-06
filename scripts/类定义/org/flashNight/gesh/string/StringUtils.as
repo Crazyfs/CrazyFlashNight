@@ -122,17 +122,6 @@ class org.flashNight.gesh.string.StringUtils {
                     "\r", "\\r"),
                 "\t", "\\t");
     }
-    
-    /**
-    * 将对象转换为JSON字符串。
-    * @param obj 要序列化的对象。
-    * @param pretty 是否格式化输出。
-    * @return JSON字符串。
-    */
-    public static function toJSON(obj:Object, pretty:Boolean):String {
-        var jsonParser:JSON = new JSON();
-        return jsonParser.stringify(obj);
-    }
 
 
     /**
