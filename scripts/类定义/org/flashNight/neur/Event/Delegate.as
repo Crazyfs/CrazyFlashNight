@@ -133,6 +133,7 @@ trace(delegateA1 === delegateA2); // 输出: true
 通过合理使用 `org.flashNight.neur.Event.Delegate` 类，可以极大提升动态参数传递和任务调度的性能。特别是在事件驱动和回调机制中，`Delegate` 的预处理和缓存机制能有效减少内存占用和函数调用开销，帮助团队在开发高效的任务调度系统时取得显著的性能提升。
 
 */
+import org.flashNight.gesh.object.ObjectUtil;
 
 class org.flashNight.neur.Event.Delegate {
     // 缓存对象，用于存储已创建的委托函数（不带预定义参数）
@@ -267,7 +268,8 @@ class org.flashNight.neur.Event.Delegate {
         }
 
         // 生成参数的唯一ID（内联 getParamsUID 的逻辑）
-        var paramsKey:String = params.toString();
+        // var paramsKey:String = ObjectUtil.toString(params);
+        var paramsKey:String = params.toString();  // 考虑常见场景，还是权限性能
         var paramsUID:Number;
         if (paramsCache[paramsKey] == undefined) {
             paramsUID = uidCounter++;
