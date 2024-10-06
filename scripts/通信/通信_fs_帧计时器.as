@@ -526,6 +526,7 @@ _root.帧计时器.添加单次任务 = function(动作, 间隔时间)
         var 绑定动作 = Delegate.createWithParams(null, 动作, 参数数组);
         绑定动作(); // 执行预绑定的动作函数
 
+
         return null; // 返回特殊值，表示任务已立即执行
     } else {
         // 任务ID生成

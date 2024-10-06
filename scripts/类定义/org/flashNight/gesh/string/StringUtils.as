@@ -1,4 +1,7 @@
-﻿class org.flashNight.gesh.string.StringUtils {   
+﻿import JSON;
+import org.flashNight.gesh.object.*;
+class org.flashNight.gesh.string.StringUtils {
+    
     // 私有静态实例，用于单例模式
     private static var instance:StringUtils = null;
     
@@ -89,8 +92,50 @@
     }
     
     // ------------------- 静态方法 -------------------
+    
+    /**
+     * 创建缩进字符串。
+     * @param depth 缩进深度。
+     * @return 缩进字符串。
+     */
+    public static function createIndent(depth:Number):String {
+        var indent:String = "";
+        for (var i:Number = 0; i < depth; i++) {
+            indent += "    "; // 每个缩进级别使用四个空格
+        }
+        return indent;
+    }
+    
+    /**
+     * 转义字符串中的特殊字符。
+     * @param str 要转义的字符串。
+     * @return 转义后的字符串。
+     */
+    public static function escapeString(str:String):String {
+        return StringUtils.replaceAll(
+                    StringUtils.replaceAll(
+                        StringUtils.replaceAll(
+                            StringUtils.replaceAll(
+                                StringUtils.replaceAll(str, "\\", "\\\\"),
+                            "\"", "\\\""),
+                        "\n", "\\n"),
+                    "\r", "\\r"),
+                "\t", "\\t");
+    }
+    
+    /**
+    * 将对象转换为JSON字符串。
+    * @param obj 要序列化的对象。
+    * @param pretty 是否格式化输出。
+    * @return JSON字符串。
+    */
+    public static function toJSON(obj:Object, pretty:Boolean):String {
+        var jsonParser:JSON = new JSON();
+        return jsonParser.stringify(obj);
+    }
 
-        /**
+
+    /**
      * 使用正则表达式在字符串中查找匹配项。
      * 
      * @param input 要搜索的字符串。
@@ -388,7 +433,11 @@
         return index != -1 && index == str.length - suffix.length;
     }
     
-    // 转义 HTML 特殊字符
+    /**
+     * 转义 HTML 特殊字符
+     * @param str 要转义的字符串
+     * @return 转义后的字符串
+     */
     public static function escapeHTML(str:String):String {
         var escaped:String = str;
         
@@ -412,7 +461,11 @@
         return escaped;
     }
     
-    // 反转义 HTML 特殊字符
+    /**
+     * 反转义 HTML 特殊字符
+     * @param str 要反转义的字符串
+     * @return 反转义后的字符串
+     */
     public static function unescapeHTML(str:String):String {
         var unescaped:String = str;
         
@@ -427,16 +480,25 @@
         return unescaped;
     }
     
-    // 转义 HTML 实体（别名）
+    /**
+     * 转义 HTML 实体（别名）
+     * @param str 要转义的字符串
+     * @return 转义后的字符串
+     */
     public static function encodeHTML(str:String):String {
         return StringUtils.escapeHTML(str);
     }
     
-    // 反转义 HTML 实体（别名）
+    /**
+     * 反转义 HTML 实体（别名）
+     * @param str 要反转义的字符串
+     * @return 反转义后的字符串
+     */
     public static function decodeHTML(str:String):String {
         return StringUtils.unescapeHTML(str);
     }
 }
+
 
 
 /*
@@ -728,5 +790,98 @@ runTest("单例模式测试 2: escapeHTML & unescapeHTML", html2, unescaped2);
 
 // 结束测试
 trace("===== 所有测试完成 =====");
+
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+
+import org.flashNight.gesh.string.StringUtils;
+
+trace("----- Test createIndent() -----");
+// 测试 createIndent 方法
+trace("Depth 0: [" + StringUtils.createIndent(0) + "]"); // 期望输出: []
+trace("Depth 1: [" + StringUtils.createIndent(1) + "]"); // 期望输出: [    ]
+trace("Depth 3: [" + StringUtils.createIndent(3) + "]"); // 期望输出: [            ]
+
+trace("\n----- Test escapeString() -----");
+// 测试 escapeString 方法
+trace(StringUtils.escapeString("Hello\nWorld")); // 期望输出: Hello\nWorld
+trace(StringUtils.escapeString("He said \"Hello\"")); // 期望输出: He said \"Hello\"
+trace(StringUtils.escapeString("Path\\to\\file")); // 期望输出: Path\\to\\file
+
+trace("\n----- Test toJSON() -----");
+// 测试 toJSON 方法
+var obj:Object = {
+    name: "AS2",
+    value: 100,
+    nested: {key: "value"},
+    list: [1, 2, 3]
+};
+
+// 测试对象的 JSON 序列化
+trace("Formatted JSON output:");
+trace(StringUtils.toJSON(obj, true)); // 期望输出格式化的JSON字符串
+
+trace("Compact JSON output:");
+trace(StringUtils.toJSON(obj, false)); // 期望输出紧凑的JSON字符串
+
+trace("\n----- Test Special Cases -----");
+// 测试特殊情况
+
+// 空对象
+trace("Empty object: " + StringUtils.toJSON({}, true)); // 期望输出: {}
+
+// 空数组
+trace("Empty array: " + StringUtils.toJSON([], true)); // 期望输出: []
+
+// null 和 undefined 的处理
+trace("Null value: " + StringUtils.toJSON(null, true)); // 期望输出: null
+trace("Undefined value: " + StringUtils.toJSON(undefined, true)); // 期望跳过 undefined 属性
+
+// 循环引用处理
+var objWithCycle:Object = {};
+objWithCycle.self = objWithCycle;
+trace("Cycle object: " + StringUtils.toJSON(objWithCycle, true)); // 期望输出: null 或者处理循环引用的方式
+
+trace("\n----- Test Combined Object -----");
+// 复杂对象组合测试
+var complexObj:Object = {
+    name: "Test Object",
+    array: [1, 2, 3, "test\nstring"],
+    nested: {a: 10, b: "Hello \"World\""},
+    date: new Date(),
+    escapeTest: "Line1\nLine2\\Path"
+};
+
+trace("Complex Object JSON output:");
+trace(StringUtils.toJSON(complexObj, true)); // 期望输出格式化的JSON字符串
+
+trace("\n----- Test Performance with Large Object -----");
+// 性能测试 - 测试大对象的 JSON 序列化
+var largeObj:Object = {};
+for (var i:Number = 0; i < 1000; i++) {
+    largeObj["key" + i] = "value" + i;
+}
+
+trace("Large object toJSON performance:");
+trace(StringUtils.toJSON(largeObj, false)); // 测试性能和输出正确性
 
 */
