@@ -1,4 +1,5 @@
 ﻿import org.flashNight.neur.Event.*;
+import org.flashNight.naki.DataStructures.Dictionary;
 
 /**
  * EventBus 类用于事件的订阅、发布和管理。

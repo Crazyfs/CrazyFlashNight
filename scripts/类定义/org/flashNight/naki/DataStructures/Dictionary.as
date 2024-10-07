@@ -191,6 +191,21 @@ class org.flashNight.naki.DataStructures.Dictionary extends Object {
     }
 
     /**
+     * 设置uid，以获得对象的唯一标识符管理
+     * @param key 键（可以是字符串、对象或函数）
+     * @return 返回与该键关联的值，如果键不存在则返回 null,返回number以便进行数学运算加速
+     */
+    public function getUID(key:Object):Number {
+        var uid:Number = key.__dictUID;
+        if (uid === undefined) {
+            uid = key.__dictUID = uidCounter++;
+            uidMap[uid] = key;
+        }
+        return uid;
+    }
+
+
+    /**
      * 添加或更新键值对
      * @param key 键（可以是字符串、对象或函数）
      * @param value 与键关联的值
