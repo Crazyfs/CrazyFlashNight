@@ -192,7 +192,14 @@ _root.读取数据库存盘 = function()
 _root.本地存盘 = function()
 {
    var mysave = SharedObject.getLocal("crazyflasher7_saves");
-   //_root.服务器.发布服务器消息(ObjectUtil.toCompress(mysave));
+
+   //var json = ObjectUtil.toJSON(mysave);
+   //_root.服务器.发布服务器消息(json);
+   //_root.服务器.发布服务器消息(" ");
+   //var compress = ObjectUtil.toCompress(mysave)
+   //_root.发布消息(compress);
+   //_root.服务器.发布服务器消息(" ");
+   //_root.服务器.发布服务器消息(ObjectUtil.toJSON(ObjectUtil.fromCompress(compress)));
    mysave.data[存盘名] = _root.mydata;
    mysave.flush();
 }

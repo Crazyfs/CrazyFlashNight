@@ -113,8 +113,12 @@ class org.flashNight.gesh.string.StringUtils {
         var lzwCompressed:String = LZW.compress(rleCompressed);
         trace("LZW 压缩后的结果: " + lzwCompressed);
         
-        // 3. 返回压缩结果
-        return lzwCompressed;
+        // 3. 使用 Hex16Encoder 对最终的压缩结果进行 16 进制编码以减少存储空间
+        var hexEncoded:String = Hex16Encoder.encode(lzwCompressed);
+        trace("LZW 压缩并编码后的结果: " + hexEncoded);
+        
+        // 4. 返回压缩并编码的最终结果
+        return hexEncoded;
     }
 
     /**
@@ -128,17 +132,22 @@ class org.flashNight.gesh.string.StringUtils {
             return "";
         }
 
-        // 1. 先进行 LZW 解压
-        var lzwDecompressed:String = LZW.decompress(compressed);
+        // 1. 使用 Hex16Encoder 进行 16 进制解码
+        var hexDecoded:String = Hex16Encoder.decode(compressed);
+        trace("编码解码后的结果: " + hexDecoded);
+
+        // 2. 先进行 LZW 解压
+        var lzwDecompressed:String = LZW.decompress(hexDecoded);
         trace("LZW 解压后的结果: " + lzwDecompressed);
         
-        // 2. 再进行 RLE 解压
+        // 3. 再进行 RLE 解压
         var rleDecompressed:String = RLE.decompress(lzwDecompressed);
         trace("RLE 解压后的结果: " + rleDecompressed);
         
-        // 3. 返回解压结果
+        // 4. 返回解压结果
         return rleDecompressed;
     }
+
     
     /**
      * 创建缩进字符串。
