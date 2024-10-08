@@ -272,3 +272,31 @@ class org.flashNight.gesh.string.LZW {
         return str;
     }
 }
+
+
+/*
+
+// 测试脚本：RLETest.as
+
+import org.flashNight.naki.DataStructures.*;
+import org.flashNight.gesh.string.*;
+
+// 测试 LZW 压缩和解压缩
+var testStr:String = "TOBEORNOTTOBEORTOBEORNOT";
+trace("===== 开始测试 LZW 编码和解码 =====");
+trace("测试字符串: " + testStr);
+
+// 开始编码
+var compressed:String = org.flashNight.gesh.string.LZW.compress(testStr);
+trace("编码后的十六进制字符串: " + compressed);
+
+// 开始解码
+var decompressed:String = org.flashNight.gesh.string.LZW.decompress(compressed);
+trace("解码后的字符串: " + decompressed);
+
+// 检查是否匹配
+var match:Boolean = (testStr == decompressed);
+trace("编码后解码是否匹配: " + match);
+trace("===== 测试完成 =====");
+
+*/

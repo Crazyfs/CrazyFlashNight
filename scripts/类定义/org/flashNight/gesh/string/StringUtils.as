@@ -96,15 +96,21 @@ class org.flashNight.gesh.string.StringUtils {
 
     /**
      * 压缩字符串
-     * 使用 LZW 算法对字符串进行压缩
+     * 使用 RLE 和 LZW 算法对字符串进行组合压缩
      * 
      * @param input 要压缩的字符串
      * @return 压缩后的字符串（16 进制编码）
      */
     public static function compress(input:String):String {
-        return LZW.compress(input);
+        // 先进行 RLE 压缩
+        var rleCompressed:String = RLE.compress(input);
+        
+        // 再进行 LZW 压缩
+        var lzwCompressed:String = LZW.compress(rleCompressed);
+        
+        return lzwCompressed;
     }
-    
+
     /**
      * 解压缩字符串
      * 将压缩的字符串解压缩回原始形式
@@ -113,7 +119,13 @@ class org.flashNight.gesh.string.StringUtils {
      * @return 解压缩后的原始字符串
      */
     public static function decompress(compressed:String):String {
-        return LZW.decompress(compressed);
+        // 先进行 LZW 解压
+        var lzwDecompressed:String = LZW.decompress(compressed);
+        
+        // 再进行 RLE 解压
+        var rleDecompressed:String = RLE.decompress(lzwDecompressed);
+        
+        return rleDecompressed;
     }
     
     /**
