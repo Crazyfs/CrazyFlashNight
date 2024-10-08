@@ -95,36 +95,48 @@ class org.flashNight.gesh.string.StringUtils {
     // ------------------- 静态方法 -------------------
 
     /**
-     * 压缩字符串
-     * 使用 RLE 和 LZW 算法对字符串进行组合压缩
+     * 使用 RLE 和 LZW 组合压缩字符串
      * 
      * @param input 要压缩的字符串
-     * @return 压缩后的字符串（16 进制编码）
+     * @return 压缩后的字符串（经过 16 进制编码）
      */
     public static function compress(input:String):String {
-        // 先进行 RLE 压缩
+        if (input == null || input.length == 0) {
+            return "";
+        }
+
+        // 1. 先进行 RLE 压缩
         var rleCompressed:String = RLE.compress(input);
+        trace("RLE 压缩后的结果: " + rleCompressed);
         
-        // 再进行 LZW 压缩
+        // 2. 再进行 LZW 压缩
         var lzwCompressed:String = LZW.compress(rleCompressed);
+        trace("LZW 压缩后的结果: " + lzwCompressed);
         
+        // 3. 返回压缩结果
         return lzwCompressed;
     }
 
     /**
      * 解压缩字符串
-     * 将压缩的字符串解压缩回原始形式
      * 
-     * @param compressed 压缩后的字符串（16 进制编码）
+     * @param compressed 压缩后的字符串（经过 16 进制编码）
      * @return 解压缩后的原始字符串
      */
     public static function decompress(compressed:String):String {
-        // 先进行 LZW 解压
+        if (compressed == null || compressed.length == 0) {
+            return "";
+        }
+
+        // 1. 先进行 LZW 解压
         var lzwDecompressed:String = LZW.decompress(compressed);
+        trace("LZW 解压后的结果: " + lzwDecompressed);
         
-        // 再进行 RLE 解压
+        // 2. 再进行 RLE 解压
         var rleDecompressed:String = RLE.decompress(lzwDecompressed);
+        trace("RLE 解压后的结果: " + rleDecompressed);
         
+        // 3. 返回解压结果
         return rleDecompressed;
     }
     

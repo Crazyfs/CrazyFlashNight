@@ -1,11 +1,12 @@
 ﻿/**
  * LZW 压缩和解压缩类（支持16进制编码）
+ * 经过优化，适应 RLE 压缩后的数据特性
  * 
- * @version 2.1
+ * @version 2.2
  * @author fs
  */
 class org.flashNight.gesh.string.LZW {
-    
+
     private static var MAX_DICT_SIZE:Number = 4096; // 最大字典大小
     private static var HEX_DIGITS:Number = 4; // 每个编码的十六进制位数
 
@@ -26,7 +27,7 @@ class org.flashNight.gesh.string.LZW {
 
         var dict:Object = {};
         var output:Array = [];
-        var phrase:String = byteString.charAt(0);
+        var phrase:String = "";
         var code:Number = 256; // 初始编码，从256开始，因为0-255为单字符编码
 
         // 初始化字典，添加所有单字节字符
@@ -34,22 +35,38 @@ class org.flashNight.gesh.string.LZW {
             dict[String.fromCharCode(i)] = i;
         }
 
+        // 预添加 RLE 常见符号和序列
+        var rleSymbols:Array = ["#", ";", "\\", "#1;", "#2;", "#3;", "#4;", "#5;", "#6;", "#7;", "#8;", "#9;"];
+        for (var s:Number = 0; s < rleSymbols.length; s++) {
+            if (code < MAX_DICT_SIZE) {
+                dict[rleSymbols[s]] = code++;
+            }
+        }
+
+        var currentChar:String;
+        phrase = byteString.charAt(0);
+
         for (var j:Number = 1; j < byteString.length; j++) {
-            var currentChar:String = byteString.charAt(j);
+            currentChar = byteString.charAt(j);
             var combined:String = phrase + currentChar;
+
             if (dict[combined] != undefined) {
                 phrase = combined;
             } else {
                 output.push(dict[phrase]);
+
+                // 添加新条目到字典
                 if (code < MAX_DICT_SIZE) {
-                    dict[combined] = code;
-                    code++;
+                    dict[combined] = code++;
+                } else {
+                    // 字典已满，考虑重置或清理字典
+                    // 此处我们暂不处理，简单地继续使用已满的字典
                 }
+
                 phrase = currentChar;
             }
         }
 
-        // 输出最后一个字串
         output.push(dict[phrase]);
 
         // 将编码数组转换为固定长度的16进制字符串
@@ -85,6 +102,14 @@ class org.flashNight.gesh.string.LZW {
             dict[i] = String.fromCharCode(i);
         }
 
+        // 预添加 RLE 常见符号和序列
+        var rleSymbols:Array = ["#", ";", "\\", "#1;", "#2;", "#3;", "#4;", "#5;", "#6;", "#7;", "#8;", "#9;"];
+        for (var s:Number = 0; s < rleSymbols.length; s++) {
+            if (code < MAX_DICT_SIZE) {
+                dict[code++] = rleSymbols[s];
+            }
+        }
+
         for (var j:Number = 1; j < data.length; j++) {
             currentCode = parseInt(data[j], 16);
             var phrase:String;
@@ -100,8 +125,10 @@ class org.flashNight.gesh.string.LZW {
 
             // 添加新字串到字典
             if (code < MAX_DICT_SIZE) {
-                dict[code] = oldPhrase + phrase.charAt(0);
-                code++;
+                dict[code++] = oldPhrase + phrase.charAt(0);
+            } else {
+                // 字典已满，考虑重置或清理字典
+                // 此处我们暂不处理，简单地继续使用已满的字典
             }
 
             oldPhrase = phrase;
@@ -113,7 +140,7 @@ class org.flashNight.gesh.string.LZW {
     }
 
     /**
-     * 将编码数字转换为字符串（仅限0-255）
+     * 将编码数字转换为字符串（0-255 或预添加的 RLE 符号）
      * @param code 编码数字
      * @return 字符串
      */
@@ -121,7 +148,7 @@ class org.flashNight.gesh.string.LZW {
         if (code >= 0 && code < 256) {
             return String.fromCharCode(code);
         } else {
-            // 对于大于等于256的编码，初始dict中未定义，返回空字符串
+            // 对于大于等于256的编码，需要在字典中查找
             return "";
         }
     }
@@ -276,27 +303,71 @@ class org.flashNight.gesh.string.LZW {
 
 /*
 
-// 测试脚本：RLETest.as
+import org.flashNight.gesh.string.RLE;
+import org.flashNight.gesh.string.LZW;
+import org.flashNight.gesh.string.Compression;
 
-import org.flashNight.naki.DataStructures.*;
-import org.flashNight.gesh.string.*;
+trace("===== 测试 LZW 编码和解压 =====");
 
-// 测试 LZW 压缩和解压缩
-var testStr:String = "TOBEORNOTTOBEORTOBEORNOT";
-trace("===== 开始测试 LZW 编码和解码 =====");
-trace("测试字符串: " + testStr);
+// 测试数据集合
+var testData:Array = [
+    // Test 1: 基本的英文字符串
+    { description: "基本的英文字符串", data: "Hello, this is a test string for LZW compression." },
+    
+    // Test 2: 包含中文字符
+    { description: "包含中文字符", data: "这是一个包含中文字符的测试字符串。" },
+    
+    // Test 3: 包含特殊符号
+    { description: "包含特殊符号", data: "特殊符号测试：!@#$%^&*()_+-=[]{}|;':\",./<>?" },
+    
+    // Test 4: 包含表情符号
+    { description: "包含表情符号", data: "表情符号测试：😀😁😂🤣😃😄😅😆😉😊😋😎😍😘" },
+    
+    // Test 5: 长字符串测试
+    { description: "长字符串测试", data: "这是一个较长的字符串，用于测试压缩算法在处理较长文本时的性能和正确性。" +
+      "包括多种字符类型：英文、中文、数字1234567890、特殊符号~!@#$%^&*()_+。" },
+    
+    // Test 6: RLE 压缩后的字符串
+    { description: "RLE 压缩后的字符串", data: RLE.compress("aaaabbbccddeeefffgggghhhhiiiijjjjkkkk") },
+    
+    // Test 7: RLE 压缩后的中文字符串
+    { description: "RLE 压缩后的中文字符串", data: RLE.compress("测试测试测试测试测试") },
+    
+    // Test 8: JSON 字符串测试
+    { description: "JSON 字符串测试", data: '{"name":"测试","age":30,"city":"北京","languages":["中文","English"]}' }
+];
 
-// 开始编码
-var compressed:String = org.flashNight.gesh.string.LZW.compress(testStr);
-trace("编码后的十六进制字符串: " + compressed);
+// 测试函数
+function testLZWCompression(testItem:Object):Void {
+    var description:String = testItem.description;
+    var inputData:String = testItem.data;
+    
+    trace("\n测试：" + description);
+    trace("原始数据长度：" + inputData.length);
+    
+    // 压缩数据
+    var compressedData:String = LZW.compress(inputData);
+    trace("压缩后数据长度：" + compressedData.length);
+    
+    // 解压数据
+    var decompressedData:String = LZW.decompress(compressedData);
+    trace("解压后数据长度：" + decompressedData.length);
+    
+    // 验证解压后的数据是否与原始数据一致
+    var isMatch:Boolean = (inputData == decompressedData);
+    trace("解压后是否与原始数据匹配：" + isMatch);
+    
+    if (!isMatch) {
+        trace("原始数据：" + inputData);
+        trace("解压后数据：" + decompressedData);
+    }
+}
 
-// 开始解码
-var decompressed:String = org.flashNight.gesh.string.LZW.decompress(compressed);
-trace("解码后的字符串: " + decompressed);
+// 逐个测试
+for (var i:Number = 0; i < testData.length; i++) {
+    testLZWCompression(testData[i]);
+}
 
-// 检查是否匹配
-var match:Boolean = (testStr == decompressed);
-trace("编码后解码是否匹配: " + match);
-trace("===== 测试完成 =====");
+trace("\n===== LZW 编码和解压测试完成 =====");
 
 */

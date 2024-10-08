@@ -383,6 +383,45 @@ class org.flashNight.gesh.object.ObjectUtil {
         return fromJSON(jsonString);
     }
 
+    /**
+     * 将对象序列化为压缩后的 Base64 编码字符串。
+     * @param obj 要序列化的对象。
+     * @param pretty 是否格式化输出 JSON。
+     * @return String 压缩并编码后的 Base64 字符串，或 null 如果失败。
+     */
+    public static function toCompress(obj:Object, pretty:Boolean):String {
+        var jsonString:String = toJSON(obj, pretty);
+        if (jsonString == null) {
+            trace("ObjectUtil.toBase64: 序列化为 JSON 失败");
+            return null;
+        }
+
+        // 压缩 JSON 字符串
+        var compressedString:String = StringUtils.compress(jsonString);
+        if (compressedString == null) {
+            trace("ObjectUtil.toBase64: 压缩 JSON 失败");
+            return null;
+        }
+        return compressedString;
+    }
+
+    /**
+     * 从压缩并编码的 Base64 字符串解析对象。
+     * @param base64String 压缩并编码后的 Base64 字符串。
+     * @return Object 解析后的对象，或 null 如果失败。
+     */
+    public static function fromCompress(compressedString:String):Object {
+        // 解压缩字符串
+        var jsonString:String = StringUtils.decompress(compressedString);
+        if (jsonString == null) {
+            trace("ObjectUtil.fromBase64: 解压缩失败");
+            return null;
+        }
+
+        // 将 JSON 字符串解析为对象
+        return fromJSON(jsonString);
+    }
+
 }
 
 
