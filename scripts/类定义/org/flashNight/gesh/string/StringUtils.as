@@ -1,5 +1,6 @@
 ﻿import JSON;
 import org.flashNight.gesh.object.*;
+import org.flashNight.gesh.string.*;
 class org.flashNight.gesh.string.StringUtils {
     
     // 私有静态实例，用于单例模式
@@ -92,6 +93,28 @@ class org.flashNight.gesh.string.StringUtils {
     }
     
     // ------------------- 静态方法 -------------------
+
+    /**
+     * 压缩字符串
+     * 使用 LZW 算法对字符串进行压缩
+     * 
+     * @param input 要压缩的字符串
+     * @return 压缩后的字符串（16 进制编码）
+     */
+    public static function compress(input:String):String {
+        return LZW.compress(input);
+    }
+    
+    /**
+     * 解压缩字符串
+     * 将压缩的字符串解压缩回原始形式
+     * 
+     * @param compressed 压缩后的字符串（16 进制编码）
+     * @return 解压缩后的原始字符串
+     */
+    public static function decompress(compressed:String):String {
+        return LZW.decompress(compressed);
+    }
     
     /**
      * 创建缩进字符串。
@@ -776,6 +799,29 @@ var html2:String = "5 > 3 & 2 < 4";
 var escaped2:String = StringUtils.escapeHTML(html2);
 var unescaped2:String = StringUtils.unescapeHTML(escaped2);
 runTest("单例模式测试 2: escapeHTML & unescapeHTML", html2, unescaped2);
+
+// 26. 压缩与解压缩
+trace("----- 测试 compress 和 decompress 方法 -----");
+
+var original1:String = "Hello, World!";
+var compressed1:String = StringUtils.compress(original1);
+var decompressed1:String = StringUtils.decompress(compressed1);
+runTest("compress/decompress ('Hello, World!')", original1, decompressed1);
+
+var original2:String = "aaaaaaaaaa";
+var compressed2:String = StringUtils.compress(original2);
+var decompressed2:String = StringUtils.decompress(compressed2);
+runTest("compress/decompress ('aaaaaaaaaa')", original2, decompressed2);
+
+var original3:String = "This is a longer test string that will be compressed and decompressed using LZW algorithm.";
+var compressed3:String = StringUtils.compress(original3);
+var decompressed3:String = StringUtils.decompress(compressed3);
+runTest("compress/decompress (long string)", original3, decompressed3);
+
+var original4:String = "你好，世界！🌍";
+var compressed4:String = StringUtils.compress(original4);
+var decompressed4:String = StringUtils.decompress(compressed4);
+runTest("compress/decompress ('你好，世界！🌍')", original4, decompressed4);
 
 // 结束测试
 trace("===== 所有测试完成 =====");

@@ -487,13 +487,26 @@ var jsonString:String = '{"name":"Test","age":25,"info":{"city":"New York"}}';
 var parsedObj:Object = ObjectUtil.fromJSON(jsonString);
 trace("解析后的对象: " + ObjectUtil.toString(parsedObj)); // 应输出 {"name": "Test", "age": 25, "info": {"city": "New York"}}
 
-var invalidJson:String = '{"name": "Test", "age": 25,';
+var invalidJson:String = '{"name": "Test", "age": 25,'; // Invalid JSON string
 var invalidParsed:Object = ObjectUtil.fromJSON(invalidJson);
 trace("无效 JSON 解析结果: " + invalidParsed); // 应输出 null
 
 trace("fromJSON 方法测试完成。\n");
 
-trace("\n测试完毕。");
+// 11. 测试 toBase64 和 fromBase64 方法
+trace("测试 toBase64 和 fromBase64 方法...");
+var testObject:Object = { name: "Test", value: 123, nested: { key: "value" } };
 
+var base64String:String = ObjectUtil.toBase64(testObject, false);
+trace("Base64 编码结果: " + base64String); // 输出 Base64 编码结果
+
+var decodedObject:Object = ObjectUtil.fromBase64(base64String);
+trace("从 Base64 解析的对象: " + ObjectUtil.toString(decodedObject)); // 输出解码结果
+
+trace("对象是否一致: " + ObjectUtil.equals(testObject, decodedObject)); // 应该输出 true
+
+trace("toBase64 和 fromBase64 方法测试完成。\n");
+
+trace("\n测试完毕。");
 
 */
