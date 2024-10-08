@@ -1,4 +1,6 @@
-﻿_root.mydata数据组包 = function()
+﻿import org.flashNight.gesh.object.ObjectUtil;
+
+_root.mydata数据组包 = function()
 {
    _root.身价 = _root.基础身价值 * _root.等级;
    var 主角储存数据 = [_root.角色名,_root.性别,_root.金钱,_root.等级,_root.经验值,_root.身高,_root.技能点数,_root.玩家称号,_root.身价,_root.虚拟币,_root.键值设定,_root.difficultyMode,_root.佣兵是否出战信息,_root.easterEgg, _root.天气系统.开启昼夜系统];
@@ -190,6 +192,7 @@ _root.读取数据库存盘 = function()
 _root.本地存盘 = function()
 {
    var mysave = SharedObject.getLocal("crazyflasher7_saves");
+   //_root.服务器.发布服务器消息(ObjectUtil.toCompress(mysave));
    mysave.data[存盘名] = _root.mydata;
    mysave.flush();
 }
