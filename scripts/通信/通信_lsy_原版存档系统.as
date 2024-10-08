@@ -189,20 +189,47 @@ _root.读取数据库存盘 = function()
    };
 }
 
-_root.本地存盘 = function()
-{
-   var mysave = SharedObject.getLocal("crazyflasher7_saves");
+_root.本地存盘 = function() {
+    var mysave = SharedObject.getLocal("crazyflasher7_saves");
 
-   //var json = ObjectUtil.toJSON(mysave);
-   //_root.服务器.发布服务器消息(json);
-   //_root.服务器.发布服务器消息(" ");
-   //var compress = ObjectUtil.toCompress(mysave)
-   //_root.发布消息(compress);
-   //_root.服务器.发布服务器消息(" ");
-   //_root.服务器.发布服务器消息(ObjectUtil.toJSON(ObjectUtil.fromCompress(compress)));
-   mysave.data[存盘名] = _root.mydata;
-   mysave.flush();
-}
+    // Store the actual game data in the SharedObject
+    mysave.data[存盘名] = _root.mydata;
+    mysave.flush();  // Save the data to disk
+    
+   /*
+    // Convert the saved object to JSON format for testing and display purposes
+    var json = ObjectUtil.toJSON(mysave.data);  // Serialize saved data to JSON
+
+    // Step 1: Create a text field for displaying the JSON data
+    if (!_root.saveDataField) {
+        _root.createTextField("saveDataField", 9999, 10, 50, 380, 180);
+        _root.saveDataField.border = true;
+        _root.saveDataField.multiline = true;
+        _root.saveDataField.wordWrap = true;
+        _root.saveDataField.text = "Game data (in JSON format) will be shown here...";
+    }
+
+    // Step 2: Create a button for manually saving data
+    if (!_root.saveButton) {
+        _root.createTextField("saveButton", 9998, 400, 50, 100, 25);
+        _root.saveButton.border = true;
+        _root.saveButton.background = true;
+        _root.saveButton.backgroundColor = 0xCCCCCC;
+        _root.saveButton.text = "Save Data";
+        _root.saveButton.selectable = false;
+        _root.saveButton.onRelease = function() {
+            _root.本地存盘();  // Trigger the save function and display the JSON
+        };
+    }
+
+    // Display the JSON data in the text field for easy copy-paste testing
+    _root.saveDataField.text = json;  // Display the JSON string in the text field
+    */
+};
+
+
+
+
 
 _root.读取本地存盘 = function()
 {
