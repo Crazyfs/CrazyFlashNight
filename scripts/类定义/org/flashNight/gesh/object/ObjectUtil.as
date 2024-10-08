@@ -1,6 +1,7 @@
 ﻿import org.flashNight.gesh.string.StringUtils;
 import org.flashNight.naki.Sort.InsertionSort;
 import JSON;
+import Base64;
 import org.flashNight.naki.DataStructures.Dictionary;
 
 class org.flashNight.gesh.object.ObjectUtil {
@@ -333,6 +334,42 @@ class org.flashNight.gesh.object.ObjectUtil {
             return null; // 处理异常并返回 null
         }
     }
+
+    /**
+     * 将对象序列化为 Base64 编码的字符串。
+     * @param obj 要序列化的对象。
+     * @param pretty 是否格式化输出 JSON。
+     * @return String Base64 编码的字符串，或 null 如果失败。
+     */
+    public static function toBase64(obj:Object, pretty:Boolean):String {
+        var jsonString:String = toJSON(obj, pretty);
+        // trace("序列化为 JSON: " + jsonString); // 调试输出 JSON 字符串
+        if (jsonString == null) {
+            trace("ObjectUtil.toBase64: 序列化为 JSON 失败");
+            return null;
+        }
+
+        var base64String:String = Base64.encode(jsonString);  // 将 JSON 字符串编码为 Base64
+        // trace("Base64 编码结果: " + base64String); // 调试输出 Base64 编码结果
+        return base64String;
+    }
+
+    /**
+     * 从 Base64 字符串解析对象。
+     * @param base64String Base64 编码的字符串。
+     * @return Object 解析后的对象，或 null 如果失败。
+     */
+    public static function fromBase64(base64String:String):Object {
+        var jsonString:String = Base64.decode(base64String);
+        // trace("Base64 解码为 JSON: " + jsonString);  // 调试输出 JSON 解码结果
+        if (jsonString == null) {
+            trace("ObjectUtil.fromBase64: Base64 解码失败");
+            return null;
+        }
+
+        return fromJSON(jsonString);  // 将 JSON 字符串解析为对象
+    }
+
 }
 
 
