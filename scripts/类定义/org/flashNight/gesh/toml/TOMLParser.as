@@ -1,4 +1,6 @@
-﻿class org.flashNight.gesh.toml.TOMLParser {
+﻿import org.flashNight.gesh.object.ObjectUtil;
+
+class org.flashNight.gesh.toml.TOMLParser {
     private var tokens:Array;       // 词法分析器生成的标记列表
     private var position:Number;    // 当前标记位置
     private var current:Object;     // 当前正在处理的对象
@@ -14,9 +16,10 @@
     }
 
     public function parse():Object {
+        trace("TOMLParser.parse: 开始解析");
         while (this.position < this.tokens.length) {
             var token:Object = this.tokens[this.position];
-            // trace("Processing token: " + token.type + " => " + token.value);
+            trace("TOMLParser.parse: 处理 token " + this.position + ": " + token.type + " => " + token.value);
 
             switch (token.type) {
                 case "KEY":
@@ -31,15 +34,17 @@
                     this.position++;
                     break;
                 default:
+                    trace("TOMLParser.parse: 未处理的 token 类型: " + token.type);
                     this.position++;
                     break;
             }
 
             if (this.hasErrorFlag) {
+                trace("TOMLParser.parse: 解析过程中遇到错误，停止解析");
                 break; // 停止解析
             }
         }
-
+        trace("TOMLParser.parse: 解析完成");
         return this.root;
     }
 
@@ -49,7 +54,7 @@
 
     private function handleKey(token:Object):Void {
         var key:String = token.value;
-        // trace("Handling key: " + key);
+        trace("TOMLParser.handleKey: 处理键: " + key);
 
         var nextPos:Number = this.position + 1;
         if (nextPos >= this.tokens.length || this.tokens[nextPos].type != "EQUALS") {
@@ -65,7 +70,7 @@
 
         var valueToken:Object = this.tokens[valuePos];
         var value:Object = this.parseValue(valueToken);
-        // trace("Parsed value for key '" + key + "': " + value);
+        trace("TOMLParser.handleKey: 解析键 '" + key + "' 的值: " + ObjectUtil.toString(value));
 
         if (value !== null) {
             this.current[key] = value;
@@ -78,7 +83,7 @@
     }
 
     private function parseValue(token:Object):Object {
-        // trace("Parsing value: " + token.type + " => " + token.value);
+        trace("TOMLParser.parseValue: 解析值 - 类型: " + token.type + ", 值: " + token.value);
         switch (token.type) {
             case "STRING":
                 return token.value;
@@ -93,6 +98,7 @@
             case "ARRAY":
                 // 检查 token.value 是否已经是数组
                 if (token.value instanceof Array) {
+                    trace("TOMLParser.parseValue: 数组已解析");
                     return token.value;
                 } else {
                     return this.parseArray(token.value);
@@ -106,11 +112,12 @@
     }
 
     private function parseArray(arrayData):Array {
-        // trace("Parsing array: " + arrayData + ", type: " + typeof(arrayData));
+        trace("TOMLParser.parseArray: 解析数组");
         var array:Array = [];
 
         // 如果 arrayData 是数组，直接返回
         if (arrayData instanceof Array) {
+            trace("TOMLParser.parseArray: arrayData 已经是数组");
             return arrayData;
         }
 
@@ -127,9 +134,10 @@
         // 移除所有换行符并修剪
         arrayData = this.removeLineBreaks(arrayData);
         arrayData = org.flashNight.gesh.string.StringUtils.trim(arrayData);
-        // trace("Array after trimming and removing line breaks: " + arrayData);
+        trace("TOMLParser.parseArray: arrayData = " + arrayData);
 
         if (arrayData.length == 0) {
+            trace("TOMLParser.parseArray: 空数组");
             return array; // 返回空数组
         }
 
@@ -137,7 +145,7 @@
         var elements:Array = arrayData.split(",");
         for (var i:Number = 0; i < elements.length; i++) {
             var elem:String = org.flashNight.gesh.string.StringUtils.trim(elements[i]);
-            // trace("Array element " + i + ": " + elem);
+            trace("TOMLParser.parseArray: 解析元素 " + i + ": " + elem);
 
             if (elem.length == 0) continue;
 
@@ -156,7 +164,7 @@
     }
 
     private function parseInlineTable(tableStr:String):Object {
-        // trace("Parsing inline table: " + tableStr);
+        trace("TOMLParser.parseInlineTable: 解析内联表格");
         var table:Object = {};
 
         if (tableStr.charAt(0) == "{" && tableStr.charAt(tableStr.length - 1) == "}") {
@@ -166,7 +174,7 @@
         var pairs:Array = tableStr.split(",");
         for (var i:Number = 0; i < pairs.length; i++) {
             var pairStr:String = org.flashNight.gesh.string.StringUtils.trim(pairs[i]);
-            // trace("Inline table pair " + i + ": " + pairStr);
+            trace("TOMLParser.parseInlineTable: 解析键值对 " + i + ": " + pairStr);
             if (pairStr.length == 0) continue;
 
             var eqIndex:Number = pairStr.indexOf("=");
@@ -193,20 +201,21 @@
                 value = valueStr;
             }
 
-            // trace("Inline table parsed pair: " + key + " => " + value);
+            trace("TOMLParser.parseInlineTable: 解析结果 - " + key + " = " + value);
             table[key] = value;
         }
         return table;
     }
 
     private function handleTableHeader(tableName:String):Void {
-        // trace("Handling table header: " + tableName);
+        trace("TOMLParser.handleTableHeader: 处理表格头 - " + tableName);
         var path:Array = tableName.split(".");
         var current:Object = this.root;
         for (var i:Number = 0; i < path.length; i++) {
             var part:String = path[i];
             if (!current[part]) {
                 current[part] = {};
+                trace("TOMLParser.handleTableHeader: 创建嵌套表格 - " + part);
             }
             current = current[part];
         }
@@ -214,17 +223,19 @@
     }
 
     private function handleTableArray(arrayName:String):Void {
-        // trace("Handling table array: " + arrayName);
+        trace("TOMLParser.handleTableArray: 处理表格数组 - " + arrayName);
         var path:Array = arrayName.split(".");
         var current:Object = this.root;
         for (var i:Number = 0; i < path.length; i++) {
             var part:String = path[i];
             if (!current[part]) {
                 current[part] = [];
+                trace("TOMLParser.handleTableArray: 创建表格数组 - " + part);
             }
             if (i == path.length - 1) {
                 var newTable:Object = {};
                 current[part].push(newTable);
+                trace("TOMLParser.handleTableArray: 添加新表格到数组 - " + part);
                 current = newTable;
             } else {
                 current = current[part];
@@ -242,7 +253,7 @@
     }
 
     private function removeLineBreaks(str:String):String {
-        // trace("removeLineBreaks input: " + str + ", type: " + typeof(str));
+        trace("TOMLParser.removeLineBreaks: 移除换行符");
         // 确保 str 是字符串
         if (typeof(str) != "string") {
             str = String(str);
@@ -254,7 +265,7 @@
                 result += c;
             }
         }
-        // trace("removeLineBreaks output: " + result);
+        trace("TOMLParser.removeLineBreaks: 结果 - " + result);
         return result;
     }
 

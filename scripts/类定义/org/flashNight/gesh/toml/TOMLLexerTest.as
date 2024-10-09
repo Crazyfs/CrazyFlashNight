@@ -164,20 +164,19 @@
                       'ports = [8001, 8001, 8002]\n' +
                       'connection_max = 5000\n' +
                       'enabled = true\n',
-                expected: {
-                    title: "TOML Example",
-                    owner: { name: "Tom", dob: "1979-05-27" },
-                    products: [
-                        { name: "Hammer", sku: 738594937 },
-                        { name: "Nail", sku: 284758393 }
-                    ],
-                    database: {
-                        server: "192.168.1.1",
-                        ports: [8001, 8001, 8002],
-                        connection_max: 5000,
-                        enabled: true
-                    }
-                }
+                expected: 'owner = { dob = "1979-05-27", name = "Tom" }\n' +
+                          'title = "TOML Example"\n' +
+                          '[[products]]\n' +
+                          'name = "Hammer"\n' +
+                          'sku = 738594937\n' +
+                          '[[products]]\n' +
+                          'name = "Nail"\n' +
+                          'sku = 284758393\n' +
+                          '[database]\n' +
+                          'connection_max = 5000\n' +
+                          'enabled = true\n' +
+                          'ports = [8001, 8001, 8002]\n' +
+                          'server = "192.168.1.1"\n'
             },
             {   // Test case 9: Unicode characters
                 text: 'greeting = "こんにちは"\nemoji = "😊"\n',
@@ -192,6 +191,52 @@
                     escaped_newline: "Line1\nLine2",
                     escaped_quote: 'He said, "Hello!"'
                 }
+            },
+            {   // Test case 11: Mixed complex structures
+                text: '[server]\n' +
+                      'host = "localhost"\n' +
+                      'ports = [8000, 8001, 8002]\n' +
+                      'connection_max = 5000\n' +
+                      'enabled = true\n' +
+                      '[[owners]]\n' +
+                      'name = "Alice"\n' +
+                      'dob = "1990-01-01"\n' +
+                      '[[owners]]\n' +
+                      'name = "Bob"\n' +
+                      'dob = "1985-05-12"\n' +
+                      '[database]\n' +
+                      'server = "192.168.1.100"\n' +
+                      'ports = [3306]\n' +
+                      'connection_max = 10000\n' +
+                      'enabled = false\n' +
+                      '[[users]]\n' +
+                      'name = "user1"\n' +
+                      'active = true\n' +
+                      '[[users]]\n' +
+                      'name = "user2"\n' +
+                      'active = false\n',
+                expected: '[[users]]\n' +
+                          'active = true\n' +
+                          'name = "user1"\n' +
+                          '[[users]]\n' +
+                          'active = false\n' +
+                          'name = "user2"\n' +
+                          '[server]\n' +
+                          'connection_max = 5000\n' +
+                          'enabled = true\n' +
+                          'host = "localhost"\n' +
+                          'ports = [8000, 8001, 8002]\n' +
+                          '[[owners]]\n' +
+                          'dob = "1990-01-01"\n' +
+                          'name = "Alice"\n' +
+                          '[[owners]]\n' +
+                          'dob = "1985-05-12"\n' +
+                          'name = "Bob"\n' +
+                          '[database]\n' +
+                          'connection_max = 10000\n' +
+                          'enabled = false\n' +
+                          'ports = [3306]\n' +
+                          'server = "192.168.1.100"\n'
             }
         ];
     }
@@ -238,20 +283,20 @@
                     launch_time: new Date(2024, 9, 9, 8, 30, 0), // 注意：月份从0开始
                     items: ["sword", "shield", "potion"]
                 },
-                expected: 'title = "My Game"\n' +
+                expected: 'average_score = 89.95\n' +
                           'isActive = true\n' +
-                          'max_score = 1000\n' +
-                          'average_score = 89.95\n' +
+                          'items = ["sword", "shield", "potion"]\n' +
                           'launch_time = 2024-10-09T08:30:00Z\n' +
-                          'items = ["sword", "shield", "potion"]\n'
+                          'max_score = 1000\n' +
+                          'title = "My Game"\n'
             },
             {   // Test case 2: Boolean values
                 input: {
                     boolean_true: true,
                     boolean_false: false
                 },
-                expected: 'boolean_true = true\n' +
-                          'boolean_false = false\n'
+                expected: 'boolean_false = false\n' +
+                          'boolean_true = true\n'
             },
             {   // Test case 3: Numbers
                 input: {
@@ -260,10 +305,10 @@
                     float: 3.14,
                     negative_float: -3.14
                 },
-                expected: 'integer = 42\n' +
-                          'negative_integer = -42\n' +
-                          'float = 3.14\n' +
-                          'negative_float = -3.14\n'
+                expected: 'float = 3.14\n' +
+                          'integer = 42\n' +
+                          'negative_float = -3.14\n' +
+                          'negative_integer = -42\n'
             },
             {   // Test case 4: Empty values
                 input: {
@@ -271,8 +316,8 @@
                     empty_array: [],
                     null_value: null
                 },
-                expected: 'empty_string = ""\n' +
-                          'empty_array = []\n' +
+                expected: 'empty_array = []\n' +
+                          'empty_string = ""\n' +
                           'null_value = null\n'
             },
             {   // Test case 5: Date and time
@@ -297,8 +342,8 @@
                 expected: '[server]\n' +
                           'ip = "192.168.1.1"\n' +
                           '[server.database]\n' +
-                          'type = "PostgreSQL"\n' +
                           'ports = [5432, 5433, 5434]\n' +
+                          'type = "PostgreSQL"\n' +
                           '[server.database.settings]\n' +
                           'enabled = true\n'
             },
@@ -331,8 +376,8 @@
                         enabled: true
                     }
                 },
-                expected: 'title = "TOML Example"\n' +
-                          'owner = { name = "Tom", dob = "1979-05-27" }\n' +
+                expected: 'owner = { dob = "1979-05-27", name = "Tom" }\n' +
+                          'title = "TOML Example"\n' +
                           '[[products]]\n' +
                           'name = "Hammer"\n' +
                           'sku = 738594937\n' +
@@ -340,18 +385,18 @@
                           'name = "Nail"\n' +
                           'sku = 284758393\n' +
                           '[database]\n' +
-                          'server = "192.168.1.1"\n' +
-                          'ports = [8001, 8001, 8002]\n' +
                           'connection_max = 5000\n' +
-                          'enabled = true\n'
+                          'enabled = true\n' +
+                          'ports = [8001, 8001, 8002]\n' +
+                          'server = "192.168.1.1"\n'
             },
             {   // Test case 9: Unicode characters
                 input: {
                     greeting: "こんにちは",
                     emoji: "😊"
                 },
-                expected: 'greeting = "こんにちは"\n' +
-                          'emoji = "😊"\n'
+                expected: 'emoji = "😊"\n' +
+                          'greeting = "こんにちは"\n'
             },
             {   // Test case 10: Escape characters
                 input: {
@@ -384,28 +429,28 @@
                         { name: "user2", active: false }
                     ]
                 },
-                expected: '[server]\n' +
-                          'host = "localhost"\n' +
-                          'ports = [8000, 8001, 8002]\n' +
+                expected: '[[users]]\n' +
+                          'active = true\n' +
+                          'name = "user1"\n' +
+                          '[[users]]\n' +
+                          'active = false\n' +
+                          'name = "user2"\n' +
+                          '[server]\n' +
                           'connection_max = 5000\n' +
                           'enabled = true\n' +
+                          'host = "localhost"\n' +
+                          'ports = [8000, 8001, 8002]\n' +
                           '[[owners]]\n' +
-                          'name = "Alice"\n' +
                           'dob = "1990-01-01"\n' +
+                          'name = "Alice"\n' +
                           '[[owners]]\n' +
-                          'name = "Bob"\n' +
                           'dob = "1985-05-12"\n' +
+                          'name = "Bob"\n' +
                           '[database]\n' +
-                          'server = "192.168.1.100"\n' +
-                          'ports = [3306]\n' +
                           'connection_max = 10000\n' +
                           'enabled = false\n' +
-                          '[[users]]\n' +
-                          'name = "user1"\n' +
-                          'active = true\n' +
-                          '[[users]]\n' +
-                          'name = "user2"\n' +
-                          'active = false\n'
+                          'ports = [3306]\n' +
+                          'server = "192.168.1.100"\n'
             }
         ];
     }
@@ -477,7 +522,7 @@
 // 导入相关类 (AS2 中没有真正的 import 语法，使用类的完整路径即可)
 var test:org.flashNight.gesh.toml.TOMLLexerTest = new org.flashNight.gesh.toml.TOMLLexerTest();
 
-// 调用测试方法，运行词法分析器测试
-test.testTOMLEncoder();
+// 调用测试方法，运行所有测试用例
+test.runAllTests();
 
 */

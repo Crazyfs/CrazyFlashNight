@@ -143,19 +143,25 @@ class org.flashNight.gesh.object.ObjectUtil {
      * @return String 对象的字符串表示。
      */
     public static function toString(obj:Object, seenObjects:Dictionary):String {
+        // 如果没有传入 seenObjects，则初始化一个新字典
         if (seenObjects == null) {
             seenObjects = new Dictionary();
         }
 
+        // 处理 null 值
         if (obj == null) return "null";
 
+        // 检查是否已处理过该对象，避免循环引用
         if (seenObjects.getItem(obj) != undefined) {
             return "[Circular]";
         }
 
+        // 将当前对象加入到 seenObjects，以追踪后续递归
         seenObjects.setItem(obj, true);
 
         var result:String = "";
+
+        // 处理数组类型
         if (obj instanceof Array) {
             result += "[";
             for (var i:Number = 0; i < obj.length; i++) {
@@ -163,32 +169,45 @@ class org.flashNight.gesh.object.ObjectUtil {
                 result += toString(obj[i], seenObjects);
             }
             result += "]";
-        } else if (typeof(obj) == "object") {
+        }
+        // 处理对象类型
+        else if (typeof(obj) == "object") {
             result += "{";
             var keys:Array = getKeys(obj);
-            keys = InsertionSort.sort(keys, function(a, b):Number { return a > b ? 1 : (a < b ? -1 : 0); });
+
+            // 对键进行排序
+            keys = InsertionSort.sort(keys, function(a, b):Number { 
+                return a > b ? 1 : (a < b ? -1 : 0); 
+            });
+
             for (var j:Number = 0; j < keys.length; j++) {
-                if (j > 0) result += ", ";
-                if (!isInternalKey(keys[j])) {  // 忽略 __dictUID
+                if (!isInternalKey(keys[j])) {  // 忽略内部键，如 __dictUID
+                    if (j > 0) result += ", ";
                     result += '"' + keys[j] + '": ' + toString(obj[keys[j]], seenObjects);
                 }
             }
             result += "}";
-        } else {
-            result = String(obj);
         }
+        // 处理简单类型（字符串、数字、布尔值）
+        else {
+            result = (typeof(obj) == "string") ? '"' + String(obj) + '"' : String(obj);
+        }
+
+        // 处理完后，从 seenObjects 中删除当前对象，避免后续使用时的干扰
+        seenObjects.removeItem(obj);
 
         return result;
     }
 
     /**
-     * 忽略对象的内部键。
-     * @param key 要检查的键。
-     * @return Boolean true 表示这是一个内部键，应该忽略。
+     * 判断是否为 ActionScript 内部使用的键（如 __dictUID）
+     * @param key 键名
+     * @return Boolean 是否为内部键
      */
     private static function isInternalKey(key:String):Boolean {
-        return key.indexOf("__") == 0;  // 忽略所有以 "__" 开头的内部键
+        return key.substr(0, 2) == "__";  // 忽略以双下划线开头的键
     }
+
 
     /**
     * 从源对象复制所有属性到目标对象中。

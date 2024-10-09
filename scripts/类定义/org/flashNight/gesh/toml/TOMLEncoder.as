@@ -41,12 +41,17 @@
                 result.push(tableHeader);
             }
 
+            // 获取并排序键
+            var keys:Array = this.getKeys(currentObject);
+            keys = this.sortKeys(keys);
+
             // 处理当前对象的每个键值对
-            for (var key:String in currentObject) {
+            for (var keyIndex:Number = 0; keyIndex < keys.length; keyIndex++) {
+                var key:String = keys[keyIndex];
                 var value:Object = currentObject[key];
 
                 if (this.isArray(value)) {
-                    var arr = value; //  不使用类型标注以过编译
+                    var arr = value;
                     if (this.isArrayOfTables(arr)) {
                         // 表格数组处理，逆序添加到堆栈中以保持顺序
                         for (var i:Number = arr.length - 1; i >= 0; i--) {
@@ -178,12 +183,16 @@
      */
     private function encodeInlineTable(table:Object):String {
         var result:Array = ["{ "];
+        var keys:Array = this.getKeys(table);
+        keys = this.sortKeys(keys);
         var first:Boolean = true;
-        for (var key:String in table) {
+        for (var keyIndex:Number = 0; keyIndex < keys.length; keyIndex++) {
+            var key:String = keys[keyIndex];
+            var value:Object = table[key];
             if (!first) {
                 result.push(", ");
             }
-            var encodedValue:String = this.encodeValue(table[key]);
+            var encodedValue:String = this.encodeValue(value);
             result.push(key + " = " + encodedValue);
             first = false;
         }
@@ -257,5 +266,44 @@
      */
     private function padZero(value:Number):String {
         return value < 10 ? "0" + value : String(value);
+    }
+
+    /**
+     * 获取对象的所有键，忽略内部键（如 __dictUID）
+     */
+    private function getKeys(obj:Object):Array {
+        var keys:Array = [];
+        for (var key:String in obj) {
+            if (!this.isInternalKey(key)) {
+                keys.push(key);
+            }
+        }
+        return keys;
+    }
+
+    /**
+     * 排序键数组
+     * @param keys 键数组
+     * @return 排序后的键数组
+     */
+    private function sortKeys(keys:Array):Array {
+        // 简单的插入排序
+        for (var i:Number = 1; i < keys.length; i++) {
+            var keyToInsert:String = keys[i];
+            var j:Number = i - 1;
+            while (j >= 0 && keys[j] > keyToInsert) {
+                keys[j + 1] = keys[j];
+                j--;
+            }
+            keys[j + 1] = keyToInsert;
+        }
+        return keys;
+    }
+
+    /**
+     * 判断是否为内部键（如 __dictUID）
+     */
+    private function isInternalKey(key:String):Boolean {
+        return key.substr(0, 2) == "__";
     }
 }
