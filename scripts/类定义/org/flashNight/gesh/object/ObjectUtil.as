@@ -2,6 +2,7 @@
 import org.flashNight.naki.Sort.InsertionSort;
 import JSON;
 import Base64;
+import org.flashNight.gesh.toml.*;
 import org.flashNight.naki.DataStructures.Dictionary;
 
 class org.flashNight.gesh.object.ObjectUtil {
@@ -384,6 +385,54 @@ class org.flashNight.gesh.object.ObjectUtil {
     }
 
     /**
+     * 将对象序列化为 TOML 字符串。
+     * @param obj 要序列化的对象。
+     * @param pretty 是否格式化输出。
+     * @return String TOML 字符串，或 null 解析失败。
+     */
+    public static function toTOML(obj:Object, pretty:Boolean):String {
+        var encoder:TOMLEncoder = new TOMLEncoder();
+        try {
+            return encoder.encode(obj, pretty); // 序列化对象为 TOML 字符串
+        } catch (e:Object) {
+            trace("ObjectUtil.toTOML: 无法序列化对象为TOML字符串 - " + e.message);
+            return null; // 处理异常并返回 null
+        }
+    }
+
+    /**
+     * 将 TOML 字符串解析为对象。
+     * @param toml TOML 字符串。
+     * @return Object 解析后的对象，或 null 解析失败。
+     */
+        public static function fromTOML(toml:String):Object {
+            var lexer:TOMLLexer = new TOMLLexer(toml);
+            var tokens:Array = [];
+            var token:Object;
+
+            try {
+                // 获取所有 tokens
+                while ((token = lexer.getNextToken()) != null) {
+                    tokens.push(token);
+                }
+
+                // 解析 tokens
+                var parser:TOMLParser = new TOMLParser(tokens);
+                var result:Object = parser.parse();
+
+                if (parser.hasError()) {
+                    trace("ObjectUtil.fromTOML: 解析 TOML 字符串时发生错误");
+                    return null; // 返回 null 以处理解析错误
+                }
+                
+                return result; // 返回解析后的对象
+            } catch (e:Object) {
+                trace("ObjectUtil.fromTOML: 无法解析 TOML 字符串 - " + e.message);
+                return null; // 处理异常并返回 null
+            }
+        }
+
+    /**
      * 将对象序列化为压缩后的 Base64 编码字符串。
      * @param obj 要序列化的对象。
      * @param pretty 是否格式化输出 JSON。
@@ -560,5 +609,101 @@ trace("对象是否一致: " + ObjectUtil.equals(testObject, decodedObject)); //
 trace("toBase64 和 fromBase64 方法测试完成。\n");
 
 trace("\n测试完毕。");
+
+
+trace("开始测试 ObjectUtil 类...\n");
+
+// 12. 测试 toTOML 方法
+trace("测试 toTOML 方法...");
+var objK:Object = { title: "My Game", isActive: true, score: 1000, items: ["sword", "shield", "potion"] };
+
+// 测试紧凑格式
+var tomlString:String = ObjectUtil.toTOML(objK, false);
+trace("TOML 字符串 (紧凑): \n" + tomlString); // 应输出紧凑的 TOML 格式
+
+// 测试格式化输出
+var prettyTomlString:String = ObjectUtil.toTOML(objK, true);
+trace("TOML 字符串 (格式化): \n" + prettyTomlString); // 应输出格式化的 TOML 格式
+
+trace("toTOML 方法测试完成。\n");
+
+// 12.1. 测试包含嵌套表格和表格数组的对象
+trace("测试 toTOML 方法 - 复杂对象...");
+var complexObj:Object = {
+    title: "Complex TOML",
+    owner: { name: "Tom", dob: "1979-05-27" },
+    products: [
+        { name: "Hammer", sku: 738594937 },
+        { name: "Nail", sku: 284758393 }
+    ],
+    "database": { // 确保使用字符串键名
+        server: "192.168.1.1",
+        ports: [8001, 8001, 8002],
+        connection_max: 5000,
+        enabled: true
+    }
+};
+
+// 测试复杂对象的 TOML 序列化
+var complexToml:String = ObjectUtil.toTOML(complexObj, true);
+trace("复杂对象的 TOML 字符串:\n" + complexToml);
+
+trace("toTOML 方法复杂对象测试完成。\n");
+
+// 13. 测试 fromTOML 方法
+trace("测试 fromTOML 方法...");
+var tomlData:String = 'title = "My Game"\n' +
+                      'isActive = true\n' +
+                      'score = 1000\n' +
+                      'items = ["sword", "shield", "potion"]\n';
+
+// 解析 TOML 字符串为对象
+var parsedTOMLObject:Object = ObjectUtil.fromTOML(tomlData);
+trace("解析后的 TOML 对象: " + ObjectUtil.toString(parsedTOMLObject)); // 应输出 {"title": "My Game", "isActive": true, "score": 1000, "items": ["sword", "shield", "potion"]}
+
+// 测试无效 TOML 字符串的解析
+var invalidTOML:String = 'title = "My Game" isActive = true'; // Invalid TOML string
+var invalidParsedTOML:Object = ObjectUtil.fromTOML(invalidTOML);
+trace("无效 TOML 解析结果: " + invalidParsedTOML); // 应输出 null
+
+trace("fromTOML 方法测试完成。\n");
+
+// 13.1. 测试解析复杂 TOML 字符串
+trace("测试 fromTOML 方法 - 复杂 TOML...");
+var complexObj:Object = {
+    title: "Complex TOML",
+    owner: { name: "Tom", dob: "1979-05-27" },
+    products: [
+        { name: "Hammer", sku: 738594937 },
+        { name: "Nail", sku: 284758393 }
+    ]
+};
+
+// Assigning string-literal key "database" using bracket notation
+complexObj["database"] = {
+    server: "192.168.1.1",
+    ports: [8001, 8001, 8002],
+    connection_max: 5000,
+    enabled: true
+};
+
+
+// 解析复杂 TOML 字符串为对象
+var parsedComplexTOMLObject:Object = ObjectUtil.fromTOML(complexTomlData);
+trace("解析后的复杂 TOML 对象: " + ObjectUtil.toString(parsedComplexTOMLObject)); // 应输出对应的对象结构
+
+trace("fromTOML 方法复杂 TOML 测试完成。\n");
+
+// 13.2. 测试解析包含多行字符串的 TOML
+trace("测试 fromTOML 方法 - 多行字符串...");
+var multilineToml:String = 'description = """\nThis is a multiline string.\nIt spans multiple lines.\n"""\n';
+
+// 解析多行字符串的 TOML 为对象
+var parsedMultilineTOMLObject:Object = ObjectUtil.fromTOML(multilineToml);
+trace("解析后的多行字符串 TOML 对象: " + ObjectUtil.toString(parsedMultilineTOMLObject)); // 应输出 { description: "This is a multiline string.\nIt spans multiple lines.\n" }
+
+trace("fromTOML 方法多行字符串测试完成。\n");
+
+trace("\n所有测试完毕。");
 
 */
