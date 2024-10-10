@@ -191,14 +191,14 @@ _root.读取数据库存盘 = function()
 
 _root.本地存盘 = function() {
     var mysave = SharedObject.getLocal("crazyflasher7_saves");
-
+   /*
     // Store the actual game data in the SharedObject
     mysave.data[存盘名] = _root.mydata;
     mysave.flush();  // Save the data to disk
     
-   /*
+   
     // Convert the saved object to JSON format for testing and display purposes
-    var json = ObjectUtil.toJSON(mysave.data);  // Serialize saved data to JSON
+    var json = ObjectUtil.toTOML(mysave.data);  // Serialize saved data to JSON
 
     // Step 1: Create a text field for displaying the JSON data
     if (!_root.saveDataField) {
@@ -223,8 +223,9 @@ _root.本地存盘 = function() {
     }
 
     // Display the JSON data in the text field for easy copy-paste testing
-    _root.saveDataField.text = json;  // Display the JSON string in the text field
     */
+    _root.saveDataField.text = json;  // Display the JSON string in the text field
+    
 };
 
 

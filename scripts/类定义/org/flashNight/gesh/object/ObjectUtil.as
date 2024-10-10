@@ -142,7 +142,18 @@ class org.flashNight.gesh.object.ObjectUtil {
      * @param seenObjects (可选) 追踪已转换的对象，防止循环引用
      * @return String 对象的字符串表示。
      */
-    public static function toString(obj:Object, seenObjects:Dictionary):String {
+    public static function toString(obj:Object, seenObjects:Dictionary, depth:Number):String {
+        var MAX_DEPTH:Number = 256;  // 设置最大递归深度
+
+        if(depth == undefined) {
+            depth = 0;
+        }
+
+        // 如果递归深度超出限制，则返回特殊标志
+        if (depth > MAX_DEPTH) {
+            return "[Max Depth Reached]";
+        }
+
         // 如果没有传入 seenObjects，则初始化一个新字典
         if (seenObjects == null) {
             seenObjects = new Dictionary();
@@ -166,7 +177,7 @@ class org.flashNight.gesh.object.ObjectUtil {
             result += "[";
             for (var i:Number = 0; i < obj.length; i++) {
                 if (i > 0) result += ", ";
-                result += toString(obj[i], seenObjects);
+                result += toString(obj[i], seenObjects, depth + 1);  // 递归调用时增加深度
             }
             result += "]";
         }
@@ -175,15 +186,14 @@ class org.flashNight.gesh.object.ObjectUtil {
             result += "{";
             var keys:Array = getKeys(obj);
 
-            // 对键进行排序
             keys = InsertionSort.sort(keys, function(a, b):Number { 
                 return a > b ? 1 : (a < b ? -1 : 0); 
             });
 
             for (var j:Number = 0; j < keys.length; j++) {
-                if (!isInternalKey(keys[j])) {  // 忽略内部键，如 __dictUID
+                if (!isInternalKey(keys[j])) {
                     if (j > 0) result += ", ";
-                    result += '"' + keys[j] + '": ' + toString(obj[keys[j]], seenObjects);
+                    result += '"' + keys[j] + '": ' + toString(obj[keys[j]], seenObjects, depth + 1);  // 递归调用时增加深度
                 }
             }
             result += "}";
@@ -198,6 +208,7 @@ class org.flashNight.gesh.object.ObjectUtil {
 
         return result;
     }
+
 
     /**
      * 判断是否为 ActionScript 内部使用的键（如 __dictUID）
@@ -654,13 +665,14 @@ var complexObj:Object = {
     products: [
         { name: "Hammer", sku: 738594937 },
         { name: "Nail", sku: 284758393 }
-    ],
-    "database": { // 确保使用字符串键名
-        server: "192.168.1.1",
-        ports: [8001, 8001, 8002],
-        connection_max: 5000,
-        enabled: true
-    }
+    ]
+};
+
+complexObj["database"] = { // 确保使用字符串键名
+    server: "192.168.1.1",
+    ports: [8001, 8001, 8002],
+    connection_max: 5000,
+    enabled: true
 };
 
 // 测试复杂对象的 TOML 序列化
@@ -706,9 +718,8 @@ complexObj["database"] = {
     enabled: true
 };
 
-
 // 解析复杂 TOML 字符串为对象
-var parsedComplexTOMLObject:Object = ObjectUtil.fromTOML(complexTomlData);
+var parsedComplexTOMLObject:Object = ObjectUtil.fromTOML(complexToml);
 trace("解析后的复杂 TOML 对象: " + ObjectUtil.toString(parsedComplexTOMLObject)); // 应输出对应的对象结构
 
 trace("fromTOML 方法复杂 TOML 测试完成。\n");
@@ -724,5 +735,6 @@ trace("解析后的多行字符串 TOML 对象: " + ObjectUtil.toString(parsedMu
 trace("fromTOML 方法多行字符串测试完成。\n");
 
 trace("\n所有测试完毕。");
+
 
 */
