@@ -117,18 +117,18 @@
             },
             {   // Test case 6: Nested tables
                 text: '[server]\n' +
-                      'ip = "192.168.1.1"\n' +
-                      '[server.database]\n' +
-                      'type = "PostgreSQL"\n' +
-                      'ports = [5432, 5433, 5434]\n' +
-                      '[server.database.settings]\n' +
-                      'enabled = true\n',
+                    'ip = "192.168.1.1"\n' +
+                    '[server.database]\n' +
+                    'type = "PostgreSQL"\n' +
+                    'ports = [5432, 5433, 5434]\n' +
+                    '[server.database.settings]\n' +
+                    'enabled = true\n',
                 expected: {
                     server: {
                         ip: "192.168.1.1",
                         database: {
                             type: "PostgreSQL",
-                            ports: [5432, 5433, 5434],
+                            ports: [5432, 5433, 5434], // 数值类型
                             settings: {
                                 enabled: true
                             }
@@ -310,15 +310,15 @@
                           'negative_float = -3.14\n' +
                           'negative_integer = -42\n'
             },
-            {   // Test case 4: Empty values
+            {   // 更新测试用例 4: 空值处理
                 input: {
                     empty_string: "",
                     empty_array: [],
                     null_value: null
                 },
                 expected: 'empty_array = []\n' +
-                          'empty_string = ""\n' +
-                          'null_value = null\n'
+                        'empty_string = ""\n' +
+                        'null_value = null\n'
             },
             {   // Test case 5: Date and time
                 input: {
@@ -404,7 +404,7 @@
                     escaped_quote: 'He said, "Hello!"'
                 },
                 expected: 'escaped_newline = """Line1\nLine2"""\n' +
-                          'escaped_quote = "He said, \\"Hello!\\""\n'
+                        'escaped_quote = "He said, \\"Hello!\\""\n'
             },
             {   // Test case 11: Mixed complex structures
                 input: {

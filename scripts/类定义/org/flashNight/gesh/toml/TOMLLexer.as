@@ -63,6 +63,9 @@
                 if (keyword == "true" || keyword == "false") {
                     token = { type: "BOOLEAN", value: (keyword == "true") };
                     this.inValue = false;
+                } else if (keyword == "null") {
+                    token = { type: "NULL", value: null };
+                    this.inValue = false;
                 } else {
                     token = { type: "KEY", value: keyword };
                     this.inValue = false;
@@ -112,7 +115,48 @@
         return { type: "KEY", value: key };
     }
 
-    // 读取字符串（支持多行字符串）
+    // 添加 handleEscapeSequences 方法
+    private function handleEscapeSequences(str:String):String {
+        var result:String = "";
+        var i:Number = 0;
+        while (i < str.length) {
+            var c:String = str.charAt(i);
+            if (c == "\\") {
+                i++;
+                if (i >= str.length) {
+                    this.error("转义字符未完成");
+                    break;
+                }
+                var nextChar:String = str.charAt(i);
+                switch (nextChar) {
+                    case "n":
+                        result += "\n";
+                        break;
+                    case "t":
+                        result += "\t";
+                        break;
+                    case "\\":
+                        result += "\\";
+                        break;
+                    case "\"":
+                        result += "\"";
+                        break;
+                    case "'":
+                        result += "'";
+                        break;
+                    default:
+                        result += nextChar; // 未知的转义序列，保留原字符
+                        break;
+                }
+            } else {
+                result += c;
+            }
+            i++;
+        }
+        return result;
+    }
+
+    // 修改 readString 方法，调用 handleEscapeSequences
     private function readString():Object {
         var str:String = "";
         var quoteType:String = this.currentChar;
@@ -125,13 +169,20 @@
         }
 
         while (this.currentChar != quoteType || 
-              (isMultiline && this.peek() == quoteType && this.peekAhead(2) == quoteType)) {
+            (isMultiline && this.peek() == quoteType && this.peekAhead(2) == quoteType)) {
             if (this.currentChar == null) {
                 this.error("未关闭的字符串");
                 break;
             }
-            str += this.currentChar;
-            this.nextChar();
+            if (this.currentChar == "\\") {
+                // 处理转义字符
+                str += this.handleEscapeSequences("\\" + this.peek());
+                this.nextChar(); // 跳过反斜杠
+                this.nextChar(); // 跳过转义字符
+            } else {
+                str += this.currentChar;
+                this.nextChar();
+            }
         }
 
         this.nextChar(); 
@@ -153,7 +204,9 @@
         }
 
         while (this.isDigit(this.currentChar) || this.currentChar == "_") {
-            number += this.currentChar;
+            if (this.currentChar != "_") { // 忽略下划线
+                number += this.currentChar;
+            }
             this.nextChar();
         }
 
@@ -172,6 +225,9 @@
             return this.readDateTime(number);  
         }
 
+        // 移除下划线以便正确转换为数字
+        number = number.split("_").join("");
+        
         return { type: isFloat ? "FLOAT" : "INTEGER", value: number };
     }
 

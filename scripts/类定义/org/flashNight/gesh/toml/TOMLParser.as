@@ -105,6 +105,8 @@ class org.flashNight.gesh.toml.TOMLParser {
                 }
             case "INLINE_TABLE":
                 return this.parseInlineTable(token.value);
+            case "NULL":
+                return null;
             default:
                 this.error("未知的值类型: " + token.type, "");
                 return null;
@@ -115,10 +117,25 @@ class org.flashNight.gesh.toml.TOMLParser {
         trace("TOMLParser.parseArray: 解析数组");
         var array:Array = [];
 
-        // 如果 arrayData 是数组，直接返回
+        // 如果 arrayData 已经是数组，直接返回
         if (arrayData instanceof Array) {
             trace("TOMLParser.parseArray: arrayData 已经是数组");
-            return arrayData;
+            // 确保元素类型正确
+            for (var i:Number = 0; i < arrayData.length; i++) {
+                var elem:Object = arrayData[i];
+                if (typeof(elem) == "string") {
+                    // 尝试转换为数值
+                    var num:Number = Number(elem);
+                    if (!isNaN(num)) {
+                        array.push(num);
+                    } else {
+                        array.push(elem);
+                    }
+                } else {
+                    array.push(elem);
+                }
+            }
+            return array;
         }
 
         // 确保 arrayData 是字符串
@@ -147,6 +164,7 @@ class org.flashNight.gesh.toml.TOMLParser {
             var elem:String = org.flashNight.gesh.string.StringUtils.trim(elements[i]);
             trace("TOMLParser.parseArray: 解析元素 " + i + ": " + elem);
 
+            // 判断元素类型
             if (elem.length == 0) continue;
 
             // 判断元素类型

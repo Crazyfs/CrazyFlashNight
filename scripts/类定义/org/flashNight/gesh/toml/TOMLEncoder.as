@@ -167,6 +167,10 @@
                 // Encode as inline table
                 var encodedInline:String = this.encodeInlineTable(element);
                 result.push(encodedInline);
+            } else if (typeof(element) == "number") {
+                result.push(String(element));
+            } else if (typeof(element) == "boolean") {
+                result.push(element ? "true" : "false");
             } else {
                 var encodedVal:String = this.encodeValue(element);
                 result.push(encodedVal);
@@ -235,6 +239,8 @@
         // 转义反斜杠和引号
         value = value.split("\\").join("\\\\");
         value = value.split("\"").join("\\\"");
+        value = value.split("\n").join("\\n");
+        value = value.split("\t").join("\\t");
         if (value.indexOf("\n") != -1) {
             // 多行字符串
             value = value.split('"""').join('\\"""'); // 转义三个引号
@@ -243,6 +249,7 @@
             return '"' + value + '"';
         }
     }
+
 
     /**
      * 编码日期时间
