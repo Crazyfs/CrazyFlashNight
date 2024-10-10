@@ -251,19 +251,45 @@ class org.flashNight.gesh.toml.TOMLEncoder {
      * @return TOML 格式的字符串
      */
     private function encodeString(value:String):String {
-        if (value.indexOf("\n") != -1) {
-            // 多行字符串，不转义换行符
-            value = value.split('"""').join('\\"""'); // 转义三个引号
-            return '"""' + value + '"""';
+        if (value.indexOf("\n") != -1 || value.indexOf("\r") != -1) {
+            // 使用多行字符串
+            // 处理字符串中的特殊字符，如连续的三个引号
+            var escapedValue:String = value.split('"""').join('\\"""');
+            return '"""' + escapedValue + '"""';
         } else {
-            // 转义反斜杠和引号
-            value = value.split("\\").join("\\\\");
-            value = value.split("\"").join("\\\"");
-            value = value.split("\n").join("\\n");
-            value = value.split("\t").join("\\t");
-            return '"' + value + '"';
+            // 单行字符串，处理必要的转义
+            var result:String = "";
+            for (var i:Number = 0; i < value.length; i++) {
+                var c:String = value.charAt(i);
+                var code:Number = value.charCodeAt(i);
+                if (c == "\\" || c == "\"") {
+                    result += "\\" + c;
+                } else if (code >= 0x0000 && code <= 0x001F) {
+                    // 控制字符需要转义
+                    switch (code) {
+                        case 0x08: result += "\\b"; break;
+                        case 0x09: result += "\\t"; break;
+                        case 0x0A: result += "\\n"; break;
+                        case 0x0C: result += "\\f"; break;
+                        case 0x0D: result += "\\r"; break;
+                        default:
+                            var hex:String = code.toString(16);
+                            while (hex.length < 4) {
+                                hex = "0" + hex;
+                            }
+                            result += "\\u" + hex;
+                            break;
+                    }
+                } else {
+                    result += c;
+                }
+            }
+            return '"' + result + '"';
         }
     }
+
+
+
 
     /**
      * 编码日期时间

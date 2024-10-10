@@ -1,18 +1,21 @@
 ﻿import org.flashNight.gesh.object.*;
 import org.flashNight.gesh.string.*;
 class org.flashNight.gesh.toml.TOMLParser {
-    private var tokens:Array;       // 词法分析器生成的标记列表
-    private var position:Number;    // 当前标记位置
-    private var current:Object;     // 当前正在处理的对象
-    private var root:Object;        // 最终解析后的结果对象
+    private var tokens:Array;        // 词法分析器生成的标记列表
+    private var position:Number;     // 当前标记位置
+    private var current:Object;      // 当前正在处理的对象
+    private var root:Object;         // 最终解析后的结果对象
     private var hasErrorFlag:Boolean; // 错误标志
+    private var text:String;         // 原始 TOML 文本
 
-    public function TOMLParser(tokens:Array) {
+    // 修改构造函数，接收 TOML 文本作为输入
+    public function TOMLParser(tokens:Array, text:String) {
         this.tokens = tokens;
         this.position = 0;
         this.root = {};
         this.current = this.root;
         this.hasErrorFlag = false;
+        this.text = text;  // 保存原始 TOML 文本
     }
 
     public function parse():Object {
@@ -92,7 +95,8 @@ class org.flashNight.gesh.toml.TOMLParser {
             case "BOOLEAN":
                 return token.value == true;
             case "DATETIME":
-                return token.value;
+                var isoDateStr:String = this.parseDateTime(token.value);
+                return isoDateStr; // 返回格式化后的日期时间字符串
             case "ARRAY":
                 return this.parseArray(token.value);
             case "INLINE_TABLE":
@@ -105,87 +109,144 @@ class org.flashNight.gesh.toml.TOMLParser {
         }
     }
 
+
+    // 添加 parseDateTime 方法
+    private function parseDateTime(dateTimeStr:String):String {
+        // 检查并移除结尾的 'Z'（表示 UTC 时间）
+        var hasZ:Boolean = (dateTimeStr.charAt(dateTimeStr.length - 1) == "Z");
+        if (hasZ) {
+            dateTimeStr = dateTimeStr.substring(0, dateTimeStr.length - 1);
+        }
+
+        // 查找分隔符 'T' 或空格 ' '
+        var separatorPos:Number = dateTimeStr.indexOf("T");
+        if (separatorPos == -1) {
+            separatorPos = dateTimeStr.indexOf(" ");
+        }
+
+        var datePart:String;
+        var timePart:String;
+
+        if (separatorPos == -1) {
+            // 如果没有找到分隔符，则假设只有日期部分
+            datePart = dateTimeStr;
+            timePart = "00:00:00"; // 默认时间为午夜
+        } else {
+            // 分割日期和时间部分
+            datePart = dateTimeStr.substring(0, separatorPos);
+            timePart = dateTimeStr.substring(separatorPos + 1);
+        }
+
+        // 解析日期部分
+        var dateComponents:Array = datePart.split("-");
+        if (dateComponents.length != 3) {
+            this.error("无效的日期格式: " + datePart);
+            return null;
+        }
+        var year:Number = Number(dateComponents[0]);
+        var month:Number = Number(dateComponents[1]) - 1; // AS2 中月份从 0 开始
+        var day:Number = Number(dateComponents[2]);
+
+        // 解析时间部分
+        var timeComponents:Array = timePart.split(":");
+        if (timeComponents.length < 2) {
+            this.error("无效的时间格式: " + timePart);
+            return null;
+        }
+        var hours:Number = Number(timeComponents[0]);
+        var minutes:Number = Number(timeComponents[1]);
+        var seconds:Number = 0;
+        if (timeComponents.length >= 3) {
+            seconds = Number(timeComponents[2]);
+        }
+
+        var dateObj:Date;
+        if (hasZ) {
+            // 使用 Date.UTC 创建 UTC 时间
+            var utcTime:Number = Date.UTC(year, month, day, hours, minutes, seconds);
+            dateObj = new Date(utcTime);
+        } else {
+            // 创建本地时间
+            dateObj = new Date(year, month, day, hours, minutes, seconds);
+        }
+
+        // 格式化为 ISO8601 字符串
+        var isoStr:String = this.formatDateToISO8601(dateObj, hasZ);
+        return isoStr;
+    }
+
+    // 修改 formatDateToISO8601 方法，支持 UTC 和本地时间
+    private function formatDateToISO8601(dateObj:Date, isUTC:Boolean):String {
+        var year:String = String(isUTC ? dateObj.getUTCFullYear() : dateObj.getFullYear());
+        var month:String = this.padZero(isUTC ? dateObj.getUTCMonth() + 1 : dateObj.getMonth() + 1);
+        var day:String = this.padZero(isUTC ? dateObj.getUTCDate() : dateObj.getDate());
+        var hours:String = this.padZero(isUTC ? dateObj.getUTCHours() : dateObj.getHours());
+        var minutes:String = this.padZero(isUTC ? dateObj.getUTCMinutes() : dateObj.getMinutes());
+        var seconds:String = this.padZero(isUTC ? dateObj.getUTCSeconds() : dateObj.getSeconds());
+        var timezoneSuffix:String = isUTC ? "Z" : "";
+        return year + "-" + month + "-" + day + "T" + hours + ":" + minutes + ":" + seconds + timezoneSuffix;
+    }
+
+
+    private function padZero(value:Number):String {
+        return value < 10 ? "0" + value : String(value);
+    }
+
     /**
      * 解析特殊浮点数值
      * @param value 字符串形式的浮点数值
      * @return AS2 中的数值类型（NaN, Infinity, -Infinity）
      */
     private function parseSpecialFloat(value:String):Object {
-        switch (value) {
+        switch (value.toLowerCase()) {
             case "nan":
-                return NaN;
+                return Number.NaN;
             case "inf":
-                return Infinity;
+                return Number.POSITIVE_INFINITY;
             case "-inf":
-                return -Infinity;
+                return Number.NEGATIVE_INFINITY;
             default:
                 return Number(value);
         }
     }
 
-    private function parseArray(arrayData):Array {
+
+    private function parseArray(arrayData:Array):Array {
         trace("TOMLParser.parseArray: 解析数组");
         var array:Array = [];
+        var elementType:String = null;
 
-        // 如果 arrayData 已经是数组，直接返回
-        if (arrayData instanceof Array) {
-            trace("TOMLParser.parseArray: arrayData 已经是数组");
-            // 确保元素类型正确
-            for (var i:Number = 0; i < arrayData.length; i++) {
-                var elem = arrayData[i];
-                array.push(elem);
+        for (var i:Number = 0; i < arrayData.length; i++) {
+            var token:Object = arrayData[i];
+            var value:Object = this.parseValue(token);
+
+            // 确定数组元素的类型
+            if (elementType == null && value != null) {
+                elementType = typeof(value);
+            } else if (value != null && typeof(value) != elementType) {
+                this.error("数组元素类型不一致，预期: " + elementType + "，实际: " + typeof(value));
+                return null;
             }
-            return array;
+
+            array.push(value);
         }
 
-        // 确保 arrayData 是字符串
-        if (typeof(arrayData) != "string") {
-            arrayData = String(arrayData);
-        }
-
-        // 去除外围的方括号
-        if (arrayData.charAt(0) == "[" && arrayData.charAt(arrayData.length - 1) == "]") {
-            arrayData = arrayData.substring(1, arrayData.length - 1);
-        }
-
-        // 移除所有换行符并修剪
-        arrayData = this.removeLineBreaks(arrayData);
-        arrayData = org.flashNight.gesh.string.StringUtils.trim(arrayData);
-        trace("TOMLParser.parseArray: arrayData = " + arrayData);
-
-        if (arrayData.length == 0) {
-            trace("TOMLParser.parseArray: 空数组");
-            return array; // 返回空数组
-        }
-
-        // 按逗号分割数组元素
-        var elements:Array = arrayData.split(",");
-        for (var i:Number = 0; i < elements.length; i++) {
-            var elem:String = org.flashNight.gesh.string.StringUtils.trim(elements[i]);
-            trace("TOMLParser.parseArray: 解析元素 " + i + ": " + elem);
-
-            // 判断元素类型
-            if (elem.length == 0) continue;
-
-            // 判断元素类型
-            if (elem.charAt(0) == "\"" || elem.charAt(0) == "'") {
-                array.push(this.stripQuotes(elem));  // 去掉引号的字符串
-            } else if (elem == "true" || elem == "false") {
-                array.push(elem == "true");
-            } else if (elem == "nan") {
-                array.push(NaN);
-            } else if (elem == "inf") {
-                array.push(Infinity);
-            } else if (elem == "-inf") {
-                array.push(-Infinity);
-            } else if (!isNaN(Number(elem))) {
-                array.push(Number(elem));
-            } else {
-                array.push(elem);
-            }
-        }
         return array;
     }
+
+
+    private function skipWhitespaceAndComments():Void {
+        while (this.position < this.tokens.length) {
+            var token:Object = this.tokens[this.position];
+            if (token.type == "WHITESPACE" || token.type == "COMMENT") {
+                this.position++;
+            } else {
+                break;
+            }
+        }
+    }
+
+
 
     private function parseInlineTable(tableStr:String):Object {
         trace("TOMLParser.parseInlineTable: 解析内联表格");
@@ -243,32 +304,43 @@ class org.flashNight.gesh.toml.TOMLParser {
         var current:Object = this.root;
         for (var i:Number = 0; i < path.length; i++) {
             var part:String = path[i];
-            if (!current[part]) {
+            if (current[part] == undefined || current[part] == null) {
                 current[part] = {};
                 trace("TOMLParser.handleTableHeader: 创建嵌套表格 - " + part);
+            } else if (!(current[part] instanceof Object)) {
+                this.error("键名冲突，无法将非表格类型转换为表格：" + part);
+                return;
             }
             current = current[part];
         }
         this.current = current;
     }
 
+
+    // 修改 handleTableArray 方法
     private function handleTableArray(arrayName:String):Void {
         trace("TOMLParser.handleTableArray: 处理表格数组 - " + arrayName);
         var path:Array = arrayName.split(".");
         var current:Object = this.root;
         for (var i:Number = 0; i < path.length; i++) {
             var part:String = path[i];
-            if (!current[part]) {
-                current[part] = [];
-                trace("TOMLParser.handleTableArray: 创建表格数组 - " + part);
-            }
             if (i == path.length - 1) {
+                if (!(current[part] instanceof Array)) {
+                    current[part] = [];
+                    trace("TOMLParser.handleTableArray: 创建表格数组 - " + part);
+                }
                 var newTable:Object = {};
                 current[part].push(newTable);
                 trace("TOMLParser.handleTableArray: 添加新表格到数组 - " + part);
                 current = newTable;
             } else {
-                current = current[part];
+                if (current[part] == undefined || current[part] == null) {
+                    current[part] = {};
+                } else if (current[part] instanceof Array) {
+                    current = current[part][current[part].length - 1];
+                } else {
+                    current = current[part];
+                }
             }
         }
         this.current = current;
@@ -299,8 +371,22 @@ class org.flashNight.gesh.toml.TOMLParser {
         return result;
     }
 
-    private function error(message:String, key:String):Void {
-        trace("解析错误: " + message + " 键: " + key + " 在标记位置: " + this.position);
-        this.hasErrorFlag = true;
+    private function error(message:String):Void {
+        var lineInfo:String = "行: " + this.getLineNumber() + ", 列: " + this.getColumnNumber();
+        trace("Error: " + message + " 在 " + lineInfo);
+    }
+
+    // 添加获取行号和列号的方法
+    private function getLineNumber():Number {
+        // 计算当前字符位置对应的行号
+        var lines:Array = this.text.substring(0, this.position).split("\n");
+        return lines.length;
+    }
+
+    private function getColumnNumber():Number {
+        // 计算当前字符位置对应的列号
+        var lines:Array = this.text.substring(0, this.position).split("\n");
+        var lastLine:String = lines[lines.length - 1];
+        return lastLine.length + 1;
     }
 }

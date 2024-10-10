@@ -1,5 +1,5 @@
 ﻿class org.flashNight.gesh.toml.TOMLLexerTest {
-    
+
     // 最大递归深度
     private var MAX_RECURSION_DEPTH:Number = 10;
 
@@ -20,47 +20,47 @@
      * 测试 TOMLLexer
      */
     public function testLexer():Void {
-        var tomlSamples:Array = this.getTestCases();
+            var tomlSamples:Array = this.getTestCases();
 
-        for (var i:Number = 0; i < tomlSamples.length; i++) {
-            var tomlText:String = tomlSamples[i].text;
-            trace("=== Running test case " + (i + 1) + " ===");
+            for (var i:Number = 0; i < tomlSamples.length; i++) {
+                var tomlText:String = tomlSamples[i].text;
+                trace("=== Running test case " + (i + 1) + " ===");
 
-            // 创建 Lexer 和解析器
-            var lexer:org.flashNight.gesh.toml.TOMLLexer = new org.flashNight.gesh.toml.TOMLLexer(tomlText);
-            var tokens:Array = [];
-            var token:Object;
+                // 创建 Lexer 和解析器
+                var lexer:org.flashNight.gesh.toml.TOMLLexer = new org.flashNight.gesh.toml.TOMLLexer(tomlText);
+                var tokens:Array = [];
+                var token:Object;
 
-            // 获取所有 tokens 并存储
-            while ((token = lexer.getNextToken()) != null) {
-                tokens.push(token);
-            }
+                // 获取所有 tokens 并存储
+                while ((token = lexer.getNextToken()) != null) {
+                    tokens.push(token);
+                }
 
-            // 创建并调用解析器
-            var parser:org.flashNight.gesh.toml.TOMLParser = new org.flashNight.gesh.toml.TOMLParser(tokens);
-            var result:Object = parser.parse();
+                // 创建并调用解析器，传递 tomlText 作为 text 参数
+                var parser:org.flashNight.gesh.toml.TOMLParser = new org.flashNight.gesh.toml.TOMLParser(tokens, tomlText);
+                var result:Object = parser.parse();
 
-            // 检查解析器是否遇到错误
-            if (parser.hasError()) {
-                trace("Test Case " + (i + 1) + " - Parsing Error Detected.");
+                // 检查解析器是否遇到错误
+                if (parser.hasError()) {
+                    trace("Test Case " + (i + 1) + " - Parsing Error Detected.");
+                    trace("=== End of test case " + (i + 1) + " ===\n");
+                    continue; // 跳过比较步骤
+                }
+
+                // 将解析结果转换为 JSON 并输出
+                var jsonString:String = org.flashNight.gesh.object.ObjectUtil.toJSON(result, true);
+                trace("Test Case " + (i + 1) + " - JSON Output:");
+                trace(jsonString);
+
+                // 验证预期输出
+                if (tomlSamples[i].expected !== null) {
+                    this.compareResults(result, tomlSamples[i].expected, 0);
+                } else {
+                    trace("Skipping comparison due to invalid or missing expected output.");
+                }
                 trace("=== End of test case " + (i + 1) + " ===\n");
-                continue; // 跳过比较步骤
             }
-
-            // 将解析结果转换为 JSON 并输出
-            var jsonString:String = org.flashNight.gesh.object.ObjectUtil.toJSON(result, true);
-            trace("Test Case " + (i + 1) + " - JSON Output:");
-            trace(jsonString);
-
-            // 验证预期输出
-            if (tomlSamples[i].expected !== null) {
-                this.compareResults(result, tomlSamples[i].expected, 0);
-            } else {
-                trace("Skipping comparison due to invalid or missing expected output.");
-            }
-            trace("=== End of test case " + (i + 1) + " ===\n");
         }
-    }
 
     /**
      * 获取 TOMLLexer 的测试用例
@@ -478,6 +478,13 @@
      * @param expected 预期对象
      * @param depth 当前递归深度
      */
+
+    /**
+     * 比较解析结果和预期结果
+     * @param actual 解析后的对象
+     * @param expected 预期对象
+     * @param depth 当前递归深度
+     */
     private function compareResults(actual:Object, expected:Object, depth:Number):Void {
         if (depth > this.MAX_RECURSION_DEPTH) {
             trace("超过最大递归深度，停止比较。");
@@ -570,7 +577,7 @@
         while (input.length > 0) {
             var lastChar:String = input.charAt(input.length - 1);
             if (lastChar == "\n" || lastChar == "\r") {
-                input = input.substr(0, input.length - 1);
+                input = input.substring(0, input.length - 1);
             } else {
                 break;
             }
@@ -578,3 +585,11 @@
         return input;
     }
 }
+
+/*
+var test:org.flashNight.gesh.toml.TOMLLexerTest = new org.flashNight.gesh.toml.TOMLLexerTest();
+
+// 调用测试方法，运行所有测试用例
+test.runAllTests();
+
+*/

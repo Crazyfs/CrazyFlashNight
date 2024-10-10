@@ -42,9 +42,31 @@ class org.flashNight.gesh.toml.TOMLLexer {
         }
     }
 
+    // 添加对有效标记起始字符的判断
+    private function isValidTokenStart(c:String):Boolean {
+        if (this.inValue && c == "-") {
+            return true;
+        }
+        return this.isAlpha(c) || this.isDigit(c) || c == "\"" || c == "'" || c == "[" || c == "{" || c == "=" || c == "#";
+    }
+
     // 获取下一个标记 (Token)
     public function getNextToken():Object {
+        this.skipWhitespaceAndComments();
+
+        if (this.currentChar == null) {
+            return null; 
+        }
+
+        // 添加对非法字符的检查
+        if (!this.isValidTokenStart(this.currentChar)) {
+            this.error("非法的起始字符: " + this.currentChar);
+            this.nextChar();
+            return this.getNextToken(); // 尝试获取下一个有效的标记
+        }
+
         this.loopCounter = 0; 
+
         while (this.currentChar != null) {
             this.loopCounter++;
             if (this.loopCounter > this.maxLoops) {
@@ -159,28 +181,34 @@ class org.flashNight.gesh.toml.TOMLLexer {
             if (c == "\\") {
                 i++;
                 if (i >= str.length) {
-                    this.error("转义字符未完成");
+                    this.error("Incomplete escape sequence");
                     break;
                 }
                 var nextChar:String = str.charAt(i);
                 switch (nextChar) {
-                    case "n":
-                        result += "\n";
+                    case "b":
+                        result += "\b";
                         break;
                     case "t":
                         result += "\t";
                         break;
-                    case "\\":
-                        result += "\\";
+                    case "n":
+                        result += "\n";
+                        break;
+                    case "f":
+                        result += "\f";
+                        break;
+                    case "r":
+                        result += "\r";
                         break;
                     case "\"":
                         result += "\"";
                         break;
-                    case "'":
-                        result += "'";
+                    case "\\":
+                        result += "\\";
                         break;
                     default:
-                        result += nextChar; // 未知的转义序列，保留原字符
+                        result += "\\" + nextChar; // Unknown escape sequence
                         break;
                 }
             } else {
@@ -234,40 +262,35 @@ class org.flashNight.gesh.toml.TOMLLexer {
         var number:String = "";
         var isFloat:Boolean = false;
 
-        // 检查是否为特殊浮点数
-        if (this.currentChar == "-" && (this.peek() == "i" || this.peek() == "n")) {
+        // Handle negative sign
+        if (this.currentChar == "-") {
             number += "-";
             this.nextChar();
         }
 
-        // 检查是否为特殊浮点数（nan、inf、-inf）
-        if ((number == "-" && this.currentChar == "i") || this.currentChar == "i" || this.currentChar == "n") {
+        // After handling negative sign
+        if (this.currentChar == "i" || this.currentChar == "n") {
             var identifier:String = this.readIdentifier();
-            var lowerIdentifier:String = number + identifier.toLowerCase();
+            var lowerIdentifier:String = (number + identifier).toLowerCase();
 
             if (lowerIdentifier == "nan" || lowerIdentifier == "inf" || lowerIdentifier == "-inf") {
                 return { type: "FLOAT", value: lowerIdentifier };
             } else {
-                this.error("未知的特殊浮点数: " + lowerIdentifier);
+                this.error("Unknown special float: " + lowerIdentifier);
                 return { type: "INVALID", value: lowerIdentifier };
             }
         }
 
-        // 读取负号（如果存在）
-        if (this.currentChar == "-") {  
-            number += "-";
-            this.nextChar();
-        }
-
-        // 读取数字部分
+        // Read integer part
         while (this.isDigit(this.currentChar) || this.currentChar == "_") {
-            if (this.currentChar != "_") { // 忽略下划线
+            if (this.currentChar != "_") { // Ignore underscores
                 number += this.currentChar;
             }
             this.nextChar();
         }
 
-        if (this.currentChar == ".") {  
+        // Check for decimal point
+        if (this.currentChar == ".") {
             isFloat = true;
             number += ".";
             this.nextChar();
@@ -277,16 +300,31 @@ class org.flashNight.gesh.toml.TOMLLexer {
             }
         }
 
-        // 如果下一个字符指示这是一个日期时间
+        // Check for date-time indicator
         if (this.currentChar == "T" || this.currentChar == "Z" || this.currentChar == ":" || this.currentChar == "-") {
-            return this.readDateTime(number);  
+            return this.readDateTime(number);
         }
 
-        // 移除下划线以便正确转换为数字
+        // Remove underscores
         number = number.split("_").join("");
-        
+
         return { type: isFloat ? "FLOAT" : "INTEGER", value: number };
     }
+
+
+    private function parseSpecialFloat(value:String):Object {
+        switch (value.toLowerCase()) {
+            case "nan":
+                return Number.NaN;
+            case "inf":
+                return Number.POSITIVE_INFINITY;
+            case "-inf":
+                return Number.NEGATIVE_INFINITY;
+            default:
+                return Number(value);
+        }
+    }
+
 
 
     // 读取日期时间
@@ -304,57 +342,76 @@ class org.flashNight.gesh.toml.TOMLLexer {
     // 读取数组
     private function readArray():Object {
         var array:Array = [];
-        this.nextChar(); // 跳过 '['
+        this.nextChar(); // Skip '['
 
         this.skipWhitespaceAndComments();
 
         while (this.currentChar != "]" && this.currentChar != null) {
+            this.skipWhitespaceAndComments();
+
             if (this.currentChar == ",") {
-                this.nextChar(); // 跳过逗号
-                this.skipWhitespaceAndComments();
+                this.nextChar(); // Skip comma
                 continue;
             }
 
             var element:Object;
 
+            // 处理字符串
             if (this.currentChar == "\"" || this.currentChar == "'") {
                 element = this.readString();
-            } else if (this.isDigit(this.currentChar) || this.currentChar == "-") {
+            }
+            // 处理数组（递归调用）
+            else if (this.currentChar == "[") {
+                element = this.readArray();
+            }
+            // 处理数字或日期时间
+            else if (this.isDigit(this.currentChar) || this.currentChar == "-") {
                 element = this.readNumberOrDate();
-            } else if (this.currentChar == "n" || this.currentChar == "i" || this.currentChar == "-") {
-                // 处理特殊数值 nan, inf, -inf
-                var startPos:Number = this.position - 1;
+            }
+            // 处理布尔值和特殊浮点数
+            else if (this.isAlpha(this.currentChar)) {
                 var identifier:String = this.readIdentifier();
                 var lowerIdentifier:String = identifier.toLowerCase();
 
-                if (lowerIdentifier == "nan" || lowerIdentifier == "inf") {
-                    if (identifier.charAt(0) == "-") {
-                        element = { type: "FLOAT", value: "-inf" };
-                    } else {
-                        element = { type: "FLOAT", value: lowerIdentifier };
-                    }
+                if (lowerIdentifier == "true" || lowerIdentifier == "false") {
+                    element = { type: "BOOLEAN", value: (lowerIdentifier == "true") };
+                } else if (lowerIdentifier == "nan" || lowerIdentifier == "inf" || lowerIdentifier == "-inf") {
+                    element = { type: "FLOAT", value: lowerIdentifier };
                 } else {
                     this.error("无效的数组元素: " + identifier);
                     element = { type: "INVALID", value: identifier };
                 }
-            } else {
-                this.error("无效的数组元素");
-                element = { type: "INVALID", value: this.currentChar };
+            }
+            // 处理内联表格
+            else if (this.currentChar == "{") {
+                element = this.readInlineTable();
+            }
+            // 处理未知字符
+            else {
+                this.error("无效的数组元素: " + this.currentChar);
                 this.nextChar();
+                continue;
             }
 
-            array.push(element.value);
+            // Instead of pushing element.value, push the entire token
+            array.push(element);
+
             this.skipWhitespaceAndComments();
 
             if (this.currentChar == ",") {
-                this.nextChar(); // 跳过逗号
-                this.skipWhitespaceAndComments();
+                this.nextChar(); // Skip comma
             }
         }
 
-        this.nextChar(); // 跳过 ']'
+        if (this.currentChar == "]") {
+            this.nextChar(); // 跳过 ']'
+        } else {
+            this.error("未正确关闭的数组");
+        }
+
         return { type: "ARRAY", value: array };
     }
+
 
     // 读取内联表格
     private function readInlineTable():Object {
@@ -373,45 +430,47 @@ class org.flashNight.gesh.toml.TOMLLexer {
     // 读取表格头或表格数组
     private function readTableHeader():Object {
         var tableName:String = "";
-        this.nextChar(); // 跳过 '['
+        this.nextChar(); // 跳过第一个 '['
 
-        // 检查是否为表格数组（开始于第二个 '['）
+        // 检查是否为表格数组
         if (this.currentChar == "[") {
+            // 是表格数组
             this.nextChar(); // 跳过第二个 '['
-            this.skipWhitespaceAndComments(); // 跳过空白字符和注释
 
-            while (this.currentChar != null && !(this.currentChar == "]" && this.peek() == "]")) {
+            // 读取表名，直到遇到 ']]'
+            while (this.currentChar != null && !(this.currentChar == ']' && this.peek() == ']')) {
                 tableName += this.currentChar;
                 this.nextChar();
             }
 
-            if (this.currentChar == "]" && this.peek() == "]") {
+            if (this.currentChar == ']' && this.peek() == ']') {
                 this.nextChar(); // 跳过第一个 ']'
                 this.nextChar(); // 跳过第二个 ']'
-                trace("TOMLLexer.readTableHeader: 识别为 TABLE_ARRAY - " + StringUtils.trim(tableName));
+                tableName = StringUtils.trim(tableName);
+                trace("TOMLLexer.readTableHeader: 识别为 TABLE_ARRAY - " + tableName);
+                return { type: "TABLE_ARRAY", value: tableName };
             } else {
                 this.error("未正确关闭的表格数组");
+                return null;
             }
-            return { type: "TABLE_ARRAY", value: StringUtils.trim(tableName) };
-        }
-
-        // 否则，解析为普通表格
-        while (this.currentChar != "]" && this.currentChar != null) {
-            tableName += this.currentChar;
-            this.nextChar();
-        }
-
-        if (this.currentChar == "]") {
-            this.nextChar(); // 跳过 ']'
-            trace("TOMLLexer.readTableHeader: 识别为 TABLE_HEADER - " + StringUtils.trim(tableName));
-            return { type: "TABLE_HEADER", value: StringUtils.trim(tableName) };
         } else {
-            this.error("未正确关闭的表格头");
-            return null;
+            // 普通表格
+            while (this.currentChar != ']' && this.currentChar != null) {
+                tableName += this.currentChar;
+                this.nextChar();
+            }
+
+            if (this.currentChar == ']') {
+                this.nextChar(); // 跳过 ']'
+                tableName = StringUtils.trim(tableName);
+                trace("TOMLLexer.readTableHeader: 识别为 TABLE_HEADER - " + tableName);
+                return { type: "TABLE_HEADER", value: tableName };
+            } else {
+                this.error("未正确关闭的表格头");
+                return null;
+            }
         }
     }
-
-
 
 
 
@@ -448,6 +507,22 @@ class org.flashNight.gesh.toml.TOMLLexer {
 
     // 抛出错误
     private function error(message:String):Void {
-        trace("Error: " + message + " 在字符位置: " + (this.position - 1));
+        var lineInfo:String = "行: " + this.getLineNumber() + ", 列: " + this.getColumnNumber();
+        trace("Error: " + message + " 在 " + lineInfo);
     }
+
+    // 添加获取行号和列号的方法
+    private function getLineNumber():Number {
+        // 计算当前字符位置对应的行号
+        var lines:Array = this.text.substring(0, this.position).split("\n");
+        return lines.length;
+    }
+
+    private function getColumnNumber():Number {
+        // 计算当前字符位置对应的列号
+        var lines:Array = this.text.substring(0, this.position).split("\n");
+        var lastLine:String = lines[lines.length - 1];
+        return lastLine.length + 1;
+    }
+
 }
