@@ -21,27 +21,27 @@
                 <EnemyGroup>
                     <Enemy id="0">
                         <Type>兵种122</Type>
-                        <Interval>600</Interval>
-                        <Quantity>4</Quantity>
-                        <Level>58</Level>
+                        <Interval>1200</Interval>
+                        <Quantity>6</Quantity>
+                        <Level>30</Level>
                     </Enemy>
                     <Enemy id="1">
                         <Type>兵种123</Type>
-                        <Interval>800</Interval>
-                        <Quantity>2</Quantity>
-                        <Level>58</Level>
+                        <Interval>1000</Interval>
+                        <Quantity>4</Quantity>
+                        <Level>30</Level>
                     </Enemy>
                     <Enemy id="2">
                         <Type>兵种124</Type>
                         <Interval>2000</Interval>
                         <Quantity>1</Quantity>
-                        <Level>58</Level>
+                        <Level>30</Level>
                     </Enemy>
                     <Enemy id="3">
                         <Type>兵种125</Type>
                         <Interval>3000</Interval>
                         <Quantity>1</Quantity>
-                        <Level>58</Level>
+                        <Level>30</Level>
                     </Enemy>
                 </EnemyGroup>
             </SubWave>
@@ -52,27 +52,27 @@
                 <EnemyGroup>
                     <Enemy id="0">
                         <Type>兵种122</Type>
-                        <Interval>600</Interval>
+                        <Interval>800</Interval>
                         <Quantity>4</Quantity>
-                        <Level>58</Level>
+                        <Level>35</Level>
                     </Enemy>
                     <Enemy id="1">
                         <Type>兵种123</Type>
                         <Interval>800</Interval>
-                        <Quantity>2</Quantity>
-                        <Level>58</Level>
+                        <Quantity>4</Quantity>
+                        <Level>35</Level>
                     </Enemy>
                     <Enemy id="2">
                         <Type>兵种124</Type>
                         <Interval>2000</Interval>
                         <Quantity>2</Quantity>
-                        <Level>58</Level>
+                        <Level>35</Level>
                     </Enemy>
                     <Enemy id="3">
                         <Type>兵种125</Type>
                         <Interval>3000</Interval>
                         <Quantity>1</Quantity>
-                        <Level>58</Level>
+                        <Level>35</Level>
                     </Enemy>
                 </EnemyGroup>
             </SubWave>
@@ -82,28 +82,16 @@
                 </WaveInformation>
                 <EnemyGroup>
                     <Enemy id="0">
-                        <Type>兵种122</Type>
-                        <Interval>600</Interval>
+                        <Type>兵种124</Type>
+                        <Interval>6000</Interval>
                         <Quantity>4</Quantity>
-                        <Level>58</Level>
+                        <Level>35</Level>
                     </Enemy>
                     <Enemy id="1">
-                        <Type>兵种123</Type>
-                        <Interval>800</Interval>
-                        <Quantity>3</Quantity>
-                        <Level>58</Level>
-                    </Enemy>
-                    <Enemy id="2">
-                        <Type>兵种124</Type>
-                        <Interval>2000</Interval>
-                        <Quantity>2</Quantity>
-                        <Level>58</Level>
-                    </Enemy>
-                    <Enemy id="3">
                         <Type>兵种125</Type>
-                        <Interval>3000</Interval>
-                        <Quantity>1</Quantity>
-                        <Level>58</Level>
+                        <Interval>6000</Interval>
+                        <Quantity>3</Quantity>
+                        <Level>35</Level>
                     </Enemy>
                 </EnemyGroup>
             </SubWave>
@@ -115,8 +103,52 @@
                     <Enemy id="0">
                         <Type>兵种126</Type>
                         <Interval>600</Interval>
-                        <Quantity>6</Quantity>
-                        <Level>58</Level>
+                        <Quantity>4</Quantity>
+                        <Level>35</Level>
+                    </Enemy>
+                </EnemyGroup>
+            </SubWave>
+            <SubWave id="4">
+                <WaveInformation>
+                    <Duration>0</Duration>
+                </WaveInformation>
+                <EnemyGroup>
+                    <Enemy id="0">
+                        <Type>兵种122</Type>
+                        <Interval>2000</Interval>
+                        <Quantity>5</Quantity>
+                        <Level>40</Level>
+                    </Enemy>
+                    <Enemy id="1">
+                        <Type>兵种123</Type>
+                        <Interval>2000</Interval>
+                        <Quantity>5</Quantity>
+                        <Level>40</Level>
+                    </Enemy>
+                    <Enemy id="2">
+                        <Type>兵种124</Type>
+                        <Interval>3000</Interval>
+                        <Quantity>3</Quantity>
+                        <Level>40</Level>
+                    </Enemy>
+                    <Enemy id="3">
+                        <Type>兵种125</Type>
+                        <Interval>3000</Interval>
+                        <Quantity>2</Quantity>
+                        <Level>40</Level>
+                    </Enemy>
+                </EnemyGroup>
+            </SubWave>
+            <SubWave id="5">
+                <WaveInformation>
+                    <Duration>0</Duration>
+                </WaveInformation>
+                <EnemyGroup>
+                    <Enemy id="0">
+                        <Type>兵种126</Type>
+                        <Interval>1000</Interval>
+                        <Quantity>5</Quantity>
+                        <Level>40</Level>
                     </Enemy>
                 </EnemyGroup>
             </SubWave>
