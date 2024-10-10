@@ -1090,11 +1090,11 @@
 
       "get_requirements": [-1],
       "get_conversation": "$GEM_HUNT_WITCH_GET",
-      "get_npc": "迷路的忍者",
+      "get_npc": "长生军战士",
 
       "finish_requirements": ["古战场#简单"],
       "finish_conversation": "$GEM_HUNT_WITCH_FINISH",
-      "finish_npc": "迷路的忍者",
+      "finish_npc": "长生军战士",
 
       "rewards": [
         "金币#130000",
