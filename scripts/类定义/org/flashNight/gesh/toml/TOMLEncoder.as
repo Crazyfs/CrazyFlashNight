@@ -1,4 +1,6 @@
-﻿class org.flashNight.gesh.toml.TOMLEncoder {
+﻿import org.flashNight.gesh.object.*;
+import org.flashNight.gesh.string.*;
+class org.flashNight.gesh.toml.TOMLEncoder {
     
     private var MAX_RECURSION_DEPTH:Number = 256; // 递归深度限制
 
@@ -167,10 +169,6 @@
                 // Encode as inline table
                 var encodedInline:String = this.encodeInlineTable(element);
                 result.push(encodedInline);
-            } else if (typeof(element) == "number") {
-                result.push(String(element));
-            } else if (typeof(element) == "boolean") {
-                result.push(element ? "true" : "false");
             } else {
                 var encodedVal:String = this.encodeValue(element);
                 result.push(encodedVal);
@@ -213,7 +211,7 @@
         if (typeof(value) == "string") {
             return this.encodeString(String(value));
         } else if (typeof(value) == "number") {
-            return String(value);
+            return this.encodeFloat(value);
         } else if (typeof(value) == "boolean") {
             return value ? "true" : "false";
         } else if (value instanceof Date) {
@@ -231,25 +229,41 @@
     }
 
     /**
+     * 编码浮点数，处理特殊数值
+     * @param value 浮点数值
+     * @return TOML 格式的浮点数字符串
+     */
+    private function encodeFloat(value:Number):String {
+        if (isNaN(value)) {
+            return "nan";
+        } else if (value == Infinity) {
+            return "inf";
+        } else if (value == -Infinity) {
+            return "-inf";
+        } else {
+            return String(value);
+        }
+    }
+
+    /**
      * 编码字符串，处理多行字符串和转义字符
      * @param value 字符串
      * @return TOML 格式的字符串
      */
     private function encodeString(value:String):String {
-        // 转义反斜杠和引号
-        value = value.split("\\").join("\\\\");
-        value = value.split("\"").join("\\\"");
-        value = value.split("\n").join("\\n");
-        value = value.split("\t").join("\\t");
         if (value.indexOf("\n") != -1) {
-            // 多行字符串
+            // 多行字符串，不转义换行符
             value = value.split('"""').join('\\"""'); // 转义三个引号
             return '"""' + value + '"""';
         } else {
+            // 转义反斜杠和引号
+            value = value.split("\\").join("\\\\");
+            value = value.split("\"").join("\\\"");
+            value = value.split("\n").join("\\n");
+            value = value.split("\t").join("\\t");
             return '"' + value + '"';
         }
     }
-
 
     /**
      * 编码日期时间

@@ -1,5 +1,5 @@
-﻿import org.flashNight.gesh.object.ObjectUtil;
-
+﻿import org.flashNight.gesh.object.*;
+import org.flashNight.gesh.string.*;
 class org.flashNight.gesh.toml.TOMLParser {
     private var tokens:Array;       // 词法分析器生成的标记列表
     private var position:Number;    // 当前标记位置
@@ -34,7 +34,7 @@ class org.flashNight.gesh.toml.TOMLParser {
                     this.position++;
                     break;
                 default:
-                    trace("TOMLParser.parse: 未处理的 token 类型: " + token.type);
+                    this.error("未处理的 token 类型: " + token.type, "");
                     this.position++;
                     break;
             }
@@ -47,6 +47,7 @@ class org.flashNight.gesh.toml.TOMLParser {
         trace("TOMLParser.parse: 解析完成");
         return this.root;
     }
+
 
     public function hasError():Boolean {
         return this.hasErrorFlag;
@@ -72,11 +73,8 @@ class org.flashNight.gesh.toml.TOMLParser {
         var value:Object = this.parseValue(valueToken);
         trace("TOMLParser.handleKey: 解析键 '" + key + "' 的值: " + ObjectUtil.toString(value));
 
-        if (value !== null) {
-            this.current[key] = value;
-        } else {
-            this.error("无法解析值", key);
-        }
+        // 允许 null 值，不再将其视为错误
+        this.current[key] = value;
 
         // 更新位置到值标记之后
         this.position = valuePos + 1;
@@ -90,19 +88,13 @@ class org.flashNight.gesh.toml.TOMLParser {
             case "INTEGER":
                 return Number(token.value);
             case "FLOAT":
-                return Number(token.value);
+                return this.parseSpecialFloat(token.value);
             case "BOOLEAN":
                 return token.value == true;
             case "DATETIME":
                 return token.value;
             case "ARRAY":
-                // 检查 token.value 是否已经是数组
-                if (token.value instanceof Array) {
-                    trace("TOMLParser.parseValue: 数组已解析");
-                    return token.value;
-                } else {
-                    return this.parseArray(token.value);
-                }
+                return this.parseArray(token.value);
             case "INLINE_TABLE":
                 return this.parseInlineTable(token.value);
             case "NULL":
@@ -110,6 +102,24 @@ class org.flashNight.gesh.toml.TOMLParser {
             default:
                 this.error("未知的值类型: " + token.type, "");
                 return null;
+        }
+    }
+
+    /**
+     * 解析特殊浮点数值
+     * @param value 字符串形式的浮点数值
+     * @return AS2 中的数值类型（NaN, Infinity, -Infinity）
+     */
+    private function parseSpecialFloat(value:String):Object {
+        switch (value) {
+            case "nan":
+                return NaN;
+            case "inf":
+                return Infinity;
+            case "-inf":
+                return -Infinity;
+            default:
+                return Number(value);
         }
     }
 
@@ -122,18 +132,8 @@ class org.flashNight.gesh.toml.TOMLParser {
             trace("TOMLParser.parseArray: arrayData 已经是数组");
             // 确保元素类型正确
             for (var i:Number = 0; i < arrayData.length; i++) {
-                var elem:Object = arrayData[i];
-                if (typeof(elem) == "string") {
-                    // 尝试转换为数值
-                    var num:Number = Number(elem);
-                    if (!isNaN(num)) {
-                        array.push(num);
-                    } else {
-                        array.push(elem);
-                    }
-                } else {
-                    array.push(elem);
-                }
+                var elem = arrayData[i];
+                array.push(elem);
             }
             return array;
         }
@@ -172,6 +172,12 @@ class org.flashNight.gesh.toml.TOMLParser {
                 array.push(this.stripQuotes(elem));  // 去掉引号的字符串
             } else if (elem == "true" || elem == "false") {
                 array.push(elem == "true");
+            } else if (elem == "nan") {
+                array.push(NaN);
+            } else if (elem == "inf") {
+                array.push(Infinity);
+            } else if (elem == "-inf") {
+                array.push(-Infinity);
             } else if (!isNaN(Number(elem))) {
                 array.push(Number(elem));
             } else {
@@ -213,6 +219,12 @@ class org.flashNight.gesh.toml.TOMLParser {
                 value = this.stripQuotes(valueStr);
             } else if (valueStr == "true" || valueStr == "false") {
                 value = valueStr == "true";
+            } else if (valueStr == "nan") {
+                value = NaN;
+            } else if (valueStr == "inf") {
+                value = Infinity;
+            } else if (valueStr == "-inf") {
+                value = -Infinity;
             } else if (!isNaN(Number(valueStr))) {
                 value = Number(valueStr);
             } else {

@@ -1,4 +1,6 @@
-﻿class org.flashNight.gesh.toml.TOMLLexer {
+﻿import org.flashNight.gesh.object.*;
+import org.flashNight.gesh.string.*;
+class org.flashNight.gesh.toml.TOMLLexer {
     private var text:String;          // TOML 文件内容
     private var position:Number;      // 当前字符位置
     private var currentChar:String;   // 当前处理的字符
@@ -58,33 +60,44 @@
 
             var token:Object = {};
 
-            if (this.isAlpha(this.currentChar)) {
-                var keyword:String = this.readKey().value;
-                if (keyword == "true" || keyword == "false") {
-                    token = { type: "BOOLEAN", value: (keyword == "true") };
-                    this.inValue = false;
-                } else if (keyword == "null") {
-                    token = { type: "NULL", value: null };
-                    this.inValue = false;
+            // 识别键名（仅字母、数字和下划线）
+            if (this.isAlpha(this.currentChar) || this.currentChar == "_") {
+                var identifier:String = this.readIdentifier();
+                var lowerIdentifier:String = identifier.toLowerCase();
+
+                // 检查是否为特殊值
+                if (lowerIdentifier == "true" || lowerIdentifier == "false") {
+                    return { type: "BOOLEAN", value: (lowerIdentifier == "true") };
+                } else if (lowerIdentifier == "nan" || lowerIdentifier == "inf") {
+                    return { type: "FLOAT", value: lowerIdentifier };
+                } else if (lowerIdentifier == "null") {
+                    return { type: "NULL", value: null };
                 } else {
-                    token = { type: "KEY", value: keyword };
-                    this.inValue = false;
+                    // 是一个常规键
+                    return { type: "KEY", value: identifier };
                 }
-                return token;
-            } else if (this.currentChar == "=") {
+            } 
+            // 识别等号
+            else if (this.currentChar == "=") {
                 token = { type: "EQUALS", value: "=" };
                 this.nextChar();
                 this.inValue = true;
                 return token;
-            } else if (this.currentChar == "\"" || this.currentChar == "'") {
+            } 
+            // 识别字符串
+            else if (this.currentChar == "\"" || this.currentChar == "'") {
                 token = this.readString();
                 this.inValue = false;
                 return token;
-            } else if (this.isDigit(this.currentChar) || this.currentChar == "-") {
+            } 
+            // 识别数字或日期时间
+            else if (this.isDigit(this.currentChar) || (this.currentChar == "-" && this.inValue)) {
                 token = this.readNumberOrDate();
                 this.inValue = false;
                 return token;
-            } else if (this.currentChar == "[") {
+            } 
+            // 识别表格或数组
+            else if (this.currentChar == "[") {
                 if (this.inValue) {
                     token = this.readArray(); // 解析为数组
                 } else {
@@ -92,17 +105,39 @@
                 }
                 this.inValue = false;
                 return token;
-            } else if (this.currentChar == "{") {
+            } 
+            // 识别内联表格
+            else if (this.currentChar == "{") {
                 token = this.readInlineTable(); // 解析内联表格
                 this.inValue = false;
                 return token;
-            } else {
-                this.error("未知的标记类型");
+            } 
+            // 其他未知字符
+            else {
+                this.error("未知的标记类型: " + this.currentChar);
+                this.nextChar();
                 return null;
             }
         }
 
         return null;
+    }
+
+
+    // 读取标识符，包括可能的负号
+    private function readIdentifier():String {
+        var identifier:String = "";
+        // 首字符应为字母或下划线
+        if (this.isAlpha(this.currentChar) || this.currentChar == "_") {
+            while (this.isAlphaNumeric(this.currentChar) || this.currentChar == "_" || this.currentChar == "-") {
+                identifier += this.currentChar;
+                this.nextChar();
+            }
+        } else {
+            this.error("无效的标识符起始字符: " + this.currentChar);
+            this.nextChar();
+        }
+        return identifier;
     }
 
     // 读取键名
@@ -176,7 +211,8 @@
             }
             if (this.currentChar == "\\") {
                 // 处理转义字符
-                str += this.handleEscapeSequences("\\" + this.peek());
+                var escapeSeq:String = "\\" + this.peek();
+                str += this.handleEscapeSequences(escapeSeq);
                 this.nextChar(); // 跳过反斜杠
                 this.nextChar(); // 跳过转义字符
             } else {
@@ -198,11 +234,32 @@
         var number:String = "";
         var isFloat:Boolean = false;
 
+        // 检查是否为特殊浮点数
+        if (this.currentChar == "-" && (this.peek() == "i" || this.peek() == "n")) {
+            number += "-";
+            this.nextChar();
+        }
+
+        // 检查是否为特殊浮点数（nan、inf、-inf）
+        if ((number == "-" && this.currentChar == "i") || this.currentChar == "i" || this.currentChar == "n") {
+            var identifier:String = this.readIdentifier();
+            var lowerIdentifier:String = number + identifier.toLowerCase();
+
+            if (lowerIdentifier == "nan" || lowerIdentifier == "inf" || lowerIdentifier == "-inf") {
+                return { type: "FLOAT", value: lowerIdentifier };
+            } else {
+                this.error("未知的特殊浮点数: " + lowerIdentifier);
+                return { type: "INVALID", value: lowerIdentifier };
+            }
+        }
+
+        // 读取负号（如果存在）
         if (this.currentChar == "-") {  
             number += "-";
             this.nextChar();
         }
 
+        // 读取数字部分
         while (this.isDigit(this.currentChar) || this.currentChar == "_") {
             if (this.currentChar != "_") { // 忽略下划线
                 number += this.currentChar;
@@ -230,6 +287,7 @@
         
         return { type: isFloat ? "FLOAT" : "INTEGER", value: number };
     }
+
 
     // 读取日期时间
     private function readDateTime(initial:String):Object {
@@ -263,9 +321,26 @@
                 element = this.readString();
             } else if (this.isDigit(this.currentChar) || this.currentChar == "-") {
                 element = this.readNumberOrDate();
+            } else if (this.currentChar == "n" || this.currentChar == "i" || this.currentChar == "-") {
+                // 处理特殊数值 nan, inf, -inf
+                var startPos:Number = this.position - 1;
+                var identifier:String = this.readIdentifier();
+                var lowerIdentifier:String = identifier.toLowerCase();
+
+                if (lowerIdentifier == "nan" || lowerIdentifier == "inf") {
+                    if (identifier.charAt(0) == "-") {
+                        element = { type: "FLOAT", value: "-inf" };
+                    } else {
+                        element = { type: "FLOAT", value: lowerIdentifier };
+                    }
+                } else {
+                    this.error("无效的数组元素: " + identifier);
+                    element = { type: "INVALID", value: identifier };
+                }
             } else {
                 this.error("无效的数组元素");
-                break;
+                element = { type: "INVALID", value: this.currentChar };
+                this.nextChar();
             }
 
             array.push(element.value);
@@ -303,13 +378,21 @@
         // 检查是否为表格数组（开始于第二个 '['）
         if (this.currentChar == "[") {
             this.nextChar(); // 跳过第二个 '['
-            while (this.currentChar != "]" || this.peek() != "]") {
+            this.skipWhitespaceAndComments(); // 跳过空白字符和注释
+
+            while (this.currentChar != null && !(this.currentChar == "]" && this.peek() == "]")) {
                 tableName += this.currentChar;
                 this.nextChar();
             }
-            this.nextChar(); // 跳过第一个 ']'
-            this.nextChar(); // 跳过第二个 ']'
-            return { type: "TABLE_ARRAY", value: tableName };
+
+            if (this.currentChar == "]" && this.peek() == "]") {
+                this.nextChar(); // 跳过第一个 ']'
+                this.nextChar(); // 跳过第二个 ']'
+                trace("TOMLLexer.readTableHeader: 识别为 TABLE_ARRAY - " + StringUtils.trim(tableName));
+            } else {
+                this.error("未正确关闭的表格数组");
+            }
+            return { type: "TABLE_ARRAY", value: StringUtils.trim(tableName) };
         }
 
         // 否则，解析为普通表格
@@ -318,9 +401,19 @@
             this.nextChar();
         }
 
-        this.nextChar(); // 跳过 ']'
-        return { type: "TABLE_HEADER", value: tableName };
+        if (this.currentChar == "]") {
+            this.nextChar(); // 跳过 ']'
+            trace("TOMLLexer.readTableHeader: 识别为 TABLE_HEADER - " + StringUtils.trim(tableName));
+            return { type: "TABLE_HEADER", value: StringUtils.trim(tableName) };
+        } else {
+            this.error("未正确关闭的表格头");
+            return null;
+        }
     }
+
+
+
+
 
     // 检查字符是否为字母
     private function isAlpha(c:String):Boolean {
@@ -329,7 +422,7 @@
 
     // 检查字符是否为字母或数字
     private function isAlphaNumeric(c:String):Boolean {
-        return this.isAlpha(c) || (c >= "0" && c <= "9");
+        return this.isAlpha(c) || (c >= "0" && c <= "9") || c == "_";
     }
 
     // 检查字符是否为数字
@@ -355,6 +448,6 @@
 
     // 抛出错误
     private function error(message:String):Void {
-        trace("Error: " + message);
+        trace("Error: " + message + " 在字符位置: " + (this.position - 1));
     }
 }

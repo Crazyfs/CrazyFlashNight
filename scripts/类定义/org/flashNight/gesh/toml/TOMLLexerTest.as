@@ -128,7 +128,7 @@
                         ip: "192.168.1.1",
                         database: {
                             type: "PostgreSQL",
-                            ports: [5432, 5433, 5434], // 数值类型
+                            ports: [5432, 5433, 5434],
                             settings: {
                                 enabled: true
                             }
@@ -164,19 +164,20 @@
                       'ports = [8001, 8001, 8002]\n' +
                       'connection_max = 5000\n' +
                       'enabled = true\n',
-                expected: 'owner = { dob = "1979-05-27", name = "Tom" }\n' +
-                          'title = "TOML Example"\n' +
-                          '[[products]]\n' +
-                          'name = "Hammer"\n' +
-                          'sku = 738594937\n' +
-                          '[[products]]\n' +
-                          'name = "Nail"\n' +
-                          'sku = 284758393\n' +
-                          '[database]\n' +
-                          'connection_max = 5000\n' +
-                          'enabled = true\n' +
-                          'ports = [8001, 8001, 8002]\n' +
-                          'server = "192.168.1.1"\n'
+                expected: {
+                    title: "TOML Example",
+                    owner: { name: "Tom", dob: "1979-05-27" },
+                    products: [
+                        { name: "Hammer", sku: 738594937 },
+                        { name: "Nail", sku: 284758393 }
+                    ],
+                    database: {
+                        server: "192.168.1.1",
+                        ports: [8001, 8001, 8002],
+                        connection_max: 5000,
+                        enabled: true
+                    }
+                }
             },
             {   // Test case 9: Unicode characters
                 text: 'greeting = "こんにちは"\nemoji = "😊"\n',
@@ -215,28 +216,36 @@
                       '[[users]]\n' +
                       'name = "user2"\n' +
                       'active = false\n',
-                expected: '[[users]]\n' +
-                          'active = true\n' +
-                          'name = "user1"\n' +
-                          '[[users]]\n' +
-                          'active = false\n' +
-                          'name = "user2"\n' +
-                          '[server]\n' +
-                          'connection_max = 5000\n' +
-                          'enabled = true\n' +
-                          'host = "localhost"\n' +
-                          'ports = [8000, 8001, 8002]\n' +
-                          '[[owners]]\n' +
-                          'dob = "1990-01-01"\n' +
-                          'name = "Alice"\n' +
-                          '[[owners]]\n' +
-                          'dob = "1985-05-12"\n' +
-                          'name = "Bob"\n' +
-                          '[database]\n' +
-                          'connection_max = 10000\n' +
-                          'enabled = false\n' +
-                          'ports = [3306]\n' +
-                          'server = "192.168.1.100"\n'
+                expected: {
+                    server: {
+                        host: "localhost",
+                        ports: [8000, 8001, 8002],
+                        connection_max: 5000,
+                        enabled: true
+                    },
+                    owners: [
+                        { name: "Alice", dob: "1990-01-01" },
+                        { name: "Bob", dob: "1985-05-12" }
+                    ],
+                    database: {
+                        server: "192.168.1.100",
+                        ports: [3306],
+                        connection_max: 10000,
+                        enabled: false
+                    },
+                    users: [
+                        { name: "user1", active: true },
+                        { name: "user2", active: false }
+                    ]
+                }
+            },
+            {   // Test case 12: Special number formats in AS2
+                text: 'special_float_1 = nan\nspecial_float_2 = inf\nspecial_float_3 = -inf\n',
+                expected: {
+                    special_float_1: NaN,  // AS2 should handle this as NaN
+                    special_float_2: Infinity,  // Positive infinity
+                    special_float_3: -Infinity  // Negative infinity
+                }
             }
         ];
     }
@@ -310,7 +319,7 @@
                           'negative_float = -3.14\n' +
                           'negative_integer = -42\n'
             },
-            {   // 更新测试用例 4: 空值处理
+            {   // Test case 4: Empty values
                 input: {
                     empty_string: "",
                     empty_array: [],
@@ -451,6 +460,14 @@
                           'enabled = false\n' +
                           'ports = [3306]\n' +
                           'server = "192.168.1.100"\n'
+            },
+            {   // Test case 12: Special number formats
+                input: {
+                    special_float_1: NaN,
+                    special_float_2: Infinity,
+                    special_float_3: -Infinity
+                },
+                expected: 'special_float_1 = nan\nspecial_float_2 = inf\nspecial_float_3 = -inf\n'
             }
         ];
     }
@@ -463,26 +480,72 @@
      */
     private function compareResults(actual:Object, expected:Object, depth:Number):Void {
         if (depth > this.MAX_RECURSION_DEPTH) {
-            trace("Exceeded max recursion depth. Stopping comparison.");
+            trace("超过最大递归深度，停止比较。");
             return;
         }
 
-        for (var key:String in expected) {
-            if (typeof(expected[key]) == "object" && expected[key] !== null) {
-                if (typeof(actual[key]) != "object" || actual[key] === null) {
-                    trace("Mismatch on key: " + key + ", expected an object, but got " + actual[key]);
-                    continue;
-                }
-                this.compareResults(actual[key], expected[key], depth + 1);
-            } else {
-                if (actual[key] !== expected[key]) {
-                    trace("Mismatch on key: " + key + ", expected: " + expected[key] + ", actual: " + actual[key]);
+        if (this.isArray(expected) && this.isArray(actual)) {
+            // 数组比较
+            if (expected.length != actual.length) {
+                trace("数组长度不匹配，预期: " + expected.length + "，实际: " + actual.length);
+                return;
+            }
+            for (var i:Number = 0; i < expected.length; i++) {
+                if (typeof(expected[i]) == "object" && expected[i] !== null) {
+                    this.compareResults(actual[i], expected[i], depth + 1);
+                } else if (expected[i] !== null && typeof(expected[i]) === "number" && isNaN(expected[i])) {
+                    if (isNaN(actual[i])) {
+                        trace("数组索引 " + i + ": 通过 (NaN 比较)。");
+                    } else {
+                        trace("数组索引 " + i + ": 不匹配，预期: NaN，实际: " + actual[i]);
+                    }
                 } else {
-                    trace("Key: " + key + " passed.");
+                    if (actual[i] !== expected[i]) {
+                        trace("数组索引 " + i + ": 不匹配，预期: " + expected[i] + "，实际: " + actual[i]);
+                    } else {
+                        trace("数组索引 " + i + ": 通过。");
+                    }
                 }
+            }
+        } else if (typeof(expected) == "object" && expected !== null) {
+            // 对象比较
+            for (var key:String in expected) {
+                if (typeof(expected[key]) == "object" && expected[key] !== null) {
+                    if (typeof(actual[key]) != "object" || actual[key] === null) {
+                        trace("键不匹配: " + key + "，预期为对象，但实际为 " + actual[key]);
+                        continue;
+                    }
+                    this.compareResults(actual[key], expected[key], depth + 1);
+                } else if (expected[key] !== null && typeof(expected[key]) === "number" && isNaN(expected[key])) {
+                    if (isNaN(actual[key])) {
+                        trace("键: " + key + " 通过 (NaN 比较)。");
+                    } else {
+                        trace("键: " + key + " 不匹配，预期: NaN，实际: " + actual[key]);
+                    }
+                } else {
+                    if (actual[key] !== expected[key]) {
+                        trace("键不匹配: " + key + "，预期: " + expected[key] + "，实际: " + actual[key]);
+                    } else {
+                        trace("键: " + key + " 通过。");
+                    }
+                }
+            }
+        } else {
+            // 基本类型比较
+            if (actual !== expected) {
+                trace("值不匹配，预期: " + expected + "，实际: " + actual);
+            } else {
+                trace("值通过。");
             }
         }
     }
+
+    // 添加辅助方法判断是否为数组
+    private function isArray(value:Object):Boolean {
+        return value instanceof Array;
+    }
+
+
 
     /**
      * 比较编码后的 TOML 输出与预期输出
@@ -515,14 +578,3 @@
         return input;
     }
 }
-
-
-/*
-
-// 导入相关类 (AS2 中没有真正的 import 语法，使用类的完整路径即可)
-var test:org.flashNight.gesh.toml.TOMLLexerTest = new org.flashNight.gesh.toml.TOMLLexerTest();
-
-// 调用测试方法，运行所有测试用例
-test.runAllTests();
-
-*/
